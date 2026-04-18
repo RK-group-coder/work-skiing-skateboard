@@ -65,7 +65,7 @@ const Features: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 lg:gap-8 pt-10">
           {plans.map((p, i) => (
             <motion.div
               key={i}
