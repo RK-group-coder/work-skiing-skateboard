@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { motion } from 'framer-motion';
-import { Check, Star } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const Features: React.FC = () => {
   const { mode } = useTheme();
