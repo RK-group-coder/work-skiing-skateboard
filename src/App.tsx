@@ -34,7 +34,7 @@ const CourseTrust: React.FC = () => {
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-text text-bg py-24 mt-20">
+    <footer className="bg-[#1a1a1a] text-white py-24 mt-20">
       <div className="container px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 md:col-span-2">
