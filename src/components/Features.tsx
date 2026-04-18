@@ -74,7 +74,7 @@ const Features: React.FC = () => {
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true }}
               className={`relative bg-white p-8 rounded-[40px] shadow-xl transition-all duration-300 flex flex-col ${
-                p.popular ? 'ring-2 ring-primary scale-105 md:scale-110 z-10' : 'bg-opacity-80'
+                p.popular ? 'md:ring-2 md:ring-primary scale-105 md:scale-110 z-10' : 'bg-opacity-80'
               }`}
             >
               {p.popular && (
