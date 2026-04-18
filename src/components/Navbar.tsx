@@ -10,7 +10,7 @@ const Navbar: React.FC = () => {
   return (
     <>
       {/* Mobile Header (Solid) */}
-      <header className={`md:hidden fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 transition-colors duration-500 ${
+      <header className={`md:hidden fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 transition-colors duration-300 ${
         mode === 'skiing' ? 'mobile-header-skiing' : 'mobile-header-skateboard'
       }`}>
         <div className="flex items-center text-white font-black text-xl tracking-tighter">
@@ -66,7 +66,10 @@ const Navbar: React.FC = () => {
               <a href="#" onClick={() => setIsMenuOpen(false)}>首頁</a>
               <a href="#courses" onClick={() => setIsMenuOpen(false)}>專業課程</a>
               <a href="#shop" onClick={() => setIsMenuOpen(false)}>購物商城</a>
-              <div className="pt-8 border-t flex justify-between items-center" onClick={toggleMode}>
+              <div className="pt-8 border-t flex justify-between items-center" onClick={() => {
+                toggleMode();
+                setIsMenuOpen(false);
+              }}>
                 <span>切換主題</span>
                 <div className="w-16 h-8 bg-black/10 rounded-full relative flex items-center px-1">
                   <motion.div animate={{ x: mode === 'skiing' ? 0 : 32 }} className="w-6 h-6 bg-primary rounded-full transition-colors" />
