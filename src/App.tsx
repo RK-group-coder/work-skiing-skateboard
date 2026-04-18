@@ -1,5 +1,6 @@
 import React from 'react';
 import { ThemeProvider } from './hooks/ThemeProvider';
+import { useTheme } from './hooks/useTheme';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Features from './components/Features';
