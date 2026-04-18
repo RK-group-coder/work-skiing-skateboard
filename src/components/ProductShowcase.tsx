@@ -92,10 +92,10 @@ const ProductShowcase: React.FC = () => {
               </div>
 
               <div>
-                <div className="inline-block px-2 py-0.5 bg-gray-100 rounded text-[10px] font-bold mb-2 opacity-70">
+                <div className="inline-block px-2 py-0.5 bg-gray-100 rounded text-[10px] font-bold mb-2 text-gray-500">
                   {p.tag}
                 </div>
-                <h3 className="text-sm md:text-2xl font-black mb-1 line-clamp-1">{p.name}</h3>
+                <h3 className="text-sm md:text-2xl font-black mb-1 line-clamp-1 text-gray-900">{p.name}</h3>
                 <div className="text-lg md:text-2xl font-black text-[#e50012]">
                   NT$ {p.price}
                 </div>
