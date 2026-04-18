@@ -65,7 +65,7 @@ const Features: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 lg:gap-8 pt-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 lg:gap-8">
           {plans.map((p, i) => (
             <motion.div
               key={i}
@@ -77,11 +77,6 @@ const Features: React.FC = () => {
                 p.popular ? 'md:ring-2 md:ring-primary md:scale-110 z-10' : 'bg-opacity-80'
               }`}
             >
-              {p.popular && (
-                <div className="hidden md:flex absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold items-center gap-1">
-                  <Star size={12} fill="currentColor" /> 最受歡迎
-                </div>
-              )}
 
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{p.name}</h3>
