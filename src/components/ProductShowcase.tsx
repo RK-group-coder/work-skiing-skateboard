@@ -37,11 +37,11 @@ const ProductShowcase: React.FC = () => {
     <section id="shop" className="py-20 md:py-32 bg-white">
       <div className="container px-4">
         {/* Mobile Header */}
-        <div className="md:hidden text-center mb-12">
-          <h2 className="text-4xl font-black mb-4">
+        <div className="md:hidden text-center mb-10 pt-4">
+          <h2 className="text-4xl font-black mb-3 text-gray-900">
             {mode === 'skiing' ? '滑雪裝備商店' : '電動滑板商店'}
           </h2>
-          <p className="text-text-muted">
+          <p className="text-gray-500 font-medium">
             {mode === 'skiing' ? '頂級滑雪裝備，讓你征服每一座雪山' : '頂級電動滑板裝備，體驗極速快感'}
           </p>
         </div>

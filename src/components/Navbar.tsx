@@ -62,11 +62,11 @@ const Navbar: React.FC = () => {
               <h2 className="text-2xl font-black">選單</h2>
               <button onClick={() => setIsMenuOpen(false)}><X size={32} /></button>
             </div>
-            <div className="flex flex-col gap-8 text-2xl font-bold">
+            <div className="flex flex-col gap-8 text-2xl font-bold text-gray-900">
               <a href="#" onClick={() => setIsMenuOpen(false)}>首頁</a>
               <a href="#courses" onClick={() => setIsMenuOpen(false)}>專業課程</a>
               <a href="#shop" onClick={() => setIsMenuOpen(false)}>購物商城</a>
-              <div className="pt-8 border-t flex justify-between items-center" onClick={() => {
+              <div className="pt-8 border-t border-gray-100 flex justify-between items-center" onClick={() => {
                 toggleMode();
                 setIsMenuOpen(false);
               }}>
