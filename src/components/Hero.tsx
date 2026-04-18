@@ -72,13 +72,13 @@ const Hero: React.FC = () => {
           transition={{ delay: 0.3 }}
           className="flex flex-col md:flex-row items-center justify-center gap-4 w-full px-6"
         >
-          <button className="mobile-btn-primary md:w-auto md:px-12 md:py-4">
+          <a href="#courses" className="mobile-btn-primary md:w-auto md:px-12 md:py-4 flex items-center justify-center">
             查看課程 <span className="ml-2">→</span>
-          </button>
-          <button className="mobile-btn-glass md:w-auto md:px-12 md:py-4">
+          </a>
+          <a href="#shop" className="mobile-btn-glass md:w-auto md:px-12 md:py-4 flex items-center justify-center">
             <span className="mr-2">選購裝備</span>
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          </button>
+          </a>
         </motion.div>
       </div>
 
