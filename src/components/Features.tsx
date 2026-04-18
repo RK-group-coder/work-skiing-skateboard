@@ -74,11 +74,11 @@ const Features: React.FC = () => {
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true }}
               className={`relative bg-white p-8 rounded-[40px] shadow-xl transition-all duration-300 flex flex-col ${
-                p.popular ? 'md:ring-2 md:ring-primary scale-105 md:scale-110 z-10' : 'bg-opacity-80'
+                p.popular ? 'md:ring-2 md:ring-primary md:scale-110 z-10' : 'bg-opacity-80'
               }`}
             >
               {p.popular && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                <div className="hidden md:flex absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold items-center gap-1">
                   <Star size={12} fill="currentColor" /> 最受歡迎
                 </div>
               )}
