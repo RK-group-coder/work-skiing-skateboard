@@ -1,50 +1,110 @@
 import React from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { motion } from 'framer-motion';
-import { Shield, Zap, Compass } from 'lucide-react';
+import { Check, Star } from 'lucide-react';
 
 const Features: React.FC = () => {
   const { mode } = useTheme();
 
-  const features = [
+  const plans = mode === 'skiing' ? [
     {
-      icon: <Shield className="w-8 h-8 text-primary" />,
-      title: mode === 'skiing' ? '專業安全保障' : '極致穩定性能',
-      desc: mode === 'skiing' ? '所有裝備均經過嚴格安全測試，課程由專業教練領軍。' : '採用最新平衡感應技術，即使高速行駛也能保持穩定。'
+      name: '初心者體驗班',
+      price: '2,500',
+      period: '單堂 (3小時)',
+      features: ['裝備全額租借', '基礎平衡教學', '緩坡滑行練習', '專業教練指導'],
+      popular: false
     },
     {
-      icon: <Zap className="w-8 h-8 text-primary" />,
-      title: mode === 'skiing' ? '頂級裝備租賃' : '強力電池續航',
-      desc: mode === 'skiing' ? '提供國際知名品牌滑雪板與保暖衣物，輕量且高性能。' : '配備高密度鋰電池，充電一次可續航 40 公里以上。'
+      name: '進階技巧營',
+      price: '8,800',
+      period: '三日密集',
+      features: ['平行轉向技術', 'S型路徑優化', '煞車進階控制', '附贈午餐與證書'],
+      popular: true
     },
     {
-      icon: <Compass className="w-8 h-8 text-primary" />,
-      title: mode === 'skiing' ? '秘境雪道導引' : '全地形適應力',
-      desc: mode === 'skiing' ? '帶領你前往極少人知的天然雪場，享受未經開發的粉雪。' : '越野級輪胎配置，無論是砂石路還是斜坡都能輕鬆應對。'
+      name: '大師專業特訓',
+      price: '15,000',
+      period: '二日 1對1',
+      features: ['全山地形攻略', '私人錄影分析', '不限次數裝借', 'VIP 專屬休息室'],
+      popular: false
+    }
+  ] : [
+    {
+      name: '城市滑行入門',
+      price: '1,200',
+      period: '單堂 (2小時)',
+      features: ['電板基礎操作', '煞車感應練習', '城市路況解說', '安全護具提供'],
+      popular: false
+    },
+    {
+      name: '電能技術工坊',
+      price: '4,500',
+      period: '二日特訓',
+      features: ['高速過彎技巧', 'APP 參數調教', '長途續航规划', '保養維護課程'],
+      popular: true
+    },
+    {
+      name: '越野大師挑戰',
+      price: '9,800',
+      period: '全地形課程',
+      features: ['砂石路段攻克', '陡坡攀爬訓練', '越野專用裝備單', '社群榮譽勳章'],
+      popular: false
     }
   ];
 
   return (
-    <section className="py-24 bg-secondary transition-colors duration-500">
-      <div className="container">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          {features.map((f, i) => (
+    <section id="courses" className="py-24 bg-secondary transition-colors duration-500 overflow-hidden">
+      <div className="container px-4">
+        <div className="text-center mb-16 px-4">
+          <span className="text-primary font-bold tracking-widest uppercase text-sm mb-4 block">熱門選擇</span>
+          <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">絕配您的滑行方案</h2>
+          <p className="max-w-2xl mx-auto text-gray-500">無論您是初出茅廬的新手，還是追求極致的專家，我們都有為您量身打造的課程。</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 lg:gap-8">
+          {plans.map((p, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true }}
-              className="bg-bg p-10 rounded-3xl shadow-xl shadow-black/5 hover:shadow-2xl transition-all duration-300 relative group overflow-hidden"
+              className={`relative bg-white p-8 rounded-[40px] shadow-xl transition-all duration-300 flex flex-col ${
+                p.popular ? 'ring-2 ring-primary scale-105 md:scale-110 z-10' : 'bg-opacity-80'
+              }`}
             >
-              <div className="relative z-10">
-                <div className="bg-primary/10 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                  {f.icon}
+              {p.popular && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                  <Star size={12} fill="currentColor" /> 最受歡迎
                 </div>
-                <h3 className="text-2xl font-bold mb-4">{f.title}</h3>
-                <p className="text-text-muted leading-relaxed">{f.desc}</p>
+              )}
+
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{p.name}</h3>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-gray-900">NT${p.price}</span>
+                  <span className="text-sm text-gray-400">/ {p.period}</span>
+                </div>
               </div>
-              <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-primary/5 rounded-full group-hover:scale-150 transition-transform duration-500" />
+
+              <ul className="flex-1 space-y-4 mb-8">
+                {p.features.map((feat, idx) => (
+                  <li key={idx} className="flex items-center gap-3 text-sm text-gray-600">
+                    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Check size={12} className="text-primary" strokeWidth={3} />
+                    </div>
+                    {feat}
+                  </li>
+                ))}
+              </ul>
+
+              <button className={`w-full py-4 rounded-2xl font-bold transition-all ${
+                p.popular 
+                ? 'bg-primary text-white shadow-lg shadow-primary/30 hover:brightness-110' 
+                : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+              }`}>
+                立即報名
+              </button>
             </motion.div>
           ))}
         </div>
