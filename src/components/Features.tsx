@@ -98,11 +98,14 @@ const Features: React.FC = () => {
                 ))}
               </ul>
 
-              <button className={`w-full py-4 rounded-2xl font-bold transition-all ${
-                p.popular 
-                ? 'bg-primary text-white shadow-lg shadow-primary/30 hover:brightness-110' 
-                : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-              }`}>
+              <button 
+                className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 text-white ${
+                  p.popular 
+                  ? 'shadow-primary/30 hover:brightness-110 scale-105 md:scale-100' 
+                  : 'shadow-black/5 hover:brightness-110'
+                }`}
+                style={{ background: 'var(--primary-gradient)' }}
+              >
                 立即報名
               </button>
             </motion.div>
