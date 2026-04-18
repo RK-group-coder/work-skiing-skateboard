@@ -7,6 +7,7 @@ import ProductShowcase from './components/ProductShowcase';
 import { Award, ShieldCheck, Users, Heart } from 'lucide-react';
 
 const CourseTrust: React.FC = () => {
+  const { mode } = useTheme();
   const items = [
     { icon: <Award />, text: '教練十年資歷' },
     { icon: <ShieldCheck />, text: '國際專業證照' },
@@ -23,7 +24,9 @@ const CourseTrust: React.FC = () => {
               <div className="text-primary bg-primary/10 p-4 rounded-2xl">
                 {item.icon}
               </div>
-              <span className="text-lg md:text-xl font-bold text-gray-900">{item.text}</span>
+              <span className={`text-lg md:text-xl font-bold ${mode === 'skiing' ? 'text-gray-900' : 'text-white'}`}>
+                {item.text}
+              </span>
             </div>
           ))}
         </div>

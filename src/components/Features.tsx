@@ -57,8 +57,12 @@ const Features: React.FC = () => {
       <div className="container px-4">
         <div className="text-center mb-16 px-4">
           <span className="text-primary font-bold tracking-widest uppercase text-sm mb-4 block">熱門選擇</span>
-          <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6">絕配您的滑行方案</h2>
-          <p className="max-w-2xl mx-auto text-gray-500">無論您是初出茅廬的新手，還是追求極致的專家，我們都有為您量身打造的課程。</p>
+          <h2 className={`text-4xl md:text-5xl font-black mb-6 ${mode === 'skiing' ? 'text-gray-900' : 'text-white'}`}>
+            絕配您的滑行方案
+          </h2>
+          <p className={`max-w-2xl mx-auto ${mode === 'skiing' ? 'text-gray-500' : 'text-gray-300'}`}>
+            無論您是初出茅廬的新手，還是追求極致的專家，我們都有為您量身打造的課程。
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 lg:gap-8">
