@@ -7,7 +7,7 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // High-Vibrancy Neon Colors for Fluor. Effect
+  // High-Vibrancy Solid Neon Colors
   const neonBlue = '#00f2ff';
   const neonRed = '#ff3131';
 
@@ -125,7 +125,7 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Floating App-like Bar) */}
+      {/* Mobile Bottom Navigation (Compact Unified Style) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm px-2">
         <div className={`glass-pill backdrop-blur-2xl border px-2 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/60 border-white/40 text-slate-900' : 'bg-black/60 border-white/10 text-white'
@@ -142,44 +142,44 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Aligned with Nav Elements) */}
-          <div className="relative -translate-y-1.5 flex items-center justify-center w-20 h-20">
-            {/* FLUORESCENT SPINNER LAYER */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Compact & Sharp) */}
+          <div className="relative -translate-y-0.5 flex items-center justify-center w-16 h-16">
+            {/* SHARP LASER SPINNER (Smaller area, more solid color) */}
             <div 
-              className="absolute inset-0 rounded-full animate-spin"
+              className="absolute inset-[2px] rounded-full animate-spin"
               style={{ 
-                background: `conic-gradient(from 0deg, transparent 15%, ${neonRed} 25%, transparent 35%, transparent 65%, ${neonBlue} 75%, transparent 85%)`,
+                background: `conic-gradient(from 0deg, transparent 22%, ${neonRed} 25%, transparent 28%, transparent 72%, ${neonBlue} 75%, transparent 78%)`,
                 animationDuration: '1.2s',
-                filter: 'blur(10px) drop-shadow(0 0 8px #ff3131) drop-shadow(0 0 8px #00f2ff)',
-                opacity: 0.9
+                filter: 'blur(4px) drop-shadow(0 0 4px #ff3131) drop-shadow(0 0 4px #00f2ff)',
+                opacity: 1
               }}
             />
             
             <button 
               onClick={toggleMode}
-              className="w-16 h-16 rounded-full flex flex-col items-center justify-center active:scale-95 transition-all border-[3px] border-white/60 relative z-10 overflow-hidden shadow-xl"
+              className="w-[52px] h-[52px] rounded-full flex flex-col items-center justify-center active:scale-95 transition-all border-[2px] border-white/80 relative z-10 overflow-hidden shadow-lg"
               style={{ 
                 background: silverGradient,
-                boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 5px 15px rgba(0,0,0,0.2)'
+                boxShadow: 'inset 0 1.5px 3px rgba(255,255,255,1), 0 3px 10px rgba(0,0,0,0.15)'
               }}
             >
-              {/* athlete icon - Multi-layer background blend */}
+              {/* athlete icon */}
               <div 
                 className="w-full h-full absolute inset-0 transition-transform"
                 style={{ 
                   animation: 'icon-jiggle 3s infinite',
                   backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`,
-                  backgroundSize: '60%',
-                  backgroundPosition: 'center 25%', 
+                  backgroundSize: '55%',
+                  backgroundPosition: 'center 20%', 
                   backgroundRepeat: 'no-repeat',
                   backgroundBlendMode: 'multiply',
                   borderRadius: '50%',
                   clipPath: 'circle(48.5%)'
                 }}
               />
-              {/* Internal Label */}
-              <div className="absolute bottom-1.5 w-full text-center z-20 pointer-events-none">
-                <span className="text-[9.5px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm">
+              {/* Internal Label - Smaller font for compact button */}
+              <div className="absolute bottom-1 w-full text-center z-20 pointer-events-none px-1">
+                <span className="text-[8px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90">
                   {mode === 'skiing' ? '電動滑板' : '去滑雪'}
                 </span>
               </div>
