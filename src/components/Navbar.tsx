@@ -7,9 +7,9 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Vibrant Neon Colors for sharp laser effect
-  const neonBlue = '#00f2ff';
-  const neonRed = '#ff3131';
+  // Deep & Soft Neon Colors
+  const softBlue = '#00f2ff';
+  const softRed = '#ff3131';
 
   // Professional Metallic Gradient
   const silverGradient = 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)';
@@ -125,7 +125,7 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Floating App-like Bar) */}
+      {/* Mobile Bottom Navigation (Balanced Style) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm px-2">
         <div className={`glass-pill backdrop-blur-2xl border px-2 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/60 border-white/40 text-slate-900' : 'bg-black/60 border-white/10 text-white'
@@ -142,16 +142,16 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Restored Sharp Laser Design) */}
-          <div className="relative -translate-y-0.5 flex items-center justify-center w-16 h-16">
-            {/* SHARP LASER SPINNER (Binary Red & Blue, high precision) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Aura Glow Restoration) */}
+          <div className="relative -translate-y-1.5 flex items-center justify-center w-16 h-16">
+            {/* SOFT AURA LIGHTS (Reverting to fuzzy spots) */}
             <div 
-              className="absolute inset-[1px] rounded-full animate-spin"
+              className="absolute inset-[-4px] rounded-full"
               style={{ 
-                background: `conic-gradient(from 0deg, transparent 22%, ${neonRed} 25%, transparent 28%, transparent 72%, ${neonBlue} 75%, transparent 78%)`,
-                animationDuration: '1.2s',
-                filter: 'blur(5px) drop-shadow(0 0 4px #ff3131) drop-shadow(0 0 4px #00f2ff)',
-                opacity: 1
+                background: `radial-gradient(circle at 20% 50%, ${softRed} 0%, transparent 60%), radial-gradient(circle at 80% 50%, ${softBlue} 0%, transparent 60%)`,
+                filter: 'blur(12px)',
+                opacity: 0.8,
+                animation: 'button-pulse 2.5s infinite'
               }}
             />
             
@@ -177,9 +177,9 @@ const Navbar: React.FC = () => {
                   clipPath: 'circle(48.5%)'
                 }}
               />
-              {/* Internal Label - Persisted */}
+              {/* Internal Label - Kept! */}
               <div className="absolute bottom-1 w-full text-center z-20 pointer-events-none px-1">
-                <span className="text-[8.5px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90">
+                <span className="text-[9px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90">
                   {mode === 'skiing' ? '電動滑板' : '去滑雪'}
                 </span>
               </div>
