@@ -36,7 +36,7 @@ const Navbar: React.FC = () => {
             <a href="#" className="hover:text-primary transition-colors">首頁</a>
             <a href="#courses" className="hover:text-primary transition-colors">專業課程</a>
             <a href="#shop" className="hover:text-primary transition-colors">購物商城</a>
-            <a href="#" className="hover:text-primary transition-colors">聯絡我們</a>
+            <a href="#contact" className="hover:text-primary transition-colors">聯絡我們</a>
           </div>
 
           <div className="flex items-center gap-4">
@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
               <a href="#shop" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
                 購物商城
               </a>
-              <a href="#" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
+              <a href="#contact" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
                 聯絡我們
               </a>
               
@@ -160,7 +160,7 @@ const Navbar: React.FC = () => {
           </a>
 
           {/* Contact */}
-          <a href="#" className="flex flex-col items-center justify-center w-12 py-1 active:scale-90 transition-all">
+          <a href="#contact" className="flex flex-col items-center justify-center w-12 py-1 active:scale-90 transition-all">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span className="text-[10px] font-black mt-0.5">聯絡</span>
           </a>
