@@ -145,10 +145,12 @@ const Navbar: React.FC = () => {
               className="glow-border-inner w-20 h-20 rounded-full flex items-center justify-center active:scale-90 transition-all border-4 shadow-2xl border-white/30 relative overflow-hidden"
               style={{ 
                 background: mode === 'skiing' ? '#38bdf8' : '#ef4444',
+                animation: 'button-pulse 2s infinite',
+                '--button-base-color': mode === 'skiing' ? 'rgba(56, 189, 248, 0.6)' : 'rgba(239, 68, 68, 0.6)',
                 boxShadow: mode === 'skiing' 
                   ? '0 10px 25px -5px rgba(56, 189, 248, 0.6), inset 0 4px 8px rgba(255,255,255,0.4)' 
                   : '0 10px 25px -5px rgba(239, 68, 68, 0.6), inset 0 4px 8px rgba(255,255,255,0.4)'
-              }}
+              } as React.CSSProperties}
             >
               <div className="w-14 h-14 relative flex items-center justify-center">
                 {mode === 'skiing' ? (
