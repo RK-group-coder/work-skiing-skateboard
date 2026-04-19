@@ -142,16 +142,16 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Aura Glow Restoration) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Rotating Soft Aura Glow) */}
           <div className="relative -translate-y-1.5 flex items-center justify-center w-16 h-16">
-            {/* SOFT AURA LIGHTS (Reverting to fuzzy spots) */}
+            {/* ROTATING SOFT AURA (Blurred conic gradient for smooth flow) */}
             <div 
-              className="absolute inset-[-4px] rounded-full"
+              className="absolute inset-[-4px] rounded-full animate-spin"
               style={{ 
-                background: `radial-gradient(circle at 20% 50%, ${softRed} 0%, transparent 60%), radial-gradient(circle at 80% 50%, ${softBlue} 0%, transparent 60%)`,
-                filter: 'blur(12px)',
-                opacity: 0.8,
-                animation: 'button-pulse 2.5s infinite'
+                background: `conic-gradient(from 0deg, transparent 10%, ${softRed} 25%, transparent 40%, transparent 60%, ${softBlue} 75%, transparent 90%)`,
+                filter: 'blur(15px)',
+                opacity: 0.9,
+                animationDuration: '3s'
               }}
             />
             
