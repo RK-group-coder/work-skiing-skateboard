@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
-import { Mail, Instagram, Facebook, MessageCircle, Send, X, ShieldCheck } from 'lucide-react';
+import { Mail, Instagram, Facebook, MessageCircle, Send, X, ShieldCheck, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Contact: React.FC = () => {
