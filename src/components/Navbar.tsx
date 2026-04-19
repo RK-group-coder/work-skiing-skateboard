@@ -136,7 +136,10 @@ const Navbar: React.FC = () => {
           </a>
 
           {/* CENTRAL FLOATING THEME TOGGLE (Large Protruding Button) */}
-          <div className="glow-border-wrapper -translate-y-9">
+          <div 
+            className="glow-border-wrapper -translate-y-9"
+            style={{ '--glow-color': mode === 'skiing' ? '#ef4444' : '#38bdf8' } as React.CSSProperties}
+          >
             <button 
               onClick={toggleMode}
               className="glow-border-inner w-20 h-20 rounded-full flex items-center justify-center active:scale-90 transition-all border-4 shadow-2xl border-white/30 relative overflow-hidden"
