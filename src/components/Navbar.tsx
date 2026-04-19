@@ -119,7 +119,7 @@ const Navbar: React.FC = () => {
       </AnimatePresence>
 
       {/* Mobile Bottom Navigation (Floating App-like Bar with Large Highlight Button) */}
-      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm">
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm px-2">
         <div className={`glass-pill backdrop-blur-2xl border px-2 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/60 border-white/40 text-slate-900' : 'bg-black/60 border-white/10 text-white'
         }`}>
@@ -148,9 +148,9 @@ const Navbar: React.FC = () => {
               }}
             >
               {mode === 'skiing' ? (
-                  <img src="/icons/skating-icon.png" alt="skating" className="w-14 h-14 object-contain brightness-0 invert" />
+                  <img src="/icons/skating-icon.png" alt="skating" className="w-14 h-14 object-contain invert brightness-200 mix-blend-screen" />
               ) : (
-                  <img src="/icons/skiing-icon.png" alt="skiing" className="w-14 h-14 object-contain brightness-0 invert" />
+                  <img src="/icons/skiing-icon.png" alt="skiing" className="w-14 h-14 object-contain invert brightness-200 mix-blend-screen" />
               )}
             </button>
           </div>
