@@ -70,15 +70,13 @@ const Navbar: React.FC = () => {
               <button onClick={() => setIsMenuOpen(false)} className="text-white"><X size={28} /></button>
             </div>
             
-            {/* Horizontal Centered Links */}
-            <div className="flex flex-col items-center gap-8 pb-4">
-              <div className="flex items-center justify-center gap-10 text-lg font-bold">
-                <a href="#" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">首頁</a>
-                <a href="#courses" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">課程</a>
-                <a href="#shop" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">商店</a>
-              </div>
+            {/* Vertical Centered Links (Row by Row) */}
+            <div className="flex flex-col items-center gap-6 pb-6 pt-2">
+              <a href="#" onClick={() => setIsMenuOpen(false)} className="text-xl font-bold hover:opacity-70 transition-opacity">首頁</a>
+              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="text-xl font-bold hover:opacity-70 transition-opacity">課程</a>
+              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="text-xl font-bold hover:opacity-70 transition-opacity">商店</a>
               
-              <div className="w-full max-w-[280px]">
+              <div className="w-full max-w-[280px] mt-4">
                 <button 
                   onClick={() => {
                     toggleMode();
