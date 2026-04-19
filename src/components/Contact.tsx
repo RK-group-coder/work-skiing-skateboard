@@ -20,8 +20,8 @@ const Contact: React.FC = () => {
           有任何課程疑問或商業合作建議？歡迎透過以下管道與我們保持聯繫。
         </p>
 
-        {/* Social Links Matrix */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
+        {/* Social Links Matrix - 2x2 Layout */}
+        <div className="grid grid-cols-2 gap-4 md:gap-6 max-w-2xl mx-auto">
           {/* Gmail */}
           <motion.a 
             href="mailto:official@sk8.com" 
