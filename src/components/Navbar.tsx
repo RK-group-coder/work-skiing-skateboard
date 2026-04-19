@@ -36,6 +36,7 @@ const Navbar: React.FC = () => {
             <a href="#" className="hover:text-primary transition-colors">首頁</a>
             <a href="#courses" className="hover:text-primary transition-colors">專業課程</a>
             <a href="#shop" className="hover:text-primary transition-colors">購物商城</a>
+            <a href="#" className="hover:text-primary transition-colors">聯絡我們</a>
           </div>
 
           <div className="flex items-center gap-4">
@@ -80,6 +81,9 @@ const Navbar: React.FC = () => {
               </a>
               <a href="#shop" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
                 購物商城
+              </a>
+              <a href="#" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
+                聯絡我們
               </a>
               
               <div className="p-8 flex justify-center mt-4">
