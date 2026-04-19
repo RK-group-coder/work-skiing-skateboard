@@ -142,9 +142,9 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Neon Glow Fluor. Design) */}
-          <div className="relative -translate-y-5 flex items-center justify-center w-20 h-20">
-            {/* FLUORESCENT SPINNER LAYER (Blurred & Multi-layered Glow) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Aligned with Nav Elements) */}
+          <div className="relative -translate-y-1.5 flex items-center justify-center w-20 h-20">
+            {/* FLUORESCENT SPINNER LAYER */}
             <div 
               className="absolute inset-0 rounded-full animate-spin"
               style={{ 
@@ -152,17 +152,6 @@ const Navbar: React.FC = () => {
                 animationDuration: '1.2s',
                 filter: 'blur(10px) drop-shadow(0 0 8px #ff3131) drop-shadow(0 0 8px #00f2ff)',
                 opacity: 0.9
-              }}
-            />
-            {/* Inner sharper neon ring */}
-            <div 
-              className="absolute inset-[6px] rounded-full animate-spin border-[2px] border-transparent"
-              style={{ 
-                borderTopColor: neonRed,
-                borderBottomColor: neonBlue,
-                animationDuration: '1.2s',
-                filter: 'blur(2px)',
-                opacity: 0.6
               }}
             />
             
@@ -180,7 +169,7 @@ const Navbar: React.FC = () => {
                 style={{ 
                   animation: 'icon-jiggle 3s infinite',
                   backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`,
-                  backgroundSize: '65%',
+                  backgroundSize: '60%',
                   backgroundPosition: 'center 25%', 
                   backgroundRepeat: 'no-repeat',
                   backgroundBlendMode: 'multiply',
