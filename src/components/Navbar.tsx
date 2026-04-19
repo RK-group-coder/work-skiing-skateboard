@@ -7,9 +7,9 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // High-Saturated Pro Colors
-  const solidBlue = '#00e1ff'; 
-  const solidRed = '#ff2626';
+  // Elite Theme Colors
+  const clearBlue = '#00f2ff';
+  const clearRed = '#ff3131';
 
   // Professional Metallic Gradient
   const silverGradient = 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)';
@@ -142,58 +142,39 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Extended Hybrid Design) */}
-          <div className="relative -translate-y-1.5 flex items-center justify-center w-16 h-16">
-            
-            {/* LAYER 1: SOFT AURA GLOW (Wide backdrop) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Exact Replica Of Reference) */}
+          <div className="relative -translate-y-5 flex items-center justify-center w-20 h-20">
+            {/* SHARP DUAL COLORED SPINNER (No Blur, Exact Half-Half Blue/Red) */}
             <div 
-              className="absolute inset-[-4px] rounded-full animate-spin"
+              className="absolute inset-[0px] rounded-full animate-spin"
               style={{ 
-                background: `conic-gradient(from 0deg, transparent 10%, ${solidRed} 25%, transparent 40%, transparent 60%, ${solidBlue} 75%, transparent 90%)`,
-                filter: 'blur(15px)',
-                opacity: 0.85,
-                animationDuration: '3s'
-              }}
-            />
-
-            {/* LAYER 2: EXTENDED SOLID LASER RING (Wide sharp beams) */}
-            <div 
-              className="absolute inset-[0px] rounded-full animate-spin z-0"
-              style={{ 
-                background: `conic-gradient(from 0deg, transparent 18%, ${solidRed} 25%, transparent 32%, transparent 68%, ${solidBlue} 75%, transparent 82%)`,
-                animationDuration: '3s',
-                opacity: 0.95
+                background: `conic-gradient(from 0deg, transparent 20%, ${clearRed} 25%, transparent 30%, transparent 70%, ${clearBlue} 75%, transparent 80%)`,
+                animationDuration: '1.5s'
               }}
             />
             
             <button 
               onClick={toggleMode}
-              className="w-[52px] h-[52px] rounded-full flex flex-col items-center justify-center active:scale-95 transition-all border-[2px] border-white/80 relative z-10 overflow-hidden shadow-lg"
+              className="w-16 h-16 rounded-full flex items-center justify-center active:scale-95 transition-all border-[3px] border-white/50 relative z-10 overflow-hidden shadow-xl"
               style={{ 
                 background: silverGradient,
-                boxShadow: 'inset 0 1.5px 3px rgba(255,255,255,1), 0 3px 10px rgba(0,0,0,0.15)'
+                boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 10px 30px rgba(0,0,0,0.2)'
               }}
             >
-              {/* athlete icon */}
+              {/* athlete icon - DUAL BACKGROUND MULTIPLY FIX */}
               <div 
                 className="w-full h-full absolute inset-0 transition-transform"
                 style={{ 
                   animation: 'icon-jiggle 3s infinite',
                   backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`,
-                  backgroundSize: '55%',
-                  backgroundPosition: 'center 20%', 
+                  backgroundSize: '60%, 100%',
+                  backgroundPosition: 'center', 
                   backgroundRepeat: 'no-repeat',
                   backgroundBlendMode: 'multiply',
                   borderRadius: '50%',
                   clipPath: 'circle(48.5%)'
                 }}
               />
-              {/* Internal Label - Kept! */}
-              <div className="absolute bottom-1 w-full text-center z-20 pointer-events-none px-1">
-                <span className="text-[9px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90">
-                  {mode === 'skiing' ? '電動滑板' : '去滑雪'}
-                </span>
-              </div>
             </button>
           </div>
 
