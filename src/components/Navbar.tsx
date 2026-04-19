@@ -7,9 +7,9 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Reference Colors
-  const clearBlue = '#00f2ff';
-  const clearRed = '#ff3131';
+  // Exact Screenshot Contrast Colors
+  const proBlue = '#00c3ff';
+  const proRed = '#ff3c3c';
 
   // Professional Metallic Gradient
   const silverGradient = 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)';
@@ -125,10 +125,10 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Floating App-like Bar) */}
+      {/* Mobile Bottom Navigation (Floating App-like Bar with Solid Highlights) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm px-2">
         <div className={`glass-pill backdrop-blur-2xl border px-2 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
-          mode === 'skiing' ? 'bg-white/60 border-white/40 text-slate-900' : 'bg-black/60 border-white/10 text-white'
+          mode === 'skiing' ? 'bg-white/70 border-white/40 text-slate-900' : 'bg-black/70 border-white/10 text-white'
         }`}>
           {/* Home */}
           <a href="#" className="flex flex-col items-center justify-center w-12 py-1 active:scale-90 transition-all">
@@ -142,28 +142,31 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (EXACT SCREENSHOT REPLICA) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (1:1 Screenshot Match) */}
           <div className="relative -translate-y-5 flex items-center justify-center w-20 h-20">
-            {/* SHARP DUAL COLORED SPINNER (No Blur, Exact Half-Half) */}
+            {/* LARGE ARC SPINNER (Perfectly halved Blue/Red for that 'Electric' look) */}
             <div 
               className="absolute inset-[0px] rounded-full animate-spin"
               style={{ 
-                background: `conic-gradient(from 0deg, transparent 24%, ${clearRed} 25%, transparent 26%, transparent 74%, ${clearBlue} 75%, transparent 76%)`,
-                animationDuration: '1.5s'
+                background: `conic-gradient(from 0deg, ${proRed} 0deg 180deg, ${proBlue} 180deg 360deg)`,
+                animationDuration: '3s',
+                filter: 'blur(1px)' // Subtle blur matches the soft-electric edge in the screenshot
               }}
             />
             
             <button 
               onClick={toggleMode}
-              className="w-16 h-16 rounded-full flex items-center justify-center active:scale-95 transition-all border-[3px] border-white/50 relative z-10 overflow-hidden shadow-xl"
+              className="w-[62px] h-[62px] rounded-full flex items-center justify-center active:scale-95 transition-all border-[3px] border-white/60 relative z-10 overflow-hidden shadow-xl"
               style={{ 
                 background: silverGradient,
-                boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 10px 30px rgba(0,0,0,0.2)'
+                boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 5px 15px rgba(0,0,0,0.2)'
               }}
             >
+              {/* athlete icon - MATCHING SCREENSHOT SIZE (Approx 65%) */}
               <div 
                 className="w-full h-full absolute inset-0"
                 style={{ 
+                  animation: 'icon-jiggle 3s infinite',
                   backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`,
                   backgroundSize: '65%',
                   backgroundPosition: 'center', 
