@@ -147,11 +147,23 @@ const Navbar: React.FC = () => {
                   : '0 10px 25px -5px rgba(239, 68, 68, 0.6), inset 0 4px 8px rgba(255,255,255,0.4)'
               }}
             >
-              {mode === 'skiing' ? (
-                  <img src="/icons/skating-icon.png" alt="skating" className="w-14 h-14 object-contain invert brightness-200 mix-blend-screen" />
-              ) : (
-                  <img src="/icons/skiing-icon.png" alt="skiing" className="w-14 h-14 object-contain invert brightness-200 mix-blend-screen" />
-              )}
+              <div className="w-14 h-14 relative flex items-center justify-center">
+                {mode === 'skiing' ? (
+                    <img 
+                      src="/icons/skating-icon.png" 
+                      alt="skating" 
+                      className="w-full h-full object-contain" 
+                      style={{ filter: 'invert(1) contrast(1000%) grayscale(1)', mixBlendMode: 'screen' }}
+                    />
+                ) : (
+                    <img 
+                      src="/icons/skiing-icon.png" 
+                      alt="skiing" 
+                      className="w-full h-full object-contain" 
+                      style={{ filter: 'invert(1) contrast(1000%) grayscale(1)', mixBlendMode: 'screen' }}
+                    />
+                )}
+              </div>
             </button>
           </div>
 
