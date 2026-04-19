@@ -88,10 +88,14 @@ const Navbar: React.FC = () => {
                     toggleMode();
                     setTimeout(() => setIsMenuOpen(false), 300);
                   }}
-                  className="w-full max-w-xs py-4 rounded-2xl bg-white text-primary shadow-[0_10px_30px_rgba(0,0,0,0.2)] text-sm font-black tracking-widest uppercase flex items-center justify-center gap-2 active:scale-95 transition-all"
+                  className="w-full max-w-xs py-4 rounded-2xl text-gray-900 text-sm font-black tracking-widest uppercase flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-white/50"
+                  style={{ 
+                    background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)',
+                    boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), inset 0 -2px 4px rgba(0,0,0,0.1), 0 10px 30px rgba(0,0,0,0.2)'
+                  }}
                 >
                   切換到{mode === 'skiing' ? '電動滑板' : '極限滑雪'}模式
-                </a>
+                </button>
               </div>
             </div>
           </motion.div>
