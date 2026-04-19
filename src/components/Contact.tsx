@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
-import { Mail, Instagram, Facebook, MessageCircle, Send, X, ShieldCheck, User } from 'lucide-react';
+import { Mail, MessageCircle, Send, X, ShieldCheck, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Contact: React.FC = () => {
@@ -15,7 +15,6 @@ const Contact: React.FC = () => {
     if (!message.trim()) return;
     setChatHistory([...chatHistory, { role: 'user', text: message }]);
     setMessage('');
-    // Simulate auto-reply
     setTimeout(() => {
       setChatHistory(prev => [...prev, { role: 'admin', text: '收到您的訊息！我們的教練會盡快與您聯繫。' }]);
     }, 1000);
@@ -35,26 +34,37 @@ const Contact: React.FC = () => {
           有任何課程疑問、裝備挑選建議或商業合作，隨時透過以下管道與我們聯繫。
         </p>
 
-        {/* Social Links Matrix */}
+        {/* Social Links Matrix with Custom SVG for IG/FB */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-          {[
-            { icon: <Mail size={24} />, name: 'Gmail', color: '#EA4335', link: 'mailto:official@sk8.com' },
-            { icon: <MessageCircle size={24} />, name: 'LINE', color: '#06C755', link: '#' },
-            { icon: <Instagram size={24} />, name: 'Instagram', color: '#E4405F', link: '#' },
-            { icon: <Facebook size={24} />, name: 'Facebook', color: '#1877F2', link: '#' },
-          ].map((social) => (
-            <motion.a
-              key={social.name}
-              href={social.link}
-              whileHover={{ y: -5 }}
-              className="flex flex-col items-center p-6 rounded-3xl bg-card-bg border border-white/5 hover:border-primary/30 transition-all shadow-lg"
-            >
-              <div style={{ color: social.color }} className="mb-3">
-                {social.icon}
-              </div>
-              <span className="font-bold text-sm">{social.name}</span>
-            </motion.a>
-          ))}
+          {/* Gmail */}
+          <motion.a href="mailto:official@sk8.com" whileHover={{ y: -5 }} className="flex flex-col items-center p-6 rounded-3xl bg-card-bg border border-white/5 shadow-lg">
+            <Mail size={24} color="#EA4335" className="mb-3" />
+            <span className="font-bold text-sm">Gmail</span>
+          </motion.a>
+
+          {/* LINE */}
+          <motion.a href="#" whileHover={{ y: -5 }} className="flex flex-col items-center p-6 rounded-3xl bg-card-bg border border-white/5 shadow-lg">
+            <MessageCircle size={24} color="#06C755" className="mb-3" />
+            <span className="font-bold text-sm">LINE</span>
+          </motion.a>
+
+          {/* Instagram - Custom SVG */}
+          <motion.a href="#" whileHover={{ y: -5 }} className="flex flex-col items-center p-6 rounded-3xl bg-card-bg border border-white/5 shadow-lg">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#E4405F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-3">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+            </svg>
+            <span className="font-bold text-sm">Instagram</span>
+          </motion.a>
+
+          {/* Facebook - Custom SVG */}
+          <motion.a href="#" whileHover={{ y: -5 }} className="flex flex-col items-center p-6 rounded-3xl bg-card-bg border border-white/5 shadow-lg">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#1877F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-3">
+              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+            </svg>
+            <span className="font-bold text-sm">Facebook</span>
+          </motion.a>
         </div>
 
         {/* Direct Chat CTA */}
@@ -92,11 +102,11 @@ const Contact: React.FC = () => {
             className="fixed bottom-32 right-6 md:right-12 z-[100] w-[calc(100vw-3rem)] md:w-96 h-[500px] flex flex-col bg-card-bg border border-white/20 rounded-[40px] shadow-2xl overflow-hidden"
           >
             {/* Chat Header */}
-            <div className="p-6 bg-primary text-white flex justify-between items-center">
+            <div className={`p-6 text-white flex justify-between items-center ${mode === 'skiing' ? 'bg-primary' : 'bg-primary'}`}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative border border-white/30">
                   <User size={20} />
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-primary rounded-full" />
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-primary rounded-full shadow-sm" />
                 </div>
                 <div>
                   <h4 className="font-bold leading-tight uppercase">SK8 客服主任</h4>
@@ -115,8 +125,8 @@ const Contact: React.FC = () => {
               {chatHistory.map((msg, i) => (
                 <div key={i} className={`max-w-[80%] p-4 rounded-2xl text-sm ${
                   msg.role === 'admin' 
-                    ? 'self-start bg-secondary text-text rounded-tl-none' 
-                    : 'self-end bg-primary text-white rounded-tr-none'
+                    ? 'self-start bg-secondary text-text rounded-tl-none shadow-sm' 
+                    : 'self-end bg-primary text-white rounded-tr-none shadow-md'
                 }`}>
                   {msg.text}
                 </div>
@@ -135,7 +145,7 @@ const Contact: React.FC = () => {
               />
               <button 
                 onClick={handleSend}
-                className="p-3 bg-primary text-white rounded-xl active:scale-95 transition-all"
+                className="p-3 bg-primary text-white rounded-xl active:scale-95 transition-all shadow-lg"
               >
                 <Send size={20} />
               </button>
