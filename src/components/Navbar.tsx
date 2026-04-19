@@ -152,7 +152,10 @@ const Navbar: React.FC = () => {
                   : '0 10px 25px -5px rgba(239, 68, 68, 0.6), inset 0 4px 8px rgba(255,255,255,0.4)'
               } as React.CSSProperties}
             >
-              <div className="w-14 h-14 relative flex items-center justify-center">
+              <div 
+                className="w-14 h-14 relative flex items-center justify-center transition-transform"
+                style={{ animation: 'icon-jiggle 3s infinite' }}
+              >
                 {mode === 'skiing' ? (
                     <img 
                       src="/icons/skating-icon.png" 

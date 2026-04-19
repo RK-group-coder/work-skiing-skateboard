@@ -215,3 +215,11 @@ button {
     box-shadow: 0 0 0 0px rgba(0, 0, 0, 0);
   }
 }
+
+@keyframes icon-jiggle {
+  0%, 90%, 100% { transform: rotate(0deg) scale(1.1); }
+  92% { transform: rotate(10deg) scale(1.15); }
+  94% { transform: rotate(-10deg) scale(1.15); }
+  96% { transform: rotate(5deg) scale(1.15); }
+  98% { transform: rotate(-5deg) scale(1.15); }
+}
