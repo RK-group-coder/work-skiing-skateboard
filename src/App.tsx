@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Features from './components/Features';
 import ProductShowcase from './components/ProductShowcase';
+import Contact from './components/Contact';
 import { Award, ShieldCheck, Users, Heart } from 'lucide-react';
 
 const CourseTrust: React.FC = () => {
@@ -87,6 +88,7 @@ function App() {
           <CourseTrust />
           <Features />
           <ProductShowcase />
+          <Contact />
         </main>
         <Footer />
       </div>
