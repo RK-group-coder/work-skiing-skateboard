@@ -153,11 +153,11 @@ const Navbar: React.FC = () => {
               } as React.CSSProperties}
             >
               <div 
-                className="w-14 h-14 relative transition-transform"
+                className="w-full h-full absolute inset-0 transition-transform"
                 style={{ 
                   animation: 'icon-jiggle 3s infinite',
                   backgroundImage: mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')",
-                  backgroundSize: '105%',
+                  backgroundSize: '70%',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
                   backgroundColor: mode === 'skiing' ? '#38bdf8' : '#ef4444',
