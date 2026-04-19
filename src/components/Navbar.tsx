@@ -142,15 +142,27 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Final 1:1 Precision Restoration) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Hybrid Sharp + Glow Restoration) */}
           <div className="relative -translate-y-0.5 flex items-center justify-center w-[52px] h-[52px]">
-            {/* TIGHT ELECTRIC SPINNER (Wrapped exactly around the button rim) */}
+            {/* LAYER 1: TIGHT SOFT GLOW (Atmospheric aura) */}
+            <div 
+              className="absolute inset-[-4px] rounded-full animate-spin"
+              style={{ 
+                background: `conic-gradient(from 0deg, ${neonRed} 0deg 180deg, ${neonBlue} 180deg 360deg)`,
+                animationDuration: '1.5s',
+                filter: 'blur(5px)',
+                opacity: 0.7
+              }}
+            />
+
+            {/* LAYER 2: SHARP CORE RIM (Preserved solid color) */}
             <div 
               className="absolute inset-[-2.5px] rounded-full animate-spin"
               style={{ 
                 background: `conic-gradient(from 0deg, ${neonRed} 0deg 180deg, ${neonBlue} 180deg 360deg)`,
                 animationDuration: '1.5s',
-                filter: 'blur(1px)' // High-fidelity electric rim look
+                filter: 'blur(1.5px)',
+                opacity: 1
               }}
             />
             
@@ -175,7 +187,7 @@ const Navbar: React.FC = () => {
                   clipPath: 'circle(48.5%)'
                 }}
               />
-              {/* Internal Label - FIRMLY PERSISTED AND SIZE-OPTIMIZED */}
+              {/* Internal Label - FIRMLY PERSISTED */}
               <div className="absolute bottom-1 w-full text-center z-20 pointer-events-none px-1">
                 <span className="text-[8.2px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90 inline-block">
                   {mode === 'skiing' ? '電動滑板' : '去滑雪'}
