@@ -1,11 +1,8 @@
 import React from 'react';
-import { useTheme } from '../hooks/useTheme';
 import { Mail, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Contact: React.FC = () => {
-  const { mode } = useTheme();
-
   return (
     <section id="contact" className="py-24 px-6 transition-colors duration-500">
       <div className="max-w-4xl mx-auto text-center">
