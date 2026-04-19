@@ -7,7 +7,7 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Elite Neon Colors
+  // Ultra Neon Colors
   const neonBlue = '#00fbff';
   const neonRed = '#ff0040';
 
@@ -140,45 +140,47 @@ const Navbar: React.FC = () => {
           </a>
 
           {/* CENTRAL FLOATING THEME TOGGLE (Large Protruding Button) */}
-          <div 
-            className="glow-border-wrapper -translate-y-11"
-            style={{ '--glow-color': mode === 'skiing' ? neonRed : neonBlue } as React.CSSProperties}
-          >
+          <div className="relative -translate-y-9 flex items-center justify-center w-24 h-24">
+            {/* NEW INDEPENDENT SPINNER LAYER (Ensures visibility) */}
+            <div 
+              className="absolute inset-0 rounded-full animate-spin"
+              style={{ 
+                background: `conic-gradient(from 0deg, transparent 20%, ${mode === 'skiing' ? neonRed : neonBlue} 25%, transparent 30%, transparent 70%, ${mode === 'skiing' ? neonRed : neonBlue} 75%, transparent 80%)`,
+                animationDuration: '1.5s'
+              }}
+            />
+            
             <button 
               onClick={toggleMode}
-              className="glow-border-inner w-20 h-20 rounded-full flex items-center justify-center active:scale-90 transition-all border-[3px] border-white/30 relative"
+              className="w-20 h-20 rounded-full flex flex-col items-center justify-center active:scale-95 transition-all border-[3px] border-white/40 relative z-10 overflow-hidden"
               style={{ 
                 background: mode === 'skiing' ? neonBlue : neonRed,
                 animation: 'button-pulse 2s infinite',
                 '--button-base-color': mode === 'skiing' ? neonBlue : neonRed,
-                // Double Neon Filter Logic
-                filter: `drop-shadow(0 0 10px ${mode === 'skiing' ? neonBlue : neonRed}) drop-shadow(0 0 20px ${mode === 'skiing' ? neonBlue : neonRed})`,
-                boxShadow: `inset 0 4px 12px rgba(255,255,255,0.6)`
+                filter: `drop-shadow(0 0 10px ${mode === 'skiing' ? neonBlue : neonRed})`,
+                boxShadow: `inset 0 4px 10px rgba(255,255,255,0.6)`
               } as React.CSSProperties}
             >
+              {/* athlete icon centered slightly higher */}
               <div 
-                className="w-full h-full absolute inset-0 transition-transform"
+                className="w-full h-[65%] absolute top-1 transition-transform"
                 style={{ 
                   animation: 'icon-jiggle 3s infinite',
                   backgroundImage: mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')",
-                  backgroundSize: '70%',
-                  backgroundPosition: 'center',
+                  backgroundSize: '85%',
+                  backgroundPosition: 'center bottom',
                   backgroundRepeat: 'no-repeat',
-                  backgroundColor: mode === 'skiing' ? neonBlue : neonRed,
+                  backgroundColor: 'transparent',
                   backgroundBlendMode: 'multiply',
-                  borderRadius: '50%',
-                  clipPath: 'circle(48.5%)'
                 }}
               />
-            </button>
-            {/* Elite Label - Moved outside and styled for max visibility */}
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50">
-              <div className="px-3 py-0.5 bg-black/40 backdrop-blur-md rounded-full border border-white/20">
-                <span className="text-[11px] font-black tracking-widest text-white italic">
+              {/* Internal Label - Fixed visibility */}
+              <div className="absolute bottom-2 w-full text-center z-20 pointer-events-none">
+                <span className="text-[10px] font-black tracking-tighter text-black uppercase drop-shadow-sm opacity-80 leading-none">
                   {mode === 'skiing' ? '電動滑板' : '去滑雪'}
                 </span>
               </div>
-            </div>
+            </button>
           </div>
 
           {/* Shop */}
