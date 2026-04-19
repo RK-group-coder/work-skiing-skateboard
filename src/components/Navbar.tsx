@@ -120,15 +120,15 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Bottom Navigation (Floating App-like Bar) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm">
-        <div className="glass-pill bg-black/20 backdrop-blur-xl border border-white/10 px-2 py-2 flex items-center justify-between shadow-2xl rounded-full text-white">
-          <a href="#" className="flex flex-col items-center justify-center w-12 py-1 opacity-80 active:scale-90 transition-all">
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span className="text-[10px] font-bold mt-0.5">首頁</span>
+        <div className="glass-pill bg-white/40 backdrop-blur-2xl border border-white/40 px-2 py-2 flex items-center justify-between shadow-2xl rounded-full text-slate-900">
+          <a href="#" className="flex flex-col items-center justify-center w-12 py-1 active:scale-90 transition-all">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span className="text-[10px] font-black mt-0.5">首頁</span>
           </a>
           
-          <a href="#courses" className="flex flex-col items-center justify-center w-12 py-1 opacity-80 active:scale-90 transition-all">
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            <span className="text-[10px] font-bold mt-0.5">課程</span>
+          <a href="#courses" className="flex flex-col items-center justify-center w-12 py-1 active:scale-90 transition-all">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
           {/* THEME TOGGLE (Middle Highlight with Symmetrical Dual Rotating Glow Border) */}
@@ -149,14 +149,14 @@ const Navbar: React.FC = () => {
             </button>
           </div>
 
-          <a href="#shop" className="flex flex-col items-center justify-center w-12 py-1 opacity-80 active:scale-90 transition-all">
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-            <span className="text-[10px] font-bold mt-0.5">商城</span>
+          <a href="#shop" className="flex flex-col items-center justify-center w-12 py-1 active:scale-90 transition-all">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <span className="text-[10px] font-black mt-0.5">商城</span>
           </a>
 
-          <a href="#" className="flex flex-col items-center justify-center w-12 py-1 opacity-80 active:scale-90 transition-all">
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span className="text-[10px] font-bold mt-0.5">聯絡</span>
+          <a href="#" className="flex flex-col items-center justify-center w-12 py-1 active:scale-90 transition-all">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span className="text-[10px] font-black mt-0.5">聯絡</span>
           </a>
         </div>
       </div>
