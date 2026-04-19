@@ -24,7 +24,7 @@ const Navbar: React.FC = () => {
       </header>
 
       {/* Desktop Navbar (Pill) */}
-      <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 px-8 py-4">
+      <nav className="hidden md:block fixed top-0 left-0 right-0 z-40 px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between glass-pill px-8 py-3 bg-opacity-70">
           <div className="flex items-center font-black text-2xl tracking-tighter">
             <span className="text-primary italic">SK8</span>
@@ -42,7 +42,16 @@ const Navbar: React.FC = () => {
           <div className="flex items-center gap-4">
             <button className="p-2 hover:bg-black/5 rounded-full transition-colors"><Search size={20} /></button>
             <div onClick={toggleMode} className="w-16 h-8 bg-black/10 rounded-full relative cursor-pointer flex items-center px-1">
-              <motion.div animate={{ x: mode === 'skiing' ? 0 : 32 }} className="w-6 h-6 bg-primary rounded-full" />
+              <motion.div 
+                animate={{ x: mode === 'skiing' ? 0 : 32 }} 
+                className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white shadow-sm"
+              >
+                {mode === 'skiing' ? (
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8.1l-1.26-1.26A8 8 0 1 0 3 16.29"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                )}
+              </motion.div>
             </div>
             <button className="p-2 hover:bg-black/5 rounded-full transition-colors"><ShoppingCart size={20} /></button>
             <button className="p-2 hover:bg-black/5 rounded-full transition-colors"><User size={20} /></button>
@@ -62,7 +71,6 @@ const Navbar: React.FC = () => {
               mode === 'skiing' ? 'mobile-header-skiing' : 'mobile-header-skateboard'
             }`}
           >
-            {/* Header in Menu */}
             <div className="flex justify-between items-center mb-10 h-8">
               <div className="flex items-center font-black text-xl tracking-tighter">
                 <span>SK8</span>
@@ -71,7 +79,6 @@ const Navbar: React.FC = () => {
               <button onClick={() => setIsMenuOpen(false)} className="text-white"><X size={28} /></button>
             </div>
             
-            {/* Vertical Stacked Rows with Stronger Dividers */}
             <div className="flex flex-col w-full">
               <a href="#" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
                 首頁
@@ -92,12 +99,17 @@ const Navbar: React.FC = () => {
                     toggleMode();
                     setTimeout(() => setIsMenuOpen(false), 300);
                   }}
-                  className="w-full max-w-xs py-4 rounded-2xl text-gray-900 text-sm font-black tracking-widest uppercase flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_10px_40px_rgba(0,0,0,0.3)] border border-white/50"
+                  className="w-full max-w-xs py-4 rounded-2xl text-gray-900 text-sm font-black tracking-widest uppercase flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl border border-white/50"
                   style={{ 
                     background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)',
-                    boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), inset 0 -2px 4px rgba(0,0,0,0.1), 0 10px 30px rgba(0,0,0,0.2)'
+                    boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 10px 30px rgba(0,0,0,0.2)'
                   }}
                 >
+                  {mode === 'skiing' ? (
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8.1l-1.26-1.26A8 8 0 1 0 3 16.29"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                  )}
                   切換到{mode === 'skiing' ? '電動滑板' : '極限滑雪'}模式
                 </button>
               </div>
@@ -105,40 +117,41 @@ const Navbar: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
       {/* Mobile Bottom Navigation (Floating App-like Bar) */}
-      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-sm">
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm">
         <div className="glass-pill bg-black/20 backdrop-blur-xl border border-white/10 px-2 py-2 flex items-center justify-between shadow-2xl rounded-full">
-          {/* Home */}
           <a href="#" className="flex flex-col items-center justify-center w-12 py-1 text-white opacity-80 active:scale-90 transition-all">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             <span className="text-[10px] font-bold mt-0.5">首頁</span>
           </a>
           
-          {/* Courses */}
           <a href="#courses" className="flex flex-col items-center justify-center w-12 py-1 text-white opacity-80 active:scale-90 transition-all">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
             <span className="text-[10px] font-bold mt-0.5">課程</span>
           </a>
 
-          {/* THEME TOGGLE (Middle Highlight) */}
+          {/* THEME TOGGLE (Middle Highlight with Dynamic Icons) */}
           <button 
             onClick={toggleMode}
-            className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all border border-white/50"
+            className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all border border-white/50 relative z-50 overflow-hidden"
             style={{ 
               background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)',
               boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 5px 15px rgba(0,0,0,0.3)'
             }}
           >
-            <svg viewBox="0 0 24 24" width="24" height="24" className="text-gray-900" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            {mode === 'skiing' ? (
+              <svg viewBox="0 0 24 24" width="22" height="22" className="text-gray-900" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="22" height="22" className="text-gray-900" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8.1l-1.26-1.26A8 8 0 1 0 3 16.29"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            )}
           </button>
 
-          {/* Shop */}
           <a href="#shop" className="flex flex-col items-center justify-center w-12 py-1 text-white opacity-80 active:scale-90 transition-all">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
             <span className="text-[10px] font-bold mt-0.5">商城</span>
           </a>
 
-          {/* Contact */}
           <a href="#" className="flex flex-col items-center justify-center w-12 py-1 text-white opacity-80 active:scale-90 transition-all">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span className="text-[10px] font-bold mt-0.5">聯絡</span>
