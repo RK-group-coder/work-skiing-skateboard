@@ -160,15 +160,13 @@ const Navbar: React.FC = () => {
                     <img 
                       src="/icons/skating-icon.png" 
                       alt="skating" 
-                      className="w-full h-full object-contain" 
-                      style={{ filter: 'invert(1) contrast(1000%) grayscale(1)', mixBlendMode: 'screen' }}
+                      className="w-full h-full object-contain mix-blend-multiply" 
                     />
                 ) : (
                     <img 
                       src="/icons/skiing-icon.png" 
                       alt="skiing" 
-                      className="w-full h-full object-contain" 
-                      style={{ filter: 'invert(1) contrast(1000%) grayscale(1)', mixBlendMode: 'screen' }}
+                      className="w-full h-full object-contain mix-blend-multiply" 
                     />
                 )}
               </div>
