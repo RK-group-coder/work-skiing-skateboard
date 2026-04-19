@@ -41,10 +41,10 @@
   background: conic-gradient(
     from 0deg, 
     transparent 10%, 
-    var(--primary) 25%, 
+    #38bdf8 25%, 
     transparent 40%, 
     transparent 60%, 
-    var(--primary) 75%, 
+    #ef4444 75%, 
     transparent 90%
   );
   animation: spin-slow 1.5s linear infinite;
