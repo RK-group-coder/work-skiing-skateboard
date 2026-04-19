@@ -49,7 +49,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Drawer (Themed Dropdown) */}
+      {/* Mobile Menu Dropdown (Compact Horizontal) */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
@@ -57,30 +57,34 @@ const Navbar: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className={`fixed inset-0 z-[60] flex flex-col p-8 text-white ${
+            className={`fixed top-0 left-0 right-0 z-[60] flex flex-col p-6 text-white shadow-2xl rounded-b-[40px] ${
               mode === 'skiing' ? 'mobile-header-skiing' : 'mobile-header-skateboard'
             }`}
           >
-            <div className="flex justify-between items-center mb-12 h-8">
+            {/* Header in Menu */}
+            <div className="flex justify-between items-center mb-10 h-8">
               <div className="flex items-center font-black text-xl tracking-tighter">
                 <span>SK8</span>
                 <span className="ml-1 text-lg">{mode === 'skiing' ? '極限滑雪' : '極速電動滑板'}</span>
               </div>
-              <button onClick={() => setIsMenuOpen(false)} className="text-white"><X size={32} /></button>
+              <button onClick={() => setIsMenuOpen(false)} className="text-white"><X size={28} /></button>
             </div>
             
-            <div className="flex flex-col gap-10 text-2xl font-bold">
-              <a href="#" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">首頁</a>
-              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">課程</a>
-              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">商店</a>
+            {/* Horizontal Centered Links */}
+            <div className="flex flex-col items-center gap-8 pb-4">
+              <div className="flex items-center justify-center gap-10 text-lg font-bold">
+                <a href="#" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">首頁</a>
+                <a href="#courses" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">課程</a>
+                <a href="#shop" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">商店</a>
+              </div>
               
-              <div className="mt-4">
+              <div className="w-full max-w-[280px]">
                 <button 
                   onClick={() => {
                     toggleMode();
                     setTimeout(() => setIsMenuOpen(false), 300);
                   }}
-                  className="w-full py-4 border border-white/30 rounded-2xl bg-white/10 backdrop-blur-md text-sm font-bold tracking-widest uppercase flex items-center justify-center gap-2 active:scale-95 transition-all"
+                  className="w-full py-3.5 border border-white/30 rounded-full bg-white/10 backdrop-blur-md text-[11px] font-bold tracking-[0.2em] uppercase flex items-center justify-center gap-2 active:scale-95 transition-all outline-none"
                 >
                   切換到{mode === 'skiing' ? '電動滑板' : '極限滑雪'}模式
                 </button>
