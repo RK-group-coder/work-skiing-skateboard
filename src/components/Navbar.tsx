@@ -7,9 +7,11 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Ultra Neon Colors
+  // Elite Neon Colors
   const neonBlue = '#00fbff';
   const neonRed = '#ff0040';
+
+  const currentBtnColor = mode === 'skiing' ? neonBlue : neonRed;
 
   return (
     <>
@@ -123,7 +125,7 @@ const Navbar: React.FC = () => {
       </AnimatePresence>
 
       {/* Mobile Bottom Navigation (Floating App-like Bar with Large Highlight Button) */}
-      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm px-2">
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-sm max-w-sm px-2">
         <div className={`glass-pill backdrop-blur-2xl border px-2 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/60 border-white/40 text-slate-900' : 'bg-black/60 border-white/10 text-white'
         }`}>
@@ -141,12 +143,13 @@ const Navbar: React.FC = () => {
 
           {/* CENTRAL FLOATING THEME TOGGLE (Large Protruding Button) */}
           <div className="relative -translate-y-9 flex items-center justify-center w-24 h-24">
-            {/* NEW INDEPENDENT SPINNER LAYER (Ensures visibility) */}
+            {/* INDEPENDENT SPINNER LAYER */}
             <div 
               className="absolute inset-0 rounded-full animate-spin"
               style={{ 
                 background: `conic-gradient(from 0deg, transparent 20%, ${mode === 'skiing' ? neonRed : neonBlue} 25%, transparent 30%, transparent 70%, ${mode === 'skiing' ? neonRed : neonBlue} 75%, transparent 80%)`,
-                animationDuration: '1.5s'
+                animationDuration: '1.5s',
+                filter: 'blur(1px)'
               }}
             />
             
@@ -154,29 +157,31 @@ const Navbar: React.FC = () => {
               onClick={toggleMode}
               className="w-20 h-20 rounded-full flex flex-col items-center justify-center active:scale-95 transition-all border-[3px] border-white/40 relative z-10 overflow-hidden"
               style={{ 
-                background: mode === 'skiing' ? neonBlue : neonRed,
+                background: currentBtnColor,
                 animation: 'button-pulse 2s infinite',
-                '--button-base-color': mode === 'skiing' ? neonBlue : neonRed,
-                filter: `drop-shadow(0 0 10px ${mode === 'skiing' ? neonBlue : neonRed})`,
+                '--button-base-color': currentBtnColor,
+                filter: `drop-shadow(0 0 12px ${currentBtnColor})`,
                 boxShadow: `inset 0 4px 10px rgba(255,255,255,0.6)`
               } as React.CSSProperties}
             >
-              {/* athlete icon centered slightly higher */}
+              {/* athlete icon - FIX: Set correct background color for multiply to work */}
               <div 
-                className="w-full h-[65%] absolute top-1 transition-transform"
+                className="w-full h-full absolute inset-0 transition-transform"
                 style={{ 
                   animation: 'icon-jiggle 3s infinite',
                   backgroundImage: mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')",
-                  backgroundSize: '85%',
-                  backgroundPosition: 'center bottom',
+                  backgroundSize: '65%',
+                  backgroundPosition: 'center 20%', // Shift athlete slightly up
                   backgroundRepeat: 'no-repeat',
-                  backgroundColor: 'transparent',
+                  backgroundColor: currentBtnColor, // THIS MUST MATCH BUTTON COLOR
                   backgroundBlendMode: 'multiply',
+                  borderRadius: '50%',
+                  clipPath: 'circle(48.5%)'
                 }}
               />
               {/* Internal Label - Fixed visibility */}
-              <div className="absolute bottom-2 w-full text-center z-20 pointer-events-none">
-                <span className="text-[10px] font-black tracking-tighter text-black uppercase drop-shadow-sm opacity-80 leading-none">
+              <div className="absolute bottom-2.5 w-full text-center z-20 pointer-events-none">
+                <span className="text-[11px] font-black tracking-tighter text-black/80 uppercase leading-none drop-shadow-sm">
                   {mode === 'skiing' ? '電動滑板' : '去滑雪'}
                 </span>
               </div>
