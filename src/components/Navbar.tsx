@@ -44,12 +44,12 @@ const Navbar: React.FC = () => {
             <div onClick={toggleMode} className="w-16 h-8 bg-black/10 rounded-full relative cursor-pointer flex items-center px-1">
               <motion.div 
                 animate={{ x: mode === 'skiing' ? 0 : 32 }} 
-                className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white shadow-sm"
+                className="w-6 h-6 bg-primary rounded-full flex items-center justify-center overflow-hidden"
               >
                 {mode === 'skiing' ? (
-                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  <img src="/icons/skating-icon.png" alt="skating" className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
                 ) : (
-                  <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8.1l-1.26-1.26A8 8 0 1 0 3 16.29"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                  <img src="/icons/skiing-icon.png" alt="skiing" className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
                 )}
               </motion.div>
             </div>
@@ -106,9 +106,9 @@ const Navbar: React.FC = () => {
                   }}
                 >
                   {mode === 'skiing' ? (
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <img src="/icons/skating-icon.png" alt="skating" className="w-6 h-6 object-contain mix-blend-multiply" />
                   ) : (
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8.1l-1.26-1.26A8 8 0 1 0 3 16.29"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    <img src="/icons/skiing-icon.png" alt="skiing" className="w-6 h-6 object-contain mix-blend-multiply" />
                   )}
                   切換到{mode === 'skiing' ? '電動滑板' : '極限滑雪'}模式
                 </button>
@@ -141,9 +141,9 @@ const Navbar: React.FC = () => {
             }}
           >
             {mode === 'skiing' ? (
-              <svg viewBox="0 0 24 24" width="22" height="22" className="text-gray-900" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <img src="/icons/skating-icon.png" alt="skating" className="w-10 h-10 object-contain mix-blend-multiply" />
             ) : (
-              <svg viewBox="0 0 24 24" width="22" height="22" className="text-gray-900" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M20 17.58A5 5 0 0 0 18 8.1l-1.26-1.26A8 8 0 1 0 3 16.29"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              <img src="/icons/skiing-icon.png" alt="skiing" className="w-10 h-10 object-contain mix-blend-multiply" />
             )}
           </button>
 
