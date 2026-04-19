@@ -1,24 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTheme } from '../hooks/useTheme';
-import { Mail, MessageCircle, Send, X, ShieldCheck, User } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, MessageCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Contact: React.FC = () => {
   const { mode } = useTheme();
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState([
-    { role: 'admin', text: '您好！我是 SK8 的專業顧問，有任何關於課程或裝備的問題嗎？' }
-  ]);
-
-  const handleSend = () => {
-    if (!message.trim()) return;
-    setChatHistory([...chatHistory, { role: 'user', text: message }]);
-    setMessage('');
-    setTimeout(() => {
-      setChatHistory(prev => [...prev, { role: 'admin', text: '收到您的訊息！我們的教練會盡快與您聯繫。' }]);
-    }, 1000);
-  };
 
   return (
     <section id="contact" className="py-24 px-6 transition-colors duration-500">
@@ -30,129 +16,71 @@ const Contact: React.FC = () => {
         >
           CONNECT WITH <span className="text-primary italic">SK8</span>
         </motion.h2>
-        <p className="text-text-muted mb-12 max-w-lg mx-auto">
-          有任何課程疑問、裝備挑選建議或商業合作，隨時透過以下管道與我們聯繫。
+        <p className="text-text-muted mb-16 max-w-lg mx-auto">
+          有任何課程疑問或商業合作建議？歡迎透過以下管道與我們保持聯繫。
         </p>
 
-        {/* Social Links Matrix with Custom SVG for IG/FB */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+        {/* Social Links Matrix */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto">
           {/* Gmail */}
-          <motion.a href="mailto:official@sk8.com" whileHover={{ y: -5 }} className="flex flex-col items-center p-6 rounded-3xl bg-card-bg border border-white/5 shadow-lg">
-            <Mail size={24} color="#EA4335" className="mb-3" />
-            <span className="font-bold text-sm">Gmail</span>
+          <motion.a 
+            href="mailto:official@sk8.com" 
+            whileHover={{ y: -10, scale: 1.02 }} 
+            className="flex flex-col items-center p-8 rounded-[32px] bg-card-bg border border-white/5 shadow-xl hover:border-primary/50 transition-all group"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-[#EA4335]/10 flex items-center justify-center mb-6 group-hover:bg-[#EA4335]/20 transition-colors">
+              <Mail size={32} color="#EA4335" />
+            </div>
+            <span className="font-black text-lg mb-1 italic">Gmail</span>
+            <span className="text-xs text-text-muted">official@sk8.com</span>
           </motion.a>
 
           {/* LINE */}
-          <motion.a href="#" whileHover={{ y: -5 }} className="flex flex-col items-center p-6 rounded-3xl bg-card-bg border border-white/5 shadow-lg">
-            <MessageCircle size={24} color="#06C755" className="mb-3" />
-            <span className="font-bold text-sm">LINE</span>
+          <motion.a 
+            href="#" 
+            whileHover={{ y: -10, scale: 1.02 }} 
+            className="flex flex-col items-center p-8 rounded-[32px] bg-card-bg border border-white/5 shadow-xl hover:border-primary/50 transition-all group"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-[#06C755]/10 flex items-center justify-center mb-6 group-hover:bg-[#06C755]/20 transition-colors">
+              <MessageCircle size={32} color="#06C755" />
+            </div>
+            <span className="font-black text-lg mb-1 italic">LINE</span>
+            <span className="text-xs text-text-muted">@sk8_official</span>
           </motion.a>
 
-          {/* Instagram - Custom SVG */}
-          <motion.a href="#" whileHover={{ y: -5 }} className="flex flex-col items-center p-6 rounded-3xl bg-card-bg border border-white/5 shadow-lg">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#E4405F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-3">
-              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-            </svg>
-            <span className="font-bold text-sm">Instagram</span>
+          {/* Instagram */}
+          <motion.a 
+            href="#" 
+            whileHover={{ y: -10, scale: 1.02 }} 
+            className="flex flex-col items-center p-8 rounded-[32px] bg-card-bg border border-white/5 shadow-xl hover:border-primary/50 transition-all group"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-[#E4405F]/10 flex items-center justify-center mb-6 group-hover:bg-[#E4405F]/20 transition-colors">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#E4405F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </div>
+            <span className="font-black text-lg mb-1 italic">Instagram</span>
+            <span className="text-xs text-text-muted">@sk8_extreme</span>
           </motion.a>
 
-          {/* Facebook - Custom SVG */}
-          <motion.a href="#" whileHover={{ y: -5 }} className="flex flex-col items-center p-6 rounded-3xl bg-card-bg border border-white/5 shadow-lg">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#1877F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-3">
-              <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-            </svg>
-            <span className="font-bold text-sm">Facebook</span>
+          {/* Facebook */}
+          <motion.a 
+            href="#" 
+            whileHover={{ y: -10, scale: 1.02 }} 
+            className="flex flex-col items-center p-8 rounded-[32px] bg-card-bg border border-white/5 shadow-xl hover:border-primary/50 transition-all group"
+          >
+            <div className="w-16 h-16 rounded-2xl bg-[#1877F2]/10 flex items-center justify-center mb-6 group-hover:bg-[#1877F2]/20 transition-colors">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#1877F2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+              </svg>
+            </div>
+            <span className="font-black text-lg mb-1 italic">Facebook</span>
+            <span className="text-xs text-text-muted">SK8 Extreme Center</span>
           </motion.a>
         </div>
-
-        {/* Direct Chat CTA */}
-        <motion.div 
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setIsChatOpen(true)}
-          className="relative group cursor-pointer"
-        >
-          <div className="absolute inset-0 bg-primary/20 blur-3xl group-hover:bg-primary/40 transition-all rounded-full" />
-          <div className="relative glass-pill py-8 px-10 border-2 border-primary overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white shadow-xl">
-                <MessageCircle size={32} />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black">24/7 在線即時諮詢</h3>
-                <p className="text-sm opacity-70">直接與專業滑降教練進行 1 對 1 交談</p>
-              </div>
-            </div>
-            <button className="bg-text text-bg px-8 py-4 rounded-full font-bold hover:opacity-90 transition-opacity">
-              立即開啟對話
-            </button>
-          </div>
-        </motion.div>
       </div>
-
-      {/* Chat Window Modal */}
-      <AnimatePresence>
-        {isChatOpen && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 100 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 100 }}
-            className="fixed bottom-32 right-6 md:right-12 z-[100] w-[calc(100vw-3rem)] md:w-96 h-[500px] flex flex-col bg-card-bg border border-white/20 rounded-[40px] shadow-2xl overflow-hidden"
-          >
-            {/* Chat Header */}
-            <div className={`p-6 text-white flex justify-between items-center ${mode === 'skiing' ? 'bg-primary' : 'bg-primary'}`}>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center relative border border-white/30">
-                  <User size={20} />
-                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-primary rounded-full shadow-sm" />
-                </div>
-                <div>
-                  <h4 className="font-bold leading-tight uppercase">SK8 客服主任</h4>
-                  <div className="flex items-center gap-1 text-[10px] opacity-80">
-                    <ShieldCheck size={10} /> 官方認證
-                  </div>
-                </div>
-              </div>
-              <button onClick={() => setIsChatOpen(false)} className="hover:bg-black/10 p-2 rounded-full transition-colors">
-                <X size={24} />
-              </button>
-            </div>
-
-            {/* Chat Body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col">
-              {chatHistory.map((msg, i) => (
-                <div key={i} className={`max-w-[80%] p-4 rounded-2xl text-sm ${
-                  msg.role === 'admin' 
-                    ? 'self-start bg-secondary text-text rounded-tl-none shadow-sm' 
-                    : 'self-end bg-primary text-white rounded-tr-none shadow-md'
-                }`}>
-                  {msg.text}
-                </div>
-              ))}
-            </div>
-
-            {/* Chat Input */}
-            <div className="p-4 border-t border-white/10 bg-black/5 flex items-center gap-2">
-              <input 
-                type="text" 
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="輸入您的問題..."
-                className="flex-1 bg-card-bg border border-white/10 p-3 rounded-2xl outline-none focus:border-primary transition-colors text-sm"
-              />
-              <button 
-                onClick={handleSend}
-                className="p-3 bg-primary text-white rounded-xl active:scale-95 transition-all shadow-lg"
-              >
-                <Send size={20} />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   );
 };
