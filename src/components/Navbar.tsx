@@ -157,7 +157,7 @@ const Navbar: React.FC = () => {
                 style={{ 
                   animation: 'icon-jiggle 3s infinite',
                   backgroundImage: mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')",
-                  backgroundSize: 'contain',
+                  backgroundSize: '105%',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
                   backgroundColor: mode === 'skiing' ? '#38bdf8' : '#ef4444',
