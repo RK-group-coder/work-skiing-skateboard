@@ -7,11 +7,9 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Elite Neon Colors
+  // Elite Theme Colors
   const neonBlue = '#00fbff';
   const neonRed = '#ff0040';
-
-  const currentBtnColor = mode === 'skiing' ? neonBlue : neonRed;
 
   return (
     <>
@@ -124,7 +122,7 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Floating App-like Bar with Large Highlight Button) */}
+      {/* Mobile Bottom Navigation (Floating App-like Bar) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm px-2">
         <div className={`glass-pill backdrop-blur-2xl border px-2 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/60 border-white/40 text-slate-900' : 'bg-black/60 border-white/10 text-white'
@@ -141,9 +139,9 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Restored Size & Position with Modern Design) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Restored Original Metallic Finish) */}
           <div className="relative -translate-y-5 flex items-center justify-center w-20 h-20">
-            {/* SPINNER LAYER */}
+            {/* SPINNER LIGHTS */}
             <div 
               className="absolute inset-0 rounded-full animate-spin"
               style={{ 
@@ -154,16 +152,15 @@ const Navbar: React.FC = () => {
             
             <button 
               onClick={toggleMode}
-              className="w-16 h-16 rounded-full flex flex-col items-center justify-center active:scale-95 transition-all border-[3px] border-white/40 relative z-10 overflow-hidden"
+              className="w-16 h-16 rounded-full flex flex-col items-center justify-center active:scale-95 transition-all border-[3px] border-white/50 relative z-10 overflow-hidden"
               style={{ 
-                background: currentBtnColor,
-                animation: 'button-pulse 2s infinite',
-                '--button-base-color': currentBtnColor,
-                filter: `drop-shadow(0 0 8px ${currentBtnColor})`,
-                boxShadow: `inset 0 2px 8px rgba(255,255,255,0.6)`
+                background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)',
+                boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 10px 30px rgba(0,0,0,0.2)',
+                animation: 'button-pulse 2.5s infinite',
+                '--button-base-color': mode === 'skiing' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.1)'
               } as React.CSSProperties}
             >
-              {/* athlete icon */}
+              {/* athlete icon - and YES it uses multiply to hide white on silver background */}
               <div 
                 className="w-full h-full absolute inset-0 transition-transform"
                 style={{ 
@@ -172,15 +169,15 @@ const Navbar: React.FC = () => {
                   backgroundSize: '60%',
                   backgroundPosition: 'center 30%', 
                   backgroundRepeat: 'no-repeat',
-                  backgroundColor: currentBtnColor,
+                  backgroundColor: 'transparent',
                   backgroundBlendMode: 'multiply',
                   borderRadius: '50%',
                   clipPath: 'circle(48.5%)'
                 }}
               />
-              {/* Internal Label - Scaled down for smaller button */}
+              {/* Internal Label - Subtly styled for silver bg */}
               <div className="absolute bottom-1.5 w-full text-center z-20 pointer-events-none">
-                <span className="text-[9px] font-black tracking-tighter text-black/80 uppercase leading-none">
+                <span className="text-[9px] font-black tracking-tighter text-slate-600 uppercase leading-none">
                   {mode === 'skiing' ? '電動滑板' : '去滑雪'}
                 </span>
               </div>
