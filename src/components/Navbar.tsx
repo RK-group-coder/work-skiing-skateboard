@@ -7,7 +7,7 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Mega Neon Colors
+  // Elite Neon Colors
   const neonBlue = '#00fbff';
   const neonRed = '#ff0040';
 
@@ -141,19 +141,19 @@ const Navbar: React.FC = () => {
 
           {/* CENTRAL FLOATING THEME TOGGLE (Large Protruding Button) */}
           <div 
-            className="glow-border-wrapper -translate-y-10 relative group"
+            className="glow-border-wrapper -translate-y-11"
             style={{ '--glow-color': mode === 'skiing' ? neonRed : neonBlue } as React.CSSProperties}
           >
             <button 
               onClick={toggleMode}
-              className="glow-border-inner w-20 h-20 rounded-full flex items-center justify-center active:scale-90 transition-all border-[3px] shadow-2xl border-white/40 relative"
+              className="glow-border-inner w-20 h-20 rounded-full flex items-center justify-center active:scale-90 transition-all border-[3px] border-white/30 relative"
               style={{ 
                 background: mode === 'skiing' ? neonBlue : neonRed,
                 animation: 'button-pulse 2s infinite',
                 '--button-base-color': mode === 'skiing' ? neonBlue : neonRed,
-                // Enhanced Neon Glow Effect
-                filter: `drop-shadow(0 0 8px ${mode === 'skiing' ? neonBlue : neonRed}) drop-shadow(0 0 15px ${mode === 'skiing' ? neonBlue : neonRed})`,
-                boxShadow: `inset 0 4px 10px rgba(255,255,255,0.6)`
+                // Double Neon Filter Logic
+                filter: `drop-shadow(0 0 10px ${mode === 'skiing' ? neonBlue : neonRed}) drop-shadow(0 0 20px ${mode === 'skiing' ? neonBlue : neonRed})`,
+                boxShadow: `inset 0 4px 12px rgba(255,255,255,0.6)`
               } as React.CSSProperties}
             >
               <div 
@@ -171,13 +171,13 @@ const Navbar: React.FC = () => {
                 }}
               />
             </button>
-            {/* High Visibility Label */}
-            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap z-50">
-              <span className={`text-[12px] font-black tracking-tight drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] italic ${
-                mode === 'skiing' ? 'text-black' : 'text-white'
-              }`}>
-                {mode === 'skiing' ? '電動滑板' : '去滑雪'}
-              </span>
+            {/* Elite Label - Moved outside and styled for max visibility */}
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap z-50">
+              <div className="px-3 py-0.5 bg-black/40 backdrop-blur-md rounded-full border border-white/20">
+                <span className="text-[11px] font-black tracking-widest text-white italic">
+                  {mode === 'skiing' ? '電動滑板' : '去滑雪'}
+                </span>
+              </div>
             </div>
           </div>
 
