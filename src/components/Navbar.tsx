@@ -118,10 +118,10 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Floating App-like Bar) */}
+      {/* Mobile Bottom Navigation (Floating App-like Bar with Large Highlight Button) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm">
         <div className={`glass-pill backdrop-blur-2xl border px-2 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
-          mode === 'skiing' ? 'bg-white/40 border-white/40 text-slate-900' : 'bg-black/60 border-white/10 text-white'
+          mode === 'skiing' ? 'bg-white/60 border-white/40 text-slate-900' : 'bg-black/60 border-white/10 text-white'
         }`}>
           {/* Home */}
           <a href="#" className="flex flex-col items-center justify-center w-12 py-1 active:scale-90 transition-all">
@@ -135,20 +135,22 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* THEME TOGGLE (Middle Highlight with Blue-Red Dual Rotating Glow Border) */}
-          <div className="glow-border-wrapper">
+          {/* CENTRAL FLOATING THEME TOGGLE (Large Protruding Button) */}
+          <div className="glow-border-wrapper -translate-y-9">
             <button 
               onClick={toggleMode}
-              className="glow-border-inner w-14 h-14 rounded-full flex items-center justify-center active:scale-90 transition-all border border-white/50 relative overflow-hidden"
+              className="glow-border-inner w-20 h-20 rounded-full flex items-center justify-center active:scale-90 transition-all border-4 shadow-2xl border-white/30 relative overflow-hidden"
               style={{ 
-                background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)',
-                boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 5px 15px rgba(0,0,0,0.3)'
+                background: mode === 'skiing' ? '#38bdf8' : '#ef4444',
+                boxShadow: mode === 'skiing' 
+                  ? '0 10px 25px -5px rgba(56, 189, 248, 0.6), inset 0 4px 8px rgba(255,255,255,0.4)' 
+                  : '0 10px 25px -5px rgba(239, 68, 68, 0.6), inset 0 4px 8px rgba(255,255,255,0.4)'
               }}
             >
               {mode === 'skiing' ? (
-                  <img src="/icons/skating-icon.png" alt="skating" className="w-10 h-10 object-contain mix-blend-multiply" />
+                  <img src="/icons/skating-icon.png" alt="skating" className="w-14 h-14 object-contain brightness-0 invert" />
               ) : (
-                  <img src="/icons/skiing-icon.png" alt="skiing" className="w-10 h-10 object-contain mix-blend-multiply" />
+                  <img src="/icons/skiing-icon.png" alt="skiing" className="w-14 h-14 object-contain brightness-0 invert" />
               )}
             </button>
           </div>
