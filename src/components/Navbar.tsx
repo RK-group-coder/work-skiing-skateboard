@@ -7,9 +7,9 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Deep & Soft Neon Colors
-  const softBlue = '#00f2ff';
-  const softRed = '#ff3131';
+  // Pure & High-Vibrancy Colors
+  const solidBlue = '#00f2ff';
+  const solidRed = '#ff3131';
 
   // Professional Metallic Gradient
   const silverGradient = 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)';
@@ -142,16 +142,27 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Rotating Soft Aura Glow) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Hybrid Solid + Aura Spinner) */}
           <div className="relative -translate-y-1.5 flex items-center justify-center w-16 h-16">
-            {/* ROTATING SOFT AURA (Blurred conic gradient for smooth flow) */}
+            
+            {/* LAYER 1: SOFT AURA GLOW (Fuzzy background rotation) */}
             <div 
               className="absolute inset-[-4px] rounded-full animate-spin"
               style={{ 
-                background: `conic-gradient(from 0deg, transparent 10%, ${softRed} 25%, transparent 40%, transparent 60%, ${softBlue} 75%, transparent 90%)`,
+                background: `conic-gradient(from 0deg, transparent 10%, ${solidRed} 25%, transparent 40%, transparent 60%, ${solidBlue} 75%, transparent 90%)`,
                 filter: 'blur(15px)',
-                opacity: 0.9,
+                opacity: 0.85,
                 animationDuration: '3s'
+              }}
+            />
+
+            {/* LAYER 2: SOLID LASER RING (Sharp foreground rotation) */}
+            <div 
+              className="absolute inset-[0px] rounded-full animate-spin z-0 border-[1.5px] border-transparent"
+              style={{ 
+                background: `conic-gradient(from 0deg, transparent 23%, ${solidRed} 25%, transparent 27%, transparent 73%, ${solidBlue} 75%, transparent 77%)`,
+                animationDuration: '3s',
+                opacity: 1
               }}
             />
             
