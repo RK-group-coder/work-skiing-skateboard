@@ -7,9 +7,9 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Pure Binary Colors
-  const pureBlue = '#0066ff';
-  const pureRed = '#ff0000';
+  // High-Vibrancy Neon Colors for Fluor. Effect
+  const neonBlue = '#00f2ff';
+  const neonRed = '#ff3131';
 
   // Professional Metallic Gradient
   const silverGradient = 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)';
@@ -142,14 +142,27 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Binary Spinner Red & Blue) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Neon Glow Fluor. Design) */}
           <div className="relative -translate-y-5 flex items-center justify-center w-20 h-20">
-            {/* BINARY LASER SPINNER (One Red Beam, One Blue Beam) */}
+            {/* FLUORESCENT SPINNER LAYER (Blurred & Multi-layered Glow) */}
             <div 
               className="absolute inset-0 rounded-full animate-spin"
               style={{ 
-                background: `conic-gradient(from 0deg, transparent 20%, ${pureRed} 25%, transparent 30%, transparent 70%, ${pureBlue} 75%, transparent 80%)`,
-                animationDuration: '1.5s'
+                background: `conic-gradient(from 0deg, transparent 15%, ${neonRed} 25%, transparent 35%, transparent 65%, ${neonBlue} 75%, transparent 85%)`,
+                animationDuration: '1.2s',
+                filter: 'blur(10px) drop-shadow(0 0 8px #ff3131) drop-shadow(0 0 8px #00f2ff)',
+                opacity: 0.9
+              }}
+            />
+            {/* Inner sharper neon ring */}
+            <div 
+              className="absolute inset-[6px] rounded-full animate-spin border-[2px] border-transparent"
+              style={{ 
+                borderTopColor: neonRed,
+                borderBottomColor: neonBlue,
+                animationDuration: '1.2s',
+                filter: 'blur(2px)',
+                opacity: 0.6
               }}
             />
             
@@ -158,17 +171,17 @@ const Navbar: React.FC = () => {
               className="w-16 h-16 rounded-full flex flex-col items-center justify-center active:scale-95 transition-all border-[3px] border-white/60 relative z-10 overflow-hidden shadow-xl"
               style={{ 
                 background: silverGradient,
-                boxShadow: 'inset 0 2px 5px rgba(255,255,255,1), 0 5px 15px rgba(0,0,0,0.15)'
+                boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 5px 15px rgba(0,0,0,0.2)'
               }}
             >
-              {/* athlete icon - DUAL BACKGROUND MULTIPLY */}
+              {/* athlete icon - Multi-layer background blend */}
               <div 
                 className="w-full h-full absolute inset-0 transition-transform"
                 style={{ 
                   animation: 'icon-jiggle 3s infinite',
                   backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`,
-                  backgroundSize: '60%, 100%',
-                  backgroundPosition: 'center 20%', 
+                  backgroundSize: '65%',
+                  backgroundPosition: 'center 25%', 
                   backgroundRepeat: 'no-repeat',
                   backgroundBlendMode: 'multiply',
                   borderRadius: '50%',
@@ -176,8 +189,8 @@ const Navbar: React.FC = () => {
                 }}
               />
               {/* Internal Label */}
-              <div className="absolute bottom-2 w-full text-center z-20 pointer-events-none">
-                <span className="text-[9px] font-black tracking-tighter text-slate-800 uppercase leading-none drop-shadow-sm">
+              <div className="absolute bottom-1.5 w-full text-center z-20 pointer-events-none">
+                <span className="text-[9.5px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm">
                   {mode === 'skiing' ? '電動滑板' : '去滑雪'}
                 </span>
               </div>
