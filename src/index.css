@@ -16,6 +16,38 @@
   --header-height: 64px;
 }
 
+/* Rotating Glow Border */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.glow-border-wrapper {
+  position: relative;
+  border-radius: 50%;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(var(--primary), 0.3);
+}
+
+.glow-border-wrapper::before {
+  content: '';
+  position: absolute;
+  width: 150%;
+  height: 150%;
+  background: conic-gradient(from 0deg, transparent 40%, var(--primary) 50%, transparent 60%);
+  animation: spin-slow 2s linear infinite;
+}
+
+.glow-border-inner {
+  position: relative;
+  z-index: 10;
+  border-radius: 50%;
+}
+
 /* Mobile Header Backgrounds */
 .mobile-header-skiing { background: var(--primary-gradient); }
 .mobile-header-skateboard { background: var(--primary-gradient); }

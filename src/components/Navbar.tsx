@@ -44,12 +44,12 @@ const Navbar: React.FC = () => {
             <div onClick={toggleMode} className="w-16 h-8 bg-black/10 rounded-full relative cursor-pointer flex items-center px-1">
               <motion.div 
                 animate={{ x: mode === 'skiing' ? 0 : 32 }} 
-                className="w-6 h-6 bg-primary rounded-full flex items-center justify-center overflow-hidden"
+                className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white shadow-sm"
               >
                 {mode === 'skiing' ? (
-                  <img src="/icons/skating-icon.png" alt="skating" className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
+                  <img src="/icons/skating-icon.png" alt="skating" className="w-[85%] h-[85%] object-contain" />
                 ) : (
-                  <img src="/icons/skiing-icon.png" alt="skiing" className="w-[85%] h-[85%] object-contain mix-blend-multiply" />
+                  <img src="/icons/skiing-icon.png" alt="skiing" className="w-[85%] h-[85%] object-contain" />
                 )}
               </motion.div>
             </div>
@@ -106,9 +106,9 @@ const Navbar: React.FC = () => {
                   }}
                 >
                   {mode === 'skiing' ? (
-                    <img src="/icons/skating-icon.png" alt="skating" className="w-6 h-6 object-contain mix-blend-multiply" />
+                    <img src="/icons/skating-icon.png" alt="skating" className="w-6 h-6 object-contain" />
                   ) : (
-                    <img src="/icons/skiing-icon.png" alt="skiing" className="w-6 h-6 object-contain mix-blend-multiply" />
+                    <img src="/icons/skiing-icon.png" alt="skiing" className="w-6 h-6 object-contain" />
                   )}
                   切換到{mode === 'skiing' ? '電動滑板' : '極限滑雪'}模式
                 </button>
@@ -131,21 +131,23 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-bold mt-0.5">課程</span>
           </a>
 
-          {/* THEME TOGGLE (Middle Highlight with Dynamic Icons) */}
-          <button 
-            onClick={toggleMode}
-            className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-all border border-white/50 relative z-50 overflow-hidden"
-            style={{ 
-              background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)',
-              boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 5px 15px rgba(0,0,0,0.3)'
-            }}
-          >
-            {mode === 'skiing' ? (
-              <img src="/icons/skating-icon.png" alt="skating" className="w-10 h-10 object-contain mix-blend-multiply" />
-            ) : (
-              <img src="/icons/skiing-icon.png" alt="skiing" className="w-10 h-10 object-contain mix-blend-multiply" />
-            )}
-          </button>
+          {/* THEME TOGGLE (Middle Highlight with Rotating Glow Border) */}
+          <div className="glow-border-wrapper">
+            <button 
+              onClick={toggleMode}
+              className="glow-border-inner w-14 h-14 rounded-full flex items-center justify-center active:scale-90 transition-all border border-white/50 relative overflow-hidden"
+              style={{ 
+                background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)',
+                boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 5px 15px rgba(0,0,0,0.3)'
+              }}
+            >
+              {mode === 'skiing' ? (
+                  <img src="/icons/skating-icon.png" alt="skating" className="w-10 h-10 object-contain" />
+              ) : (
+                  <img src="/icons/skiing-icon.png" alt="skiing" className="w-10 h-10 object-contain" />
+              )}
+            </button>
+          </div>
 
           <a href="#shop" className="flex flex-col items-center justify-center w-12 py-1 text-white opacity-80 active:scale-90 transition-all">
             <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
