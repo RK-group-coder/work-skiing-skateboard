@@ -38,8 +38,16 @@
   position: absolute;
   width: 150%;
   height: 150%;
-  background: conic-gradient(from 0deg, transparent 40%, var(--primary) 50%, transparent 60%);
-  animation: spin-slow 2s linear infinite;
+  background: conic-gradient(
+    from 0deg, 
+    transparent 10%, 
+    var(--primary) 25%, 
+    transparent 40%, 
+    transparent 60%, 
+    var(--primary) 75%, 
+    transparent 90%
+  );
+  animation: spin-slow 1.5s linear infinite;
 }
 
 .glow-border-inner {
