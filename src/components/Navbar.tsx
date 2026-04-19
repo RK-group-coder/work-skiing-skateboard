@@ -70,28 +70,28 @@ const Navbar: React.FC = () => {
               <button onClick={() => setIsMenuOpen(false)} className="text-white"><X size={28} /></button>
             </div>
             
-            {/* Vertical Stacked Rows with Dividers */}
+            {/* Vertical Stacked Rows with Stronger Dividers */}
             <div className="flex flex-col w-full">
-              <a href="#" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/10 hover:bg-white/5 transition-all text-center">
+              <a href="#" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
                 首頁
               </a>
-              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/10 hover:bg-white/5 transition-all text-center">
+              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
                 專業課程
               </a>
-              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/10 hover:bg-white/5 transition-all text-center">
+              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
                 購物商城
               </a>
               
-              <div className="p-8 flex justify-center">
+              <div className="p-8 flex justify-center mt-4">
                 <button 
                   onClick={() => {
                     toggleMode();
                     setTimeout(() => setIsMenuOpen(false), 300);
                   }}
-                  className="w-full max-w-xs py-4 border border-white/30 rounded-2xl bg-white/10 backdrop-blur-md text-sm font-bold tracking-widest uppercase flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl"
+                  className="w-full max-w-xs py-4 rounded-2xl bg-white text-primary shadow-[0_10px_30px_rgba(0,0,0,0.2)] text-sm font-black tracking-widest uppercase flex items-center justify-center gap-2 active:scale-95 transition-all"
                 >
                   切換到{mode === 'skiing' ? '電動滑板' : '極限滑雪'}模式
-                </button>
+                </a>
               </div>
             </div>
           </motion.div>
