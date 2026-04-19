@@ -7,9 +7,9 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Pure & High-Vibrancy Colors
-  const solidBlue = '#00f2ff';
-  const solidRed = '#ff3131';
+  // High-Saturated Pro Colors
+  const solidBlue = '#00e1ff'; 
+  const solidRed = '#ff2626';
 
   // Professional Metallic Gradient
   const silverGradient = 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)';
@@ -125,7 +125,7 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Balanced Style) */}
+      {/* Mobile Bottom Navigation (Floating App-like Bar) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm px-2">
         <div className={`glass-pill backdrop-blur-2xl border px-2 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/60 border-white/40 text-slate-900' : 'bg-black/60 border-white/10 text-white'
@@ -142,10 +142,10 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Hybrid Solid + Aura Spinner) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Extended Hybrid Design) */}
           <div className="relative -translate-y-1.5 flex items-center justify-center w-16 h-16">
             
-            {/* LAYER 1: SOFT AURA GLOW (Fuzzy background rotation) */}
+            {/* LAYER 1: SOFT AURA GLOW (Wide backdrop) */}
             <div 
               className="absolute inset-[-4px] rounded-full animate-spin"
               style={{ 
@@ -156,13 +156,13 @@ const Navbar: React.FC = () => {
               }}
             />
 
-            {/* LAYER 2: SOLID LASER RING (Sharp foreground rotation) */}
+            {/* LAYER 2: EXTENDED SOLID LASER RING (Wide sharp beams) */}
             <div 
-              className="absolute inset-[0px] rounded-full animate-spin z-0 border-[1.5px] border-transparent"
+              className="absolute inset-[0px] rounded-full animate-spin z-0"
               style={{ 
-                background: `conic-gradient(from 0deg, transparent 23%, ${solidRed} 25%, transparent 27%, transparent 73%, ${solidBlue} 75%, transparent 77%)`,
+                background: `conic-gradient(from 0deg, transparent 18%, ${solidRed} 25%, transparent 32%, transparent 68%, ${solidBlue} 75%, transparent 82%)`,
                 animationDuration: '3s',
-                opacity: 1
+                opacity: 0.95
               }}
             />
             
