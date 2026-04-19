@@ -7,9 +7,9 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Deep Saturated Neon Colors
-  const deepBlue = '#004de6';
-  const deepRed = '#d00000';
+  // Vibrant Neon Colors for sharp laser effect
+  const neonBlue = '#00f2ff';
+  const neonRed = '#ff3131';
 
   // Professional Metallic Gradient
   const silverGradient = 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)';
@@ -142,15 +142,15 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Deep Binary Energy Ring) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Restored Sharp Laser Design) */}
           <div className="relative -translate-y-0.5 flex items-center justify-center w-16 h-16">
-            {/* LARGE BINARY ENERGY RING (Deep colors, half & half) */}
+            {/* SHARP LASER SPINNER (Binary Red & Blue, high precision) */}
             <div 
               className="absolute inset-[1px] rounded-full animate-spin"
               style={{ 
-                background: `conic-gradient(from 0deg, transparent 5%, ${deepRed} 25%, transparent 45%, transparent 55%, ${deepBlue} 75%, transparent 95%)`,
+                background: `conic-gradient(from 0deg, transparent 22%, ${neonRed} 25%, transparent 28%, transparent 72%, ${neonBlue} 75%, transparent 78%)`,
                 animationDuration: '1.2s',
-                filter: 'blur(5px) drop-shadow(0 0 3px rgba(0,0,0,0.3))',
+                filter: 'blur(5px) drop-shadow(0 0 4px #ff3131) drop-shadow(0 0 4px #00f2ff)',
                 opacity: 1
               }}
             />
@@ -177,9 +177,9 @@ const Navbar: React.FC = () => {
                   clipPath: 'circle(48.5%)'
                 }}
               />
-              {/* Internal Label */}
+              {/* Internal Label - Persisted */}
               <div className="absolute bottom-1 w-full text-center z-20 pointer-events-none px-1">
-                <span className="text-[8px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90">
+                <span className="text-[8.5px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90">
                   {mode === 'skiing' ? '電動滑板' : '去滑雪'}
                 </span>
               </div>
