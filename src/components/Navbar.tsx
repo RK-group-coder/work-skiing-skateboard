@@ -153,23 +153,17 @@ const Navbar: React.FC = () => {
               } as React.CSSProperties}
             >
               <div 
-                className="w-14 h-14 relative flex items-center justify-center transition-transform"
-                style={{ animation: 'icon-jiggle 3s infinite' }}
-              >
-                {mode === 'skiing' ? (
-                    <img 
-                      src="/icons/skating-icon.png" 
-                      alt="skating" 
-                      className="w-full h-full object-contain mix-blend-multiply" 
-                    />
-                ) : (
-                    <img 
-                      src="/icons/skiing-icon.png" 
-                      alt="skiing" 
-                      className="w-full h-full object-contain mix-blend-multiply" 
-                    />
-                )}
-              </div>
+                className="w-14 h-14 relative transition-transform"
+                style={{ 
+                  animation: 'icon-jiggle 3s infinite',
+                  backgroundImage: mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')",
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundColor: mode === 'skiing' ? '#38bdf8' : '#ef4444',
+                  backgroundBlendMode: 'multiply'
+                }}
+              />
             </button>
           </div>
 
