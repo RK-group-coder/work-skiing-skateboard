@@ -7,7 +7,7 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Pure Laser Colors
+  // Pure Binary Colors
   const pureBlue = '#0066ff';
   const pureRed = '#ff0000';
 
@@ -125,7 +125,7 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Floating App-like Bar with Large Highlight Button) */}
+      {/* Mobile Bottom Navigation (Floating App-like Bar) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm px-2">
         <div className={`glass-pill backdrop-blur-2xl border px-2 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/60 border-white/40 text-slate-900' : 'bg-black/60 border-white/10 text-white'
@@ -142,13 +142,13 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Precise Metallic & Spinner Implementation) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Binary Spinner Red & Blue) */}
           <div className="relative -translate-y-5 flex items-center justify-center w-20 h-20">
-            {/* LASER SPINNER LAYER (Pure Red / Blue) */}
+            {/* BINARY LASER SPINNER (One Red Beam, One Blue Beam) */}
             <div 
               className="absolute inset-0 rounded-full animate-spin"
               style={{ 
-                background: `conic-gradient(from 0deg, transparent 20%, ${mode === 'skiing' ? pureRed : pureBlue} 25%, transparent 30%, transparent 70%, ${mode === 'skiing' ? pureRed : pureBlue} 75%, transparent 80%)`,
+                background: `conic-gradient(from 0deg, transparent 20%, ${pureRed} 25%, transparent 30%, transparent 70%, ${pureBlue} 75%, transparent 80%)`,
                 animationDuration: '1.5s'
               }}
             />
@@ -161,21 +161,21 @@ const Navbar: React.FC = () => {
                 boxShadow: 'inset 0 2px 5px rgba(255,255,255,1), 0 5px 15px rgba(0,0,0,0.15)'
               }}
             >
-              {/* athlete icon - DUAL BACKGROUND MULTIPLY FIX */}
+              {/* athlete icon - DUAL BACKGROUND MULTIPLY */}
               <div 
                 className="w-full h-full absolute inset-0 transition-transform"
                 style={{ 
                   animation: 'icon-jiggle 3s infinite',
                   backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`,
                   backgroundSize: '60%, 100%',
-                  backgroundPosition: 'center 20%, center', 
+                  backgroundPosition: 'center 20%', 
                   backgroundRepeat: 'no-repeat',
                   backgroundBlendMode: 'multiply',
                   borderRadius: '50%',
                   clipPath: 'circle(48.5%)'
                 }}
               />
-              {/* Internal Label - Positioned clearly below icon */}
+              {/* Internal Label */}
               <div className="absolute bottom-2 w-full text-center z-20 pointer-events-none">
                 <span className="text-[9px] font-black tracking-tighter text-slate-800 uppercase leading-none drop-shadow-sm">
                   {mode === 'skiing' ? '電動滑板' : '去滑雪'}
