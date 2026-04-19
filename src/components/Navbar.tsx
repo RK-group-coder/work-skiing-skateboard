@@ -7,9 +7,9 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-  // Exact Screenshot Contrast Colors
-  const proBlue = '#00c3ff';
-  const proRed = '#ff3c3c';
+  // Elite Saturated Colors
+  const neonBlue = '#00f2ff';
+  const neonRed = '#ff3131';
 
   // Professional Metallic Gradient
   const silverGradient = 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)';
@@ -142,40 +142,45 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (1:1 Screenshot Match) */}
-          <div className="relative -translate-y-5 flex items-center justify-center w-20 h-20">
-            {/* LARGE ARC SPINNER (Perfectly halved Blue/Red for that 'Electric' look) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Final 1:1 Precision Restoration) */}
+          <div className="relative -translate-y-0.5 flex items-center justify-center w-[52px] h-[52px]">
+            {/* TIGHT ELECTRIC SPINNER (Wrapped exactly around the button rim) */}
             <div 
-              className="absolute inset-[0px] rounded-full animate-spin"
+              className="absolute inset-[-2.5px] rounded-full animate-spin"
               style={{ 
-                background: `conic-gradient(from 0deg, ${proRed} 0deg 180deg, ${proBlue} 180deg 360deg)`,
-                animationDuration: '3s',
-                filter: 'blur(1px)' // Subtle blur matches the soft-electric edge in the screenshot
+                background: `conic-gradient(from 0deg, ${neonRed} 0deg 180deg, ${neonBlue} 180deg 360deg)`,
+                animationDuration: '1.5s',
+                filter: 'blur(1px)' // High-fidelity electric rim look
               }}
             />
             
             <button 
               onClick={toggleMode}
-              className="w-[62px] h-[62px] rounded-full flex items-center justify-center active:scale-95 transition-all border-[3px] border-white/60 relative z-10 overflow-hidden shadow-xl"
+              className="w-full h-full rounded-full flex flex-col items-center justify-center active:scale-95 transition-all border-[2px] border-white/60 relative z-10 overflow-hidden shadow-lg"
               style={{ 
                 background: silverGradient,
-                boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 5px 15px rgba(0,0,0,0.2)'
+                boxShadow: 'inset 0 1.5px 3px rgba(255,255,255,1), 0 3px 8px rgba(0,0,0,0.15)'
               }}
             >
-              {/* athlete icon - MATCHING SCREENSHOT SIZE (Approx 65%) */}
               <div 
                 className="w-full h-full absolute inset-0"
                 style={{ 
                   animation: 'icon-jiggle 3s infinite',
                   backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`,
-                  backgroundSize: '65%',
-                  backgroundPosition: 'center', 
+                  backgroundSize: '55%',
+                  backgroundPosition: 'center 20%', 
                   backgroundRepeat: 'no-repeat',
                   backgroundBlendMode: 'multiply',
                   borderRadius: '50%',
                   clipPath: 'circle(48.5%)'
                 }}
               />
+              {/* Internal Label - FIRMLY PERSISTED AND SIZE-OPTIMIZED */}
+              <div className="absolute bottom-1 w-full text-center z-20 pointer-events-none px-1">
+                <span className="text-[8.2px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90 inline-block">
+                  {mode === 'skiing' ? '電動滑板' : '去滑雪'}
+                </span>
+              </div>
             </button>
           </div>
 
