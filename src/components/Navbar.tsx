@@ -7,6 +7,10 @@ const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
+  // Vibrant Neon Colors
+  const neonBlue = '#00f2ff';
+  const neonRed = '#ff3131';
+
   return (
     <>
       {/* Mobile Header (Solid) */}
@@ -137,19 +141,17 @@ const Navbar: React.FC = () => {
 
           {/* CENTRAL FLOATING THEME TOGGLE (Large Protruding Button) */}
           <div 
-            className="glow-border-wrapper -translate-y-9"
-            style={{ '--glow-color': mode === 'skiing' ? '#ef4444' : '#38bdf8' } as React.CSSProperties}
+            className="glow-border-wrapper -translate-y-9 relative group"
+            style={{ '--glow-color': mode === 'skiing' ? neonRed : neonBlue } as React.CSSProperties}
           >
             <button 
               onClick={toggleMode}
-              className="glow-border-inner w-20 h-20 rounded-full flex items-center justify-center active:scale-90 transition-all border-4 shadow-2xl border-white/30 relative overflow-hidden"
+              className="glow-border-inner w-20 h-20 rounded-full flex items-center justify-center active:scale-90 transition-all border-[3px] shadow-2xl border-white/20 relative"
               style={{ 
-                background: mode === 'skiing' ? '#38bdf8' : '#ef4444',
+                background: mode === 'skiing' ? neonBlue : neonRed,
                 animation: 'button-pulse 2s infinite',
-                '--button-base-color': mode === 'skiing' ? 'rgba(56, 189, 248, 0.6)' : 'rgba(239, 68, 68, 0.6)',
-                boxShadow: mode === 'skiing' 
-                  ? '0 10px 25px -5px rgba(56, 189, 248, 0.6), inset 0 4px 8px rgba(255,255,255,0.4)' 
-                  : '0 10px 25px -5px rgba(239, 68, 68, 0.6), inset 0 4px 8px rgba(255,255,255,0.4)'
+                '--button-base-color': mode === 'skiing' ? neonBlue : neonRed,
+                boxShadow: `0 15px 35px -5px ${mode === 'skiing' ? 'rgba(0, 242, 255, 0.5)' : 'rgba(255, 49, 49, 0.5)'}, inset 0 4px 12px rgba(255,255,255,0.4)`
               } as React.CSSProperties}
             >
               <div 
@@ -160,11 +162,19 @@ const Navbar: React.FC = () => {
                   backgroundSize: '70%',
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
-                  backgroundColor: mode === 'skiing' ? '#38bdf8' : '#ef4444',
-                  backgroundBlendMode: 'multiply'
+                  backgroundColor: mode === 'skiing' ? neonBlue : neonRed,
+                  backgroundBlendMode: 'multiply',
+                  borderRadius: '50%',
+                  clipPath: 'circle(48.5%)' // Surgical edge clipping to KILL the white line
                 }}
               />
             </button>
+            {/* Label Under Button */}
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
+              <span className="text-[11px] font-black tracking-tighter text-white drop-shadow-md opacity-90 italic">
+                {mode === 'skiing' ? '(電動滑板)' : '(去滑雪)'}
+              </span>
+            </div>
           </div>
 
           {/* Shop */}
