@@ -49,31 +49,41 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Menu Drawer (Themed Dropdown) */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            className="fixed inset-0 z-[60] bg-white flex flex-col p-8"
+            initial={{ opacity: 0, y: '-100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className={`fixed inset-0 z-[60] flex flex-col p-8 text-white ${
+              mode === 'skiing' ? 'mobile-header-skiing' : 'mobile-header-skateboard'
+            }`}
           >
-            <div className="flex justify-between items-center mb-12">
-              <h2 className="text-2xl font-black">選單</h2>
-              <button onClick={() => setIsMenuOpen(false)}><X size={32} /></button>
+            <div className="flex justify-between items-center mb-12 h-8">
+              <div className="flex items-center font-black text-xl tracking-tighter">
+                <span>SK8</span>
+                <span className="ml-1 text-lg">{mode === 'skiing' ? '極限滑雪' : '極速電動滑板'}</span>
+              </div>
+              <button onClick={() => setIsMenuOpen(false)} className="text-white"><X size={32} /></button>
             </div>
-            <div className="flex flex-col gap-8 text-2xl font-bold text-gray-900">
-              <a href="#" onClick={() => setIsMenuOpen(false)}>首頁</a>
-              <a href="#courses" onClick={() => setIsMenuOpen(false)}>專業課程</a>
-              <a href="#shop" onClick={() => setIsMenuOpen(false)}>購物商城</a>
-              <div className="pt-8 border-t border-gray-100 flex justify-between items-center" onClick={() => {
-                toggleMode();
-                setIsMenuOpen(false);
-              }}>
-                <span>切換主題</span>
-                <div className="w-16 h-8 bg-black/10 rounded-full relative flex items-center px-1">
-                  <motion.div animate={{ x: mode === 'skiing' ? 0 : 32 }} className="w-6 h-6 bg-primary rounded-full transition-colors" />
-                </div>
+            
+            <div className="flex flex-col gap-10 text-2xl font-bold">
+              <a href="#" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">首頁</a>
+              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">課程</a>
+              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="hover:opacity-70 transition-opacity">商店</a>
+              
+              <div className="mt-4">
+                <button 
+                  onClick={() => {
+                    toggleMode();
+                    setTimeout(() => setIsMenuOpen(false), 300);
+                  }}
+                  className="w-full py-4 border border-white/30 rounded-2xl bg-white/10 backdrop-blur-md text-sm font-bold tracking-widest uppercase flex items-center justify-center gap-2 active:scale-95 transition-all"
+                >
+                  切換到{mode === 'skiing' ? '電動滑板' : '極限滑雪'}模式
+                </button>
               </div>
             </div>
           </motion.div>
