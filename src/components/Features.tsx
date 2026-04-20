@@ -55,68 +55,87 @@ const Features: React.FC = () => {
   return (
     <section id="courses" className="py-24 bg-secondary transition-colors duration-500 overflow-hidden">
       <div className="container px-4">
-        <div className="max-w-4xl mx-auto mb-16">
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className={`relative group overflow-hidden rounded-[32px] p-1 ${
-              mode === 'skiing' ? 'bg-blue-500/20' : 'bg-red-500/20'
-            }`}
-          >
-            {/* Glossy Aura */}
-            <div className={`absolute inset-0 opacity-20 blur-3xl transition-colors duration-500 ${
-              mode === 'skiing' ? 'bg-blue-400' : 'bg-red-500'
-            }`} />
+        {/* Horizontal Coupon Slider */}
+        <div className="relative mb-20">
+          <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-6 px-4 py-8 -my-8">
+            {[
+              { title: '領取首次課程 9 折優惠', desc: '適用於初學者班', code: 'SK8-HOT', type: 'FIRST' },
+              { title: '雙人同行 85 折專屬', desc: '適用於技巧特訓營', code: 'SK8-DUO', type: 'OFFER' },
+              { title: '裝備租借全額回饋券', desc: '最高折抵 NT$500', code: 'SK8-GEAR', type: 'GEAR' }
+            ].map((voucher, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, x: 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                viewport={{ once: true }}
+                className="flex-shrink-0 w-[85%] md:w-[600px] snap-center"
+              >
+                <div className={`relative group overflow-hidden rounded-[32px] p-1 ${
+                  mode === 'skiing' ? 'bg-blue-500/20' : 'bg-red-500/20'
+                }`}>
+                  {/* Glossy Aura */}
+                  <div className={`absolute inset-0 opacity-20 blur-3xl transition-colors duration-500 ${
+                    mode === 'skiing' ? 'bg-blue-400' : 'bg-red-500'
+                  }`} />
 
-            <div className={`relative flex flex-col md:flex-row items-center gap-6 p-6 md:p-8 rounded-[30px] border-2 border-dashed ${
-              mode === 'skiing' 
-              ? 'bg-white border-blue-200 shadow-[0_20px_50px_rgba(59,130,246,0.15)]' 
-              : 'bg-gray-900 border-red-900/50 shadow-[0_20px_50px_rgba(239,68,68,0.15)] text-white'
-            }`}>
-              
-              {/* Left Side: Voucher Info */}
-              <div className="flex-shrink-0 w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Ticket size={40} className="text-primary animate-pulse" />
-              </div>
+                  <div className={`relative flex flex-col md:flex-row items-center gap-6 p-6 md:p-8 rounded-[30px] border-2 border-dashed ${
+                    mode === 'skiing' 
+                    ? 'bg-white border-blue-200 shadow-[0_20px_50px_rgba(59,130,246,0.15)]' 
+                    : 'bg-gray-900 border-red-900/50 shadow-[0_20px_50px_rgba(239,68,68,0.15)] text-white'
+                  }`}>
+                    
+                    {/* Left Side: Voucher Info */}
+                    <div className="flex-shrink-0 w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center">
+                      <Ticket size={40} className="text-primary animate-pulse" />
+                    </div>
 
-              <div className="flex-1 text-center md:text-left">
-                <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                    Limited Time
-                  </span>
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-50">
-                    VIP 專屬
-                  </span>
+                    <div className="flex-1 text-center md:text-left">
+                      <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                          {voucher.type}
+                        </span>
+                        <span className="text-[10px] font-black uppercase tracking-widest opacity-50">
+                          VIP 專屬
+                        </span>
+                      </div>
+                      <h3 className="text-xl md:text-2xl font-black italic tracking-tighter mb-1 leading-tight">
+                        {voucher.title}
+                      </h3>
+                      <p className="text-sm opacity-60 font-medium">
+                        {voucher.desc}
+                      </p>
+                    </div>
+
+                    {/* Right Side: Action */}
+                    <div className="flex flex-col items-center md:items-end gap-3 min-w-[120px]">
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-1">Code</p>
+                        <p className="text-2xl font-black italic tracking-tighter text-primary">{voucher.code}</p>
+                      </div>
+                      <button 
+                        onClick={() => alert(`優惠券已領取！兌換碼：${voucher.code}`)}
+                        className="w-full py-3 px-6 rounded-xl font-black text-[10px] tracking-widest uppercase text-white shadow-xl hover:scale-105 active:scale-95 transition-all"
+                        style={{ background: 'var(--primary-gradient)' }}
+                      >
+                        立即領取
+                      </button>
+                    </div>
+
+                    {/* Decorative Perforated Circles */}
+                    <div className={`absolute top-1/2 -translate-y-1/2 left-0 -translate-x-1/2 w-8 h-8 rounded-full ${mode === 'skiing' ? 'bg-secondary' : 'bg-secondary'}`} />
+                    <div className={`absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 w-8 h-8 rounded-full ${mode === 'skiing' ? 'bg-secondary' : 'bg-secondary'}`} />
+                  </div>
                 </div>
-                <h3 className="text-2xl font-black italic tracking-tighter mb-1">
-                  領取首次課程 9 折優惠
-                </h3>
-                <p className="text-sm opacity-60 font-medium">
-                  適用於所有初學者體驗班與進階技巧營
-                </p>
-              </div>
-
-              {/* Right Side: Action */}
-              <div className="flex flex-col items-center md:items-end gap-3 min-w-[160px]">
-                <div className="text-right">
-                  <p className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-1">Coupon Code</p>
-                  <p className="text-3xl font-black italic tracking-tighter text-primary">SK8-HOT</p>
-                </div>
-                <button 
-                  onClick={() => alert('優惠券已存入帳號！兌換碼：SK8-HOT')}
-                  className="w-full py-3 px-6 rounded-xl font-black text-xs tracking-widest uppercase text-white shadow-xl hover:scale-105 active:scale-95 transition-all"
-                  style={{ background: 'var(--primary-gradient)' }}
-                >
-                  立即領取
-                </button>
-              </div>
-
-              {/* Decorative Perforated Circles */}
-              <div className={`absolute top-1/2 -translate-y-1/2 left-0 -translate-x-1/2 w-8 h-8 rounded-full ${mode === 'skiing' ? 'bg-secondary' : 'bg-secondary'}`} />
-              <div className={`absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 w-8 h-8 rounded-full ${mode === 'skiing' ? 'bg-secondary' : 'bg-secondary'}`} />
-            </div>
-          </motion.div>
+              </motion.div>
+            ))}
+          </div>
+          {/* Subtle Indicator for Scrolling */}
+          <div className="flex justify-center gap-2 mt-4 opacity-30">
+            <div className="w-8 h-1 bg-primary rounded-full"></div>
+            <div className="w-2 h-1 bg-current rounded-full"></div>
+            <div className="w-2 h-1 bg-current rounded-full"></div>
+          </div>
         </div>
 
         <div className="text-center mb-16 px-4">
