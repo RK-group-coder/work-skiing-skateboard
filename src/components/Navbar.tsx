@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
-import { ShoppingCart, User, Search, Menu, X, Ticket } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar: React.FC = () => {
@@ -56,8 +56,8 @@ const Navbar: React.FC = () => {
             <a href="#" className="hover:text-primary transition-colors">首頁</a>
             <a href="#courses" className="hover:text-primary transition-colors">專業課程</a>
             <a href="#shop" className="hover:text-primary transition-colors">購物商城</a>
-            <button onClick={() => setIsVoucherModalOpen(true)} className="hover:text-primary transition-colors flex items-center gap-1.5 font-bold">
-              <Ticket size={18} /> 兌換碼
+            <button onClick={() => setIsVoucherModalOpen(true)} className="hover:text-primary transition-colors font-bold">
+              兌換碼
             </button>
             <a href="#contact" className="hover:text-primary transition-colors">聯絡我們</a>
           </div>
@@ -82,7 +82,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown (Half-Page) */}
+      {/* Mobile Menu Dropdown (Clean Design, No Icon, White Text) */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
@@ -111,9 +111,9 @@ const Navbar: React.FC = () => {
                   setIsMenuOpen(false);
                   setIsVoucherModalOpen(true);
                 }} 
-                className="py-5 text-xl font-black text-yellow-400 flex items-center justify-center gap-2 border-b border-white/20"
+                className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center"
               >
-                <Ticket size={22} /> 兌換優惠券
+                兌換優惠券
               </button>
               <a href="#contact" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">聯絡我們</a>
             </div>
@@ -148,15 +148,16 @@ const Navbar: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className={`relative w-full max-w-sm rounded-[32px] p-8 shadow-2xl text-center ${mode === 'skiing' ? 'bg-white' : 'bg-slate-900 border border-white/20 text-white'}`}
             >
-              <Ticket size={48} className={`mx-auto mb-6 ${mode === 'skiing' ? 'text-blue-500' : 'text-cyan-400'}`} />
-              <h2 className="text-2xl font-black italic tracking-tighter mb-2">優惠兌換</h2>
+              <h2 className="text-2xl font-black italic tracking-tighter mb-2 uppercase">Voucher Redemption</h2>
+              <p className="text-sm opacity-60 mb-8">請輸入您的折扣代碼</p>
+              
               <input 
                 type="text" 
                 placeholder="輸入代碼..."
                 value={voucherCode}
                 onChange={(e) => setVoucherCode(e.target.value)}
                 className={`w-full h-14 rounded-2xl px-6 font-bold text-center mb-6 outline-none border-2 ${
-                  mode === 'skiing' ? 'bg-slate-100 border-transparent focus:border-blue-500' : 'bg-white/5 border-white/10 focus:border-cyan-400'
+                  mode === 'skiing' ? 'bg-slate-100 border-transparent focus:border-blue-500 text-slate-900' : 'bg-white/5 border-white/10 focus:border-cyan-400 text-white'
                 }`}
               />
               <button onClick={handleRedeem} className="w-full h-14 rounded-2xl text-gray-900 font-black uppercase tracking-widest shadow-xl transition-all" style={{ background: silverGradient }}>
@@ -167,7 +168,7 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Fixing Icon Tiling and Restoring Labels) */}
+      {/* Mobile Bottom Navigation (Cleaned Up - No Icon for Voucher) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-sm px-2">
         <div className={`backdrop-blur-3xl border px-3 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/80 border-white/40 text-slate-900' : 'bg-black/80 border-white/10 text-white'
@@ -184,44 +185,22 @@ const Navbar: React.FC = () => {
             <span className="text-[9px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Hybrid Pro Lights + Fixed Icon + Labels) */}
+          {/* Theme Toggle Button */}
           <div className="relative flex items-center justify-center w-14 h-14">
-            {/* Spinning Aura */}
             <div className="absolute inset-[-4px] rounded-full animate-spin" style={{ background: `conic-gradient(from 0deg, ${neonRed} 0deg 180deg, ${neonBlue} 180deg 360deg)`, filter: 'blur(5px)', opacity: 0.7 }} />
-            {/* Spinning Core */}
             <div className="absolute inset-[-2.5px] rounded-full animate-spin" style={{ background: `conic-gradient(from 0deg, ${neonRed} 0deg 180deg, ${neonBlue} 180deg 360deg)`, filter: 'blur(1.5px)', opacity: 1 }} />
-            
-            <button 
-              onClick={toggleMode} 
-              className="w-12 h-12 rounded-full flex flex-col items-center justify-center relative z-10 overflow-hidden shadow-lg border-2 border-white/60" 
-              style={{ background: silverGradient }}
-            >
-              {/* athlete icon - FIX: Added no-repeat */}
-              <div 
-                className="w-full h-full absolute inset-0 transition-transform" 
-                style={{ 
-                  backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`, 
-                  backgroundSize: '55%', 
-                  backgroundPosition: 'center 20%', 
-                  backgroundRepeat: 'no-repeat',
-                  backgroundBlendMode: 'multiply',
-                  borderRadius: '50%',
-                  clipPath: 'circle(48.5%)'
-                }} 
-              />
-              {/* Internal Label - RESTORED */}
+            <button onClick={toggleMode} className="w-12 h-12 rounded-full flex flex-col items-center justify-center relative z-10 overflow-hidden shadow-lg border-2 border-white/60" style={{ background: silverGradient }}>
+              <div className="w-full h-full absolute inset-0 transition-transform" style={{ backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`, backgroundSize: '55%', backgroundPosition: 'center 20%', backgroundRepeat: 'no-repeat', backgroundBlendMode: 'multiply', borderRadius: '50%', clipPath: 'circle(48.5%)' }} />
               <div className="absolute bottom-1 w-full text-center z-20 pointer-events-none px-1">
-                <span className="text-[8px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90 inline-block">
-                  {mode === 'skiing' ? '電動滑板' : '去滑雪'}
-                </span>
+                <span className="text-[8px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90 inline-block">{mode === 'skiing' ? '電動滑板' : '去滑雪'}</span>
               </div>
             </button>
           </div>
 
-          {/* Ticket */}
-          <button onClick={() => setIsVoucherModalOpen(true)} className="flex flex-col items-center justify-center w-10 py-1 text-yellow-500 font-bold">
-            <Ticket size={18} strokeWidth={3} />
-            <span className="text-[9px] font-black mt-0.5">兌換碼</span>
+          {/* Voucher (Now Without Icon, Matching Others) */}
+          <button onClick={() => setIsVoucherModalOpen(true)} className="flex flex-col items-center justify-center w-12 py-1">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none"><path d="M12 2v20M2 12h20" className="opacity-0" /><path d="M20 12h-8m0 0H4m8 0V4m0 8v8" className="opacity-0"/></svg>
+            <span className="text-[9px] font-black mt-0.5">兌換券</span>
           </button>
 
           {/* Shop */}
