@@ -82,7 +82,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown (Clean layout with additional divider) */}
+      {/* Mobile Menu Dropdown (Fixed Consistency - Guaranteed Dividers) */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
@@ -94,7 +94,7 @@ const Navbar: React.FC = () => {
               mode === 'skiing' ? 'mobile-header-skiing' : 'mobile-header-skateboard'
             }`}
           >
-            <div className="flex justify-between items-center mb-8 h-8">
+            <div className="flex justify-between items-center mb-8 h-8 px-2">
               <div className="flex items-center font-black text-xl tracking-tighter">
                 <span>SK8</span>
                 <span className="ml-1 text-lg uppercase tracking-widest">{mode === 'skiing' ? 'SKI' : 'SKATE'}</span>
@@ -102,20 +102,23 @@ const Navbar: React.FC = () => {
               <button onClick={() => setIsMenuOpen(false)} className="text-white"><X size={28} /></button>
             </div>
             
-            <div className="flex flex-col w-full text-center">
-              <a href="#" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all">首頁</a>
-              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all">專業課程</a>
-              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all">購物商城</a>
+            <div className="flex flex-col w-full">
+              <a href="#" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 w-full text-center hover:bg-white/5 transition-all">首頁</a>
+              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 w-full text-center hover:bg-white/5 transition-all">專業課程</a>
+              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 w-full text-center hover:bg-white/5 transition-all">購物商城</a>
+              
+              {/* Forced Full-Width Button to Ensure Border Visibility */}
               <button 
                 onClick={() => {
                   setIsMenuOpen(false);
                   setIsVoucherModalOpen(true);
                 }} 
-                className="py-5 text-xl font-bold border-b border-white/20 transition-all flex items-center justify-center gap-2"
+                className="py-5 text-xl font-bold border-b border-white/20 w-full text-center hover:bg-white/5 transition-all flex items-center justify-center"
               >
                 兌換優惠券
               </button>
-              <a href="#contact" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold hover:bg-white/5 transition-all">聯絡我們</a>
+              
+              <a href="#contact" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">聯絡我們</a>
             </div>
 
             <div className="p-8 flex justify-center mt-2">
@@ -146,7 +149,7 @@ const Navbar: React.FC = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsVoucherModalOpen(false)} className="absolute inset-0 bg-black/70 backdrop-blur-md" />
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className={`relative w-full max-w-sm rounded-[32px] p-8 shadow-2xl text-center ${mode === 'skiing' ? 'bg-white' : 'bg-slate-900 border border-white/20 text-white'}`}
+              className={`relative w-full max-sm rounded-[32px] p-8 shadow-2xl text-center ${mode === 'skiing' ? 'bg-white' : 'bg-slate-900 border border-white/20 text-white'}`}
             >
               <Ticket size={48} className={`mx-auto mb-6 ${mode === 'skiing' ? 'text-blue-500' : 'text-cyan-400'}`} />
               <h2 className="text-2xl font-black italic tracking-tighter mb-2 uppercase">Voucher Redemption</h2>
@@ -158,7 +161,7 @@ const Navbar: React.FC = () => {
                 value={voucherCode}
                 onChange={(e) => setVoucherCode(e.target.value)}
                 className={`w-full h-14 rounded-2xl px-6 font-bold text-center mb-6 outline-none border-2 ${
-                  mode === 'skiing' ? 'bg-slate-100 border-transparent focus:border-blue-500 text-slate-900' : 'bg-white/5 border-white/10 focus:border-cyan-400 text-white'
+                  mode === 'skiing' ? 'bg-slate-100 border-transparent focus:border-blue-500 text-slate-900' : 'bg-white/5 border-white/10 focus:border-cyan-400'
                 }`}
               />
               <button onClick={handleRedeem} className="w-full h-14 rounded-2xl text-gray-900 font-black uppercase tracking-widest shadow-xl transition-all" style={{ background: silverGradient }}>
@@ -169,7 +172,7 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Tick/Icon maintained as per previous instruction) */}
+      {/* Mobile Bottom Navigation (Tick/Icon maintained) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-sm px-2">
         <div className={`backdrop-blur-3xl border px-3 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/80 border-white/40 text-slate-900' : 'bg-black/80 border-white/10 text-white'
