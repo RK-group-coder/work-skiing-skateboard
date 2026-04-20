@@ -1,51 +1,59 @@
 import React from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { motion } from 'framer-motion';
-import { Check, Ticket } from 'lucide-react';
+import { Check, Ticket, ShoppingCart } from 'lucide-react';
+import { useCart } from '../hooks/CartProvider';
 
 const Features: React.FC = () => {
   const { mode } = useTheme();
+  const { addToCart } = useCart();
 
   const plans = mode === 'skiing' ? [
     {
+      id: 'course-ski-1',
       name: '初心者體驗班',
-      price: '2,500',
+      price: 2500,
       period: '單堂 (3小時)',
       features: ['裝備全額租借', '基礎平衡教學', '緩坡滑行練習', '專業教練指導'],
       popular: false
     },
     {
+      id: 'course-ski-2',
       name: '進階技巧營',
-      price: '8,800',
+      price: 8800,
       period: '三日密集',
       features: ['平行轉向技術', 'S型路徑優化', '煞車進階控制', '附贈午餐與證書'],
       popular: true
     },
     {
+      id: 'course-ski-3',
       name: '大師專業特訓',
-      price: '15,000',
+      price: 15000,
       period: '二日 1對1',
       features: ['全山地形攻略', '私人錄影分析', '不限次數裝借', 'VIP 專屬休息室'],
       popular: false
     }
   ] : [
     {
+      id: 'course-skate-1',
       name: '城市滑行入門',
-      price: '1,200',
+      price: 1200,
       period: '單堂 (2小時)',
       features: ['電板基礎操作', '煞車感應練習', '城市路況解說', '安全護具提供'],
       popular: false
     },
     {
+      id: 'course-skate-2',
       name: '電能技術工坊',
-      price: '4,500',
+      price: 4500,
       period: '二日特訓',
       features: ['高速過彎技巧', 'APP 參數調教', '長途續航规划', '保養維護課程'],
       popular: true
     },
     {
+      id: 'course-skate-3',
       name: '越野大師挑戰',
-      price: '9,800',
+      price: 9800,
       period: '全地形課程',
       features: ['砂石路段攻克', '陡坡攀爬訓練', '越野專用裝備單', '社群榮譽勳章'],
       popular: false
@@ -164,7 +172,7 @@ const Features: React.FC = () => {
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{p.name}</h3>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-gray-900">NT${p.price}</span>
+                  <span className="text-3xl font-black text-gray-900">NT${p.price.toLocaleString()}</span>
                   <span className="text-sm text-gray-400">/ {p.period}</span>
                 </div>
               </div>
@@ -181,14 +189,15 @@ const Features: React.FC = () => {
               </ul>
 
               <button 
-                className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 text-white ${
+                onClick={() => addToCart({ id: p.id, name: p.name, price: p.price, type: 'course' })}
+                className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 text-white flex items-center justify-center gap-2 ${
                   p.popular 
                   ? 'shadow-primary/30 hover:brightness-110 scale-105 md:scale-100' 
                   : 'shadow-black/5 hover:brightness-110'
                 }`}
                 style={{ background: 'var(--primary-gradient)' }}
               >
-                立即報名
+                <ShoppingCart size={18} /> 加入購物車
               </button>
             </motion.div>
           ))}

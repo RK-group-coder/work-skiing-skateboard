@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
-import { ShoppingCart, User, Search, Menu, X, Ticket } from 'lucide-react';
+import { useCart } from '../hooks/CartProvider';
+import { ShoppingCart, User, Search, Menu, X, Ticket, Trash2, Plus, Minus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
+  const { cart, removeFromCart, totalPrice, totalItems, clearCart } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [voucherCode, setVoucherCode] = useState('');
 
   // Neon Colors
@@ -37,9 +40,16 @@ const Navbar: React.FC = () => {
         <div className="flex items-center text-white font-black text-xl tracking-tighter">
           <span>SK8</span>
           <span className="ml-1 text-lg">{mode === 'skiing' ? '極限滑雪' : '極速電動滑板'}</span>
-          <span className="text-[10px] font-medium opacity-80 mt-1 ml-1 lowercase tracking-normal">no cap</span>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
+          <button onClick={() => setIsCartOpen(true)} className="text-white p-2 relative">
+            <ShoppingCart size={24} />
+            {totalItems > 0 && (
+              <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white/20">
+                {totalItems}
+              </span>
+            )}
+          </button>
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white p-2">
             <Menu size={28} />
           </button>
@@ -61,7 +71,6 @@ const Navbar: React.FC = () => {
             <button onClick={() => setIsVoucherModalOpen(true)} className="hover:text-primary transition-colors font-bold flex items-center gap-1.5">
               <Ticket size={18} /> 兌換碼
             </button>
-            <a href="#contact" className="hover:text-primary transition-colors">聯絡我們</a>
           </div>
 
           <div className="flex items-center gap-4">
@@ -78,13 +87,103 @@ const Navbar: React.FC = () => {
                 )}
               </motion.div>
             </div>
-            <button className="p-2 hover:bg-black/5 rounded-full transition-colors"><ShoppingCart size={20} /></button>
+            {/* Desktop Cart Button */}
+            <button onClick={() => setIsCartOpen(true)} className="p-2 hover:bg-black/5 rounded-full transition-colors relative">
+              <ShoppingCart size={20} />
+              {totalItems > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {totalItems}
+                </span>
+              )}
+            </button>
             <button className="p-2 hover:bg-black/5 rounded-full transition-colors"><User size={20} /></button>
           </div>
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown (Guaranteed Physical Dividers) */}
+      {/* Shopping Cart Drawer */}
+      <AnimatePresence>
+        {isCartOpen && (
+          <div className="fixed inset-0 z-[100] flex justify-end">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+              onClick={() => setIsCartOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+            />
+            <motion.div 
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className={`relative w-full max-w-sm h-full shadow-2xl flex flex-col p-8 ${
+                mode === 'skiing' ? 'bg-white text-gray-900' : 'bg-gray-900 text-white'
+              }`}
+            >
+              <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-2">
+                  <ShoppingCart size={24} className="text-primary" />
+                  <h2 className="text-2xl font-black uppercase italic tracking-tighter">My Cart</h2>
+                </div>
+                <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-black/10 rounded-full transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto no-scrollbar space-y-6">
+                {cart.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center opacity-40">
+                    <ShoppingCart size={64} className="mb-4" />
+                    <p className="font-bold">您的購物車目前是空的</p>
+                  </div>
+                ) : (
+                  cart.map((item) => (
+                    <div key={item.id} className="flex gap-4">
+                      <div className={`w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0 ${mode === 'skiing' ? 'bg-gray-100' : 'bg-white/5'}`}>
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="font-black text-primary italic text-xs">SK8</div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start mb-1">
+                          <h4 className="font-bold text-sm truncate pr-2">{item.name}</h4>
+                          <button onClick={() => removeFromCart(item.id)} className="text-red-500 p-1 hover:bg-red-500/10 rounded-lg">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">{item.type}</p>
+                        <div className="flex justify-between items-center">
+                          <span className="font-black text-primary italic">NT${item.price.toLocaleString()}</span>
+                          <span className="text-xs opacity-60">Qty: {item.quantity}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {cart.length > 0 && (
+                <div className="mt-8 pt-8 border-t border-current/10">
+                  <div className="flex justify-between items-end mb-6">
+                    <span className="text-sm opacity-60 uppercase font-black tracking-widest">Total cost</span>
+                    <span className="text-4xl font-black italic tracking-tighter text-primary">NT${totalPrice.toLocaleString()}</span>
+                  </div>
+                  <button 
+                    onClick={() => alert('進入結帳功能')}
+                    className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-gray-900 shadow-xl active:scale-95 transition-all"
+                    style={{ background: silverGradient }}
+                  >
+                    結帳 Checkout
+                  </button>
+                  <button onClick={clearCart} className="w-full py-3 text-xs uppercase font-bold opacity-40 hover:opacity-100 transition-opacity mt-4">
+                    清空購物車
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Menu Dropdown */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
@@ -111,20 +210,16 @@ const Navbar: React.FC = () => {
               <Divider />
               <a href="#shop" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">購物商城</a>
               <Divider />
-              
-              {/* Physical Divider below Voucher is now guaranteed */}
               <button 
                 onClick={() => {
                   setIsMenuOpen(false);
                   setIsVoucherModalOpen(true);
                 }} 
-                className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all"
+                className="py-5 text-xl font-bold w-full text-center"
               >
                 兌換優惠券
               </button>
-              
               <Divider />
-              
               <a href="#contact" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">聯絡我們</a>
             </div>
 
@@ -179,7 +274,7 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Tick/Icon maintained) */}
+      {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-sm px-2">
         <div className={`backdrop-blur-3xl border px-3 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/80 border-white/40 text-slate-900' : 'bg-black/80 border-white/10 text-white'
@@ -200,7 +295,7 @@ const Navbar: React.FC = () => {
           <div className="relative flex items-center justify-center w-14 h-14">
             <div className="absolute inset-[-4px] rounded-full animate-spin" style={{ background: `conic-gradient(from 0deg, ${neonRed} 0deg 180deg, ${neonBlue} 180deg 360deg)`, filter: 'blur(5px)', opacity: 0.7 }} />
             <div className="absolute inset-[-2.5px] rounded-full animate-spin" style={{ background: `conic-gradient(from 0deg, ${neonRed} 0deg 180deg, ${neonBlue} 180deg 360deg)`, filter: 'blur(1.5px)', opacity: 1 }} />
-            <button onClick={toggleMode} className="w-12 h-12 rounded-full flex flex-col items-center justify-center relative z-10 overflow-hidden shadow-lg border-2 border-white/40" style={{ background: silverGradient }}>
+            <button onClick={toggleMode} className="w-12 h-12 rounded-full flex flex-col items-center justify-center relative z-10 overflow-hidden shadow-lg border-2 border-white/60" style={{ background: silverGradient }}>
               <div className="w-full h-full absolute inset-0 transition-transform" style={{ backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`, backgroundSize: '55%', backgroundPosition: 'center 20%', backgroundRepeat: 'no-repeat', backgroundBlendMode: 'multiply', borderRadius: '50%', clipPath: 'circle(48.5%)' }} />
               <div className="absolute bottom-1 w-full text-center z-20 pointer-events-none px-1">
                 <span className="text-[8px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90 inline-block">{mode === 'skiing' ? '電動滑板' : '去滑雪'}</span>

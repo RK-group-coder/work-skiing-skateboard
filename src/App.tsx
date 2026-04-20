@@ -1,5 +1,6 @@
 import React from 'react';
 import { ThemeProvider } from './hooks/ThemeProvider';
+import { CartProvider } from './hooks/CartProvider';
 import { useTheme } from './hooks/useTheme';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -81,17 +82,19 @@ const Footer: React.FC = () => {
 function App() {
   return (
     <ThemeProvider>
-      <div className="min-h-screen">
-        <Navbar />
-        <main>
-          <Hero />
-          <CourseTrust />
-          <Features />
-          <ProductShowcase />
-          <Contact />
-        </main>
-        <Footer />
-      </div>
+      <CartProvider>
+        <div className="min-h-screen">
+          <Navbar />
+          <main>
+            <Hero />
+            <CourseTrust />
+            <Features />
+            <ProductShowcase />
+            <Contact />
+          </main>
+          <Footer />
+        </div>
+      </CartProvider>
     </ThemeProvider>
   );
 }
