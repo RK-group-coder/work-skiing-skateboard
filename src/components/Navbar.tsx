@@ -16,6 +16,10 @@ const Navbar: React.FC = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [showVoucherList, setShowVoucherList] = useState(false);
 
+  // Neon Colors
+  const neonBlue = '#00f2ff';
+  const neonRed = '#ff3131';
+
   // Professional Metallic Gradient
   const silverGradient = 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)';
 
