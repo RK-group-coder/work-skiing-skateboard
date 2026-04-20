@@ -82,54 +82,55 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown (Updated with Voucher Item) */}
+      {/* Mobile Menu Dropdown (Restored to Top-Half Style) */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            className={`fixed inset-0 z-[60] flex flex-col p-8 text-white ${
+            initial={{ opacity: 0, y: '-100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className={`fixed top-0 left-0 right-0 z-[60] flex flex-col p-6 text-white shadow-2xl rounded-b-[40px] ${
               mode === 'skiing' ? 'mobile-header-skiing' : 'mobile-header-skateboard'
             }`}
           >
-            <div className="flex justify-between items-center mb-12 h-8">
-              <div className="flex items-center font-black text-2xl tracking-tighter">
+            <div className="flex justify-between items-center mb-8 h-8">
+              <div className="flex items-center font-black text-xl tracking-tighter">
                 <span>SK8</span>
-                <span className="ml-1 italic text-xl uppercase">Redeem</span>
+                <span className="ml-1 text-lg uppercase tracking-widest">{mode === 'skiing' ? 'SKI' : 'SKATE'}</span>
               </div>
-              <button onClick={() => setIsMenuOpen(false)} className="bg-white/10 p-2 rounded-full"><X size={32} /></button>
+              <button onClick={() => setIsMenuOpen(false)} className="text-white"><X size={28} /></button>
             </div>
             
-            <div className="flex flex-col gap-4">
-              <a href="#" onClick={() => setIsMenuOpen(false)} className="text-4xl font-black italic tracking-tighter opacity-100 hover:opacity-80 transition-all">HOME</a>
-              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="text-4xl font-black italic tracking-tighter opacity-60 hover:opacity-100 transition-all">COURSES</a>
-              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="text-4xl font-black italic tracking-tighter opacity-60 hover:opacity-100 transition-all">SHOP</a>
+            <div className="flex flex-col w-full text-center">
+              <a href="#" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all">首頁</a>
+              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all">專業課程</a>
+              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all">購物商城</a>
               <button 
                 onClick={() => {
                   setIsMenuOpen(false);
                   setIsVoucherModalOpen(true);
                 }} 
-                className="text-4xl font-black italic tracking-tighter text-yellow-400 flex items-center gap-3"
+                className="py-5 text-xl font-black text-yellow-400 flex items-center justify-center gap-2 border-b border-white/20"
               >
-                VOUCHER <Ticket size={32} />
+                <Ticket size={22} /> 兌換優惠券
               </button>
-              <a href="#contact" onClick={() => setIsMenuOpen(false)} className="text-4xl font-black italic tracking-tighter opacity-60 hover:opacity-100 transition-all">CONTACT</a>
+              <a href="#contact" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all">聯絡我們</a>
             </div>
 
-            <div className="mt-auto pb-10">
+            <div className="p-8 flex justify-center mt-2">
               <button 
                 onClick={() => {
                   toggleMode();
                   setTimeout(() => setIsMenuOpen(false), 300);
                 }}
-                className="w-full py-5 rounded-[24px] text-gray-900 font-black tracking-widest uppercase flex items-center justify-center gap-4 shadow-2xl"
+                className="w-full max-w-xs py-4 rounded-2xl text-gray-900 text-sm font-black tracking-widest uppercase flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl"
                 style={{ background: silverGradient }}
               >
                 {mode === 'skiing' ? (
-                  <img src="/icons/skating-icon.png" alt="skating" className="w-8 h-8 object-contain mix-blend-multiply" />
+                  <img src="/icons/skating-icon.png" alt="skating" className="w-6 h-6 object-contain mix-blend-multiply" />
                 ) : (
-                  <img src="/icons/skiing-icon.png" alt="skiing" className="w-8 h-8 object-contain mix-blend-multiply" />
+                  <img src="/icons/skiing-icon.png" alt="skiing" className="w-6 h-6 object-contain mix-blend-multiply" />
                 )}
                 切換模式
               </button>
@@ -141,35 +142,27 @@ const Navbar: React.FC = () => {
       {/* Voucher Modal */}
       <AnimatePresence>
         {isVoucherModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsVoucherModalOpen(false)} className="absolute inset-0 bg-black/80 backdrop-blur-xl" />
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsVoucherModalOpen(false)} className="absolute inset-0 bg-black/70 backdrop-blur-md" />
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }} 
-              animate={{ scale: 1, opacity: 1 }} 
-              exit={{ scale: 0.9, opacity: 0 }}
-              className={`relative w-full max-w-sm rounded-[40px] p-8 shadow-2xl text-center ${mode === 'skiing' ? 'bg-white' : 'bg-slate-900 border border-white/20'}`}
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className={`relative w-full max-w-sm rounded-[32px] p-8 shadow-2xl text-center ${mode === 'skiing' ? 'bg-white' : 'bg-slate-900 border border-white/20 text-white'}`}
             >
-              <div className={`w-20 h-20 mx-auto mb-6 rounded-3xl flex items-center justify-center ${mode === 'skiing' ? 'bg-blue-500' : 'bg-cyan-500'} shadow-lg shadow-current/20`}>
-                <Ticket size={40} className="text-white" />
-              </div>
-              <h2 className={`text-3xl font-black italic tracking-tighter mb-2 ${mode === 'skiing' ? 'text-slate-900' : 'text-white'}`}>優惠兌換</h2>
-              <p className={`text-sm mb-8 opacity-60 font-medium ${mode === 'skiing' ? 'text-slate-600' : 'text-slate-400'}`}>輸入代碼即可享有課程或裝備折扣</p>
+              <Ticket size={48} className={`mx-auto mb-6 ${mode === 'skiing' ? 'text-blue-500' : 'text-cyan-400'}`} />
+              <h2 className="text-2xl font-black italic tracking-tighter mb-2">兌換代碼</h2>
+              <p className="text-sm opacity-60 mb-8">請輸入您的專屬折扣碼</p>
               
               <input 
                 type="text" 
-                placeholder="輸入兌換碼..."
+                placeholder="輸入代碼..."
                 value={voucherCode}
                 onChange={(e) => setVoucherCode(e.target.value)}
-                className={`w-full h-16 rounded-2xl px-6 font-bold text-center mb-6 outline-none border-2 transition-all ${
-                  mode === 'skiing' ? 'bg-slate-100 border-transparent focus:border-blue-500' : 'bg-white/5 border-white/10 focus:border-cyan-400 text-white'
+                className={`w-full h-14 rounded-2xl px-6 font-bold text-center mb-6 outline-none border-2 ${
+                  mode === 'skiing' ? 'bg-slate-100 border-transparent focus:border-blue-500' : 'bg-white/5 border-white/10 focus:border-cyan-400'
                 }`}
               />
               
-              <button 
-                onClick={handleRedeem}
-                className="w-full h-16 rounded-2xl text-gray-900 font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all"
-                style={{ background: silverGradient }}
-              >
+              <button onClick={handleRedeem} className="w-full h-14 rounded-2xl text-gray-900 font-black uppercase tracking-widest shadow-xl transition-all" style={{ background: silverGradient }}>
                 立即兌換
               </button>
             </motion.div>
@@ -177,42 +170,21 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Floating Pill with Ticket added) */}
-      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-sm">
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-sm">
         <div className={`backdrop-blur-3xl border px-3 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/80 border-white/40 text-slate-900' : 'bg-black/80 border-white/10 text-white'
         }`}>
-          {/* Home */}
-          <a href="#" className="flex flex-col items-center justify-center w-10 py-1">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span className="text-[9px] font-black mt-0.5">首頁</span>
-          </a>
-          
-          {/* Courses */}
-          <a href="#courses" className="flex flex-col items-center justify-center w-10 py-1">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-            <span className="text-[9px] font-black mt-0.5">課程</span>
-          </a>
-
-          {/* Theme Toggle (Center) */}
+          <a href="#" className="flex flex-col items-center justify-center w-10 py-1"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span className="text-[9px] font-black mt-0.5">首頁</span></a>
+          <a href="#courses" className="flex flex-col items-center justify-center w-10 py-1"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span className="text-[9px] font-black mt-0.5">課程</span></a>
           <div className="relative flex items-center justify-center w-14 h-14">
             <div className="absolute inset-[-3px] rounded-full animate-spin" style={{ background: `conic-gradient(from 0deg, ${neonRed} 0deg 180deg, ${neonBlue} 180deg 360deg)`, filter: 'blur(3px)', opacity: 0.8 }} />
             <button onClick={toggleMode} className="w-12 h-12 rounded-full flex items-center justify-center relative z-10 overflow-hidden shadow-lg border-2 border-white/40" style={{ background: silverGradient }}>
-              <div className="w-full h-full" style={{ backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`, backgroundSize: '55%', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundBlendMode: 'multiply' }} />
+              <div className="w-full h-full" style={{ backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`, backgroundSize: '55%', backgroundPosition: 'center', backgroundBlendMode: 'multiply' }} />
             </button>
           </div>
-
-          {/* Ticket (New - Very Visible) */}
-          <button onClick={() => setIsVoucherModalOpen(true)} className="flex flex-col items-center justify-center w-10 py-1 text-yellow-500">
-            <Ticket size={18} strokeWidth={3} />
-            <span className="text-[9px] font-black mt-0.5">兌換碼</span>
-          </button>
-
-          {/* Shop */}
-          <a href="#shop" className="flex flex-col items-center justify-center w-10 py-1">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-            <span className="text-[9px] font-black mt-0.5">商城</span>
-          </a>
+          <button onClick={() => setIsVoucherModalOpen(true)} className="flex flex-col items-center justify-center w-10 py-1 text-yellow-500 font-bold"><Ticket size={18} strokeWidth={3} /><span className="text-[9px] font-black mt-0.5">兌換碼</span></button>
+          <a href="#shop" className="flex flex-col items-center justify-center w-10 py-1"><svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg><span className="text-[9px] font-black mt-0.5">商城</span></a>
         </div>
       </div>
     </>
