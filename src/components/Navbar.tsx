@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
-import { ShoppingCart, User, Search, Menu, X } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, Ticket } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar: React.FC = () => {
@@ -56,8 +56,8 @@ const Navbar: React.FC = () => {
             <a href="#" className="hover:text-primary transition-colors">首頁</a>
             <a href="#courses" className="hover:text-primary transition-colors">專業課程</a>
             <a href="#shop" className="hover:text-primary transition-colors">購物商城</a>
-            <button onClick={() => setIsVoucherModalOpen(true)} className="hover:text-primary transition-colors font-bold">
-              兌換碼
+            <button onClick={() => setIsVoucherModalOpen(true)} className="hover:text-primary transition-colors font-bold flex items-center gap-1.5">
+              <Ticket size={18} /> 兌換碼
             </button>
             <a href="#contact" className="hover:text-primary transition-colors">聯絡我們</a>
           </div>
@@ -82,7 +82,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown (Clean Design, No Icon, White Text) */}
+      {/* Mobile Menu Dropdown (Half-Page) */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
@@ -111,9 +111,9 @@ const Navbar: React.FC = () => {
                   setIsMenuOpen(false);
                   setIsVoucherModalOpen(true);
                 }} 
-                className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center"
+                className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center flex items-center justify-center gap-2"
               >
-                兌換優惠券
+                <Ticket size={22} /> 兌換優惠券
               </button>
               <a href="#contact" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">聯絡我們</a>
             </div>
@@ -148,6 +148,7 @@ const Navbar: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className={`relative w-full max-w-sm rounded-[32px] p-8 shadow-2xl text-center ${mode === 'skiing' ? 'bg-white' : 'bg-slate-900 border border-white/20 text-white'}`}
             >
+              <Ticket size={48} className={`mx-auto mb-6 ${mode === 'skiing' ? 'text-blue-500' : 'text-cyan-400'}`} />
               <h2 className="text-2xl font-black italic tracking-tighter mb-2 uppercase">Voucher Redemption</h2>
               <p className="text-sm opacity-60 mb-8">請輸入您的折扣代碼</p>
               
@@ -168,7 +169,7 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Cleaned Up - No Icon for Voucher) */}
+      {/* Mobile Bottom Navigation (Restoring Voucher Icon) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-sm px-2">
         <div className={`backdrop-blur-3xl border px-3 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/80 border-white/40 text-slate-900' : 'bg-black/80 border-white/10 text-white'
@@ -197,9 +198,9 @@ const Navbar: React.FC = () => {
             </button>
           </div>
 
-          {/* Voucher (Now Without Icon, Matching Others) */}
-          <button onClick={() => setIsVoucherModalOpen(true)} className="flex flex-col items-center justify-center w-12 py-1">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none"><path d="M12 2v20M2 12h20" className="opacity-0" /><path d="M20 12h-8m0 0H4m8 0V4m0 8v8" className="opacity-0"/></svg>
+          {/* Voucher (Restored Icon, Theme Matched) */}
+          <button onClick={() => setIsVoucherModalOpen(true)} className="flex flex-col items-center justify-center w-10 py-1">
+            <Ticket size={18} strokeWidth={3} />
             <span className="text-[9px] font-black mt-0.5">兌換券</span>
           </button>
 
