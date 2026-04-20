@@ -55,20 +55,10 @@ const Features: React.FC = () => {
   return (
     <section id="courses" className="py-24 bg-secondary transition-colors duration-500 overflow-hidden">
       <div className="container px-4">
-        <div className="text-center mb-16 px-4">
-          <span className="text-primary font-bold tracking-widest uppercase text-sm mb-4 block">熱門選擇</span>
-          <h2 className={`text-4xl md:text-5xl font-black mb-6 ${mode === 'skiing' ? 'text-gray-900' : 'text-white'}`}>
-            絕配您的滑行方案
-          </h2>
-          <p className={`max-w-2xl mx-auto ${mode === 'skiing' ? 'text-gray-500' : 'text-gray-300'}`}>
-            無論您是初出茅廬的新手，還是追求極致的專家，我們都有為您量身打造的課程。
-          </p>
-        </div>
-
-        <div className="max-w-4xl mx-auto mb-20">
+        <div className="max-w-4xl mx-auto mb-16">
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: -20 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className={`relative group overflow-hidden rounded-[32px] p-1 ${
               mode === 'skiing' ? 'bg-blue-500/20' : 'bg-red-500/20'
@@ -127,6 +117,16 @@ const Features: React.FC = () => {
               <div className={`absolute top-1/2 -translate-y-1/2 right-0 translate-x-1/2 w-8 h-8 rounded-full ${mode === 'skiing' ? 'bg-secondary' : 'bg-secondary'}`} />
             </div>
           </motion.div>
+        </div>
+
+        <div className="text-center mb-16 px-4">
+          <span className="text-primary font-bold tracking-widest uppercase text-sm mb-4 block">熱門選擇</span>
+          <h2 className={`text-4xl md:text-5xl font-black mb-6 ${mode === 'skiing' ? 'text-gray-900' : 'text-white'}`}>
+            絕配您的滑行方案
+          </h2>
+          <p className={`max-w-2xl mx-auto ${mode === 'skiing' ? 'text-gray-500' : 'text-gray-300'}`}>
+            無論您是初出茅廬的新手，還是追求極致的專家，我們都有為您量身打造的課程。
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 lg:gap-8">
