@@ -82,7 +82,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown (Half-Page) */}
+      {/* Mobile Menu Dropdown (Clean layout with additional divider) */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
@@ -103,19 +103,19 @@ const Navbar: React.FC = () => {
             </div>
             
             <div className="flex flex-col w-full text-center">
-              <a href="#" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">首頁</a>
-              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">專業課程</a>
-              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">購物商城</a>
+              <a href="#" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all">首頁</a>
+              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all">專業課程</a>
+              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all">購物商城</a>
               <button 
                 onClick={() => {
                   setIsMenuOpen(false);
                   setIsVoucherModalOpen(true);
                 }} 
-                className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center flex items-center justify-center gap-2"
+                className="py-5 text-xl font-bold border-b border-white/20 transition-all flex items-center justify-center gap-2"
               >
-                <Ticket size={22} /> 兌換優惠券
+                兌換優惠券
               </button>
-              <a href="#contact" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">聯絡我們</a>
+              <a href="#contact" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold hover:bg-white/5 transition-all">聯絡我們</a>
             </div>
 
             <div className="p-8 flex justify-center mt-2">
@@ -169,7 +169,7 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Mobile Bottom Navigation (Restoring Voucher Icon) */}
+      {/* Mobile Bottom Navigation (Tick/Icon maintained as per previous instruction) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-sm px-2">
         <div className={`backdrop-blur-3xl border px-3 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
           mode === 'skiing' ? 'bg-white/80 border-white/40 text-slate-900' : 'bg-black/80 border-white/10 text-white'
@@ -198,7 +198,7 @@ const Navbar: React.FC = () => {
             </button>
           </div>
 
-          {/* Voucher (Restored Icon, Theme Matched) */}
+          {/* Voucher */}
           <button onClick={() => setIsVoucherModalOpen(true)} className="flex flex-col items-center justify-center w-10 py-1">
             <Ticket size={18} strokeWidth={3} />
             <span className="text-[9px] font-black mt-0.5">兌換券</span>
