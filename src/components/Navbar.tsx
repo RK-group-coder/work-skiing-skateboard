@@ -1,18 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
-import { ShoppingCart, User, Search, Menu, X } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, Ticket } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar: React.FC = () => {
   const { mode, toggleMode } = useTheme();
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  const [voucherCode, setVoucherCode] = useState('');
 
-  // Elite Saturated Colors
+  // Saturated Neon Colors
   const neonBlue = '#00f2ff';
   const neonRed = '#ff3131';
 
   // Professional Metallic Gradient
   const silverGradient = 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 45%, #cbd5e1 50%, #e2e8f0 100%)';
+
+  const handleRedeem = () => {
+    // Simple logic for demonstration
+    if (voucherCode.trim()) {
+      alert(`兌換代碼 [${voucherCode}] 成功！已為您套用優惠。`);
+      setVoucherCode('');
+      setIsVoucherModalOpen(false);
+    } else {
+      alert('請輸入有效的兌換碼');
+    }
+  };
 
   return (
     <>
@@ -25,9 +38,14 @@ const Navbar: React.FC = () => {
           <span className="ml-1 text-lg">{mode === 'skiing' ? '極限滑雪' : '極速電動滑板'}</span>
           <span className="text-[10px] font-medium opacity-80 mt-1 ml-1 lowercase tracking-normal">no cap</span>
         </div>
-        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white">
-          <Menu size={24} />
-        </button>
+        <div className="flex items-center gap-4">
+          <button onClick={() => setIsVoucherModalOpen(true)} className="text-white opacity-90 hover:opacity-100 transition-opacity">
+            <Ticket size={24} />
+          </button>
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white">
+            <Menu size={24} />
+          </button>
+        </div>
       </header>
 
       {/* Desktop Navbar (Pill) */}
@@ -43,6 +61,9 @@ const Navbar: React.FC = () => {
             <a href="#" className="hover:text-primary transition-colors">首頁</a>
             <a href="#courses" className="hover:text-primary transition-colors">專業課程</a>
             <a href="#shop" className="hover:text-primary transition-colors">購物商城</a>
+            <button onClick={() => setIsVoucherModalOpen(true)} className="hover:text-primary transition-colors flex items-center gap-1.5">
+              <Ticket size={16} /> 兌換碼
+            </button>
             <a href="#contact" className="hover:text-primary transition-colors">聯絡我們</a>
           </div>
 
@@ -66,7 +87,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown (Compact Horizontal) */}
+      {/* Mobile Menu Dropdown */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
@@ -87,16 +108,25 @@ const Navbar: React.FC = () => {
             </div>
             
             <div className="flex flex-col w-full">
-              <a href="#" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
+              <a href="#" onClick={() => setIsMenuOpen(false)} className="w-full py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
                 首頁
               </a>
-              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
+              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="w-full py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
                 專業課程
               </a>
-              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
+              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="w-full py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
                 購物商城
               </a>
-              <a href="#contact" onClick={() => setIsMenuOpen(false)} className="w-full py-6 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
+              <button 
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  setIsVoucherModalOpen(true);
+                }} 
+                className="w-full py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center flex items-center justify-center gap-2"
+              >
+                <Ticket size={24} /> 兌換優惠券
+              </button>
+              <a href="#contact" onClick={() => setIsMenuOpen(false)} className="w-full py-5 text-xl font-bold border-b border-white/20 hover:bg-white/5 transition-all text-center">
                 聯絡我們
               </a>
               
@@ -125,6 +155,89 @@ const Navbar: React.FC = () => {
         )}
       </AnimatePresence>
 
+      {/* Voucher Redemption Modal */}
+      <AnimatePresence>
+        {isVoucherModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsVoucherModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className={`relative w-full max-w-md overflow-hidden rounded-[32px] shadow-2xl ${
+                mode === 'skiing' ? 'bg-white text-slate-900' : 'bg-slate-900 text-white border border-white/10'
+              }`}
+            >
+              {/* Modal Decorative Header */}
+              <div className={`h-24 w-full flex items-center justify-center relative overflow-hidden ${
+                mode === 'skiing' ? 'mobile-header-skiing' : 'mobile-header-skateboard'
+              }`}>
+                <div className="absolute inset-0 opacity-20 pointer-events-none">
+                  <div className="absolute top-0 left-0 w-full h-full animate-pulse" style={{ background: `radial-gradient(circle at 30% 50%, white, transparent)` }}></div>
+                </div>
+                <Ticket size={40} className="text-white relative z-10" />
+              </div>
+
+              <div className="p-8">
+                <button 
+                  onClick={() => setIsVoucherModalOpen(false)}
+                  className={`absolute top-4 right-4 p-2 rounded-full hover:bg-black/10 transition-colors ${
+                    mode === 'skiing' ? 'text-white' : 'text-white'
+                  }`}
+                >
+                  <X size={20} />
+                </button>
+
+                <h3 className="text-2xl font-black italic tracking-tighter mb-2">REDEEM VOUCHER</h3>
+                <p className={`text-sm font-medium mb-8 leading-relaxed ${mode === 'skiing' ? 'text-slate-500' : 'text-slate-400'}`}>
+                  請輸入您的兌換代碼以領取專屬課程或商品折扣。
+                </p>
+
+                <div className="relative group mb-6">
+                  <input 
+                    type="text" 
+                    placeholder="例如: SK8-SUMMER-2024"
+                    value={voucherCode}
+                    onChange={(e) => setVoucherCode(e.target.value)}
+                    className={`w-full h-14 pl-12 pr-4 rounded-2xl font-bold border-2 transition-all outline-none ${
+                      mode === 'skiing' 
+                      ? 'bg-slate-50 border-slate-200 focus:border-blue-500 focus:bg-white text-slate-900' 
+                      : 'bg-white/5 border-white/10 focus:border-cyan-400 focus:bg-white/10 text-white'
+                    }`}
+                  />
+                  <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30" />
+                </div>
+
+                <div className="flex gap-4">
+                  <button 
+                    onClick={handleRedeem}
+                    className="flex-1 h-14 rounded-2xl text-gray-900 font-black tracking-widest uppercase transition-all shadow-lg active:scale-95"
+                    style={{ 
+                      background: silverGradient,
+                      boxShadow: 'inset 0 2px 4px rgba(255,255,255,1), 0 8px 20px rgba(0,0,0,0.1)'
+                    }}
+                  >
+                    立即兌換
+                  </button>
+                </div>
+
+                <div className="mt-8 flex items-center justify-center gap-2 opacity-40">
+                  <div className="h-[1px] flex-1 bg-current"></div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Limited Offer</span>
+                  <div className="h-[1px] flex-1 bg-current"></div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Mobile Bottom Navigation (Floating App-like Bar with Solid Highlights) */}
       <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-sm px-2">
         <div className={`glass-pill backdrop-blur-2xl border px-2 py-2 flex items-center justify-between shadow-2xl rounded-full transition-all duration-300 ${
@@ -142,7 +255,7 @@ const Navbar: React.FC = () => {
             <span className="text-[10px] font-black mt-0.5">課程</span>
           </a>
 
-          {/* CENTRAL FLOATING THEME TOGGLE (Hybrid Sharp + Glow Restoration) */}
+          {/* CENTRAL FLOATING THEME TOGGLE (Final 1:1 Precision Restoration) */}
           <div className="relative -translate-y-0.5 flex items-center justify-center w-[52px] h-[52px]">
             {/* LAYER 1: TIGHT SOFT GLOW (Atmospheric aura) */}
             <div 
@@ -187,7 +300,6 @@ const Navbar: React.FC = () => {
                   clipPath: 'circle(48.5%)'
                 }}
               />
-              {/* Internal Label - FIRMLY PERSISTED */}
               <div className="absolute bottom-1 w-full text-center z-20 pointer-events-none px-1">
                 <span className="text-[8.2px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90 inline-block">
                   {mode === 'skiing' ? '電動滑板' : '去滑雪'}
