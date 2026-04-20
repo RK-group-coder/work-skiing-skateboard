@@ -26,6 +26,8 @@ const Navbar: React.FC = () => {
     }
   };
 
+  const Divider = () => <div className="h-[1px] w-full bg-white/20" />;
+
   return (
     <>
       {/* Mobile Header (Solid) */}
@@ -82,7 +84,7 @@ const Navbar: React.FC = () => {
         </div>
       </nav>
 
-      {/* Mobile Menu Dropdown (Fixed Consistency - Guaranteed Dividers) */}
+      {/* Mobile Menu Dropdown (Guaranteed Physical Dividers) */}
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div 
@@ -103,20 +105,25 @@ const Navbar: React.FC = () => {
             </div>
             
             <div className="flex flex-col w-full">
-              <a href="#" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 w-full text-center hover:bg-white/5 transition-all">首頁</a>
-              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 w-full text-center hover:bg-white/5 transition-all">專業課程</a>
-              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold border-b border-white/20 w-full text-center hover:bg-white/5 transition-all">購物商城</a>
+              <a href="#" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">首頁</a>
+              <Divider />
+              <a href="#courses" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">專業課程</a>
+              <Divider />
+              <a href="#shop" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">購物商城</a>
+              <Divider />
               
-              {/* Forced Full-Width Button to Ensure Border Visibility */}
+              {/* Physical Divider below Voucher is now guaranteed */}
               <button 
                 onClick={() => {
                   setIsMenuOpen(false);
                   setIsVoucherModalOpen(true);
                 }} 
-                className="py-5 text-xl font-bold border-b border-white/20 w-full text-center hover:bg-white/5 transition-all flex items-center justify-center"
+                className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all"
               >
                 兌換優惠券
               </button>
+              
+              <Divider />
               
               <a href="#contact" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">聯絡我們</a>
             </div>
@@ -149,7 +156,7 @@ const Navbar: React.FC = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsVoucherModalOpen(false)} className="absolute inset-0 bg-black/70 backdrop-blur-md" />
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-              className={`relative w-full max-sm rounded-[32px] p-8 shadow-2xl text-center ${mode === 'skiing' ? 'bg-white' : 'bg-slate-900 border border-white/20 text-white'}`}
+              className={`relative w-full max-w-sm rounded-[32px] p-8 shadow-2xl text-center ${mode === 'skiing' ? 'bg-white' : 'bg-slate-900 border border-white/20 text-white'}`}
             >
               <Ticket size={48} className={`mx-auto mb-6 ${mode === 'skiing' ? 'text-blue-500' : 'text-cyan-400'}`} />
               <h2 className="text-2xl font-black italic tracking-tighter mb-2 uppercase">Voucher Redemption</h2>
@@ -193,7 +200,7 @@ const Navbar: React.FC = () => {
           <div className="relative flex items-center justify-center w-14 h-14">
             <div className="absolute inset-[-4px] rounded-full animate-spin" style={{ background: `conic-gradient(from 0deg, ${neonRed} 0deg 180deg, ${neonBlue} 180deg 360deg)`, filter: 'blur(5px)', opacity: 0.7 }} />
             <div className="absolute inset-[-2.5px] rounded-full animate-spin" style={{ background: `conic-gradient(from 0deg, ${neonRed} 0deg 180deg, ${neonBlue} 180deg 360deg)`, filter: 'blur(1.5px)', opacity: 1 }} />
-            <button onClick={toggleMode} className="w-12 h-12 rounded-full flex flex-col items-center justify-center relative z-10 overflow-hidden shadow-lg border-2 border-white/60" style={{ background: silverGradient }}>
+            <button onClick={toggleMode} className="w-12 h-12 rounded-full flex flex-col items-center justify-center relative z-10 overflow-hidden shadow-lg border-2 border-white/40" style={{ background: silverGradient }}>
               <div className="w-full h-full absolute inset-0 transition-transform" style={{ backgroundImage: `${mode === 'skiing' ? "url('/icons/skating-icon.png')" : "url('/icons/skiing-icon.png')"}, ${silverGradient}`, backgroundSize: '55%', backgroundPosition: 'center 20%', backgroundRepeat: 'no-repeat', backgroundBlendMode: 'multiply', borderRadius: '50%', clipPath: 'circle(48.5%)' }} />
               <div className="absolute bottom-1 w-full text-center z-20 pointer-events-none px-1">
                 <span className="text-[8px] font-black tracking-tighter text-slate-900 uppercase leading-none drop-shadow-sm scale-90 inline-block">{mode === 'skiing' ? '電動滑板' : '去滑雪'}</span>
