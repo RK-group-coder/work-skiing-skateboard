@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTheme } from '../hooks/useTheme';
-import { useCart, Voucher } from '../hooks/CartProvider';
+import { useCart } from '../hooks/CartProvider';
+import type { Voucher } from '../hooks/CartProvider';
 import { ShoppingCart, User, Search, Menu, X, Ticket, Trash2, Tag, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

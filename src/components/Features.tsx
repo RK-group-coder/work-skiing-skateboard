@@ -2,7 +2,8 @@ import React from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { motion } from 'framer-motion';
 import { Check, Ticket } from 'lucide-react';
-import { useCart, Voucher } from '../hooks/CartProvider';
+import { useCart } from '../hooks/CartProvider';
+import type { Voucher } from '../hooks/CartProvider';
 
 const Features: React.FC = () => {
   const { mode } = useTheme();
