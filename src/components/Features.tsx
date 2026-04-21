@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Check, Ticket } from 'lucide-react';
 import { useCart } from '../hooks/CartProvider';
 import type { Voucher } from '../hooks/CartProvider';
+import { supabase } from '../lib/supabase';
 
 const Features: React.FC = () => {
   const { mode } = useTheme();
@@ -67,9 +68,29 @@ const Features: React.FC = () => {
     }
   ];
 
-  const handleClaim = (v: Voucher) => {
+  const handleClaim = async (v: Voucher) => {
     claimVoucher(v);
-    alert(`【${v.title}】已領取！您可以在購物車中直接點選使用。`);
+    
+    // Sync to Supabase
+    try {
+      const { error } = await supabase
+        .from('claimed_vouchers')
+        .insert([
+          { 
+            voucher_id: v.id, 
+            title: v.title, 
+            claimed_at: new Date().toISOString(),
+            status: 'active'
+          }
+        ]);
+      
+      if (error) throw error;
+      alert(`【${v.title}】已領取並同步至雲端！您可以在購物車中直接點選使用。`);
+    } catch (err) {
+      console.error('Supabase Sync Failed:', err);
+      // Fallback alert
+      alert(`【${v.title}】已領取！(本地暫存)`);
+    }
   };
 
   return (
