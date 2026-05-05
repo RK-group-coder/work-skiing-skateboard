@@ -215,16 +215,18 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const u = session?.user ?? null;
       setUser(u);
-      if (u?.email === 'pokai2952@gmail.com') {
-        toggleAdmin(true);
+      if (u?.email?.toLowerCase() === 'pokai2952@gmail.com') {
+        setShowAdmin(true);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null;
       setUser(u);
-      if (u?.email === 'pokai2952@gmail.com' && _event === 'SIGNED_IN') {
-        toggleAdmin(true);
+      if (u?.email?.toLowerCase() === 'pokai2952@gmail.com') {
+        setShowAdmin(true);
+      } else {
+        setShowAdmin(false);
       }
     });
 
