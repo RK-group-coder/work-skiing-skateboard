@@ -215,7 +215,7 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const u = session?.user ?? null;
       setUser(u);
-      if (u?.email === 'managersk8@gmail.com') {
+      if (u?.email === 'pokai2952@gmail.com') {
         toggleAdmin(true);
       }
     });
@@ -223,7 +223,7 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null;
       setUser(u);
-      if (u?.email === 'managersk8@gmail.com' && _event === 'SIGNED_IN') {
+      if (u?.email === 'pokai2952@gmail.com' && _event === 'SIGNED_IN') {
         toggleAdmin(true);
       }
     });

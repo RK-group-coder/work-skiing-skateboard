@@ -434,7 +434,7 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, categories, products, co
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(initialUser?.email === 'managersk8@gmail.com');
+  const [isLoggedIn, setIsLoggedIn] = useState(initialUser?.email === 'pokai2952@gmail.com');
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
