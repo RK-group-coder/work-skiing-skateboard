@@ -3,18 +3,24 @@ import React, { createContext, useContext, useState } from 'react';
 export interface Voucher {
   id: string;
   title: string;
-  discount: number; // 0.9 for 10% off, or a fixed amount like 500
-  type: 'percentage' | 'fixed';
+  description?: string;
+  value: number; // e.g. 10 for 10% off, or 500 for fixed 500 off
+  type: 'percent' | 'fixed';
   code: string;
+  min_amount?: number; // Minimum spend requirement
+  valid_until?: string;
+  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses';
+  target_id?: string;
 }
 
 interface CartItem {
   id: string;
   name: string;
   price: number;
-  type: 'product';
+  type: 'product' | 'course_booking';
   image?: string;
   quantity: number;
+  details?: any; // For booking dates, times, etc.
 }
 
 interface CartContextType {
@@ -29,6 +35,10 @@ interface CartContextType {
   totalItems: number;
   totalPrice: number;
   discountedPrice: number;
+  isCheckoutOpen: boolean;
+  setIsCheckoutOpen: (open: boolean) => void;
+  setDirectPurchaseItem: (item: CartItem | null) => void;
+  getVoucherEligibility: (voucher: Voucher) => { isEligible: boolean; reason?: string };
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -37,10 +47,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [cart, setCart] = useState<CartItem[]>([]);
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [directPurchaseItem, setDirectPurchaseItem] = useState<CartItem | null>(null);
+
+  const effectiveCart = directPurchaseItem ? [directPurchaseItem] : cart;
 
   const addToCart = (item: Omit<CartItem, 'quantity'>) => {
     setCart(prev => {
-      const existing = prev.find(i => i.id === item.id);
+      // For course bookings, we usually want them as unique items even if the course ID is the same
+      if (item.type === 'course_booking') {
+        return [...prev, { ...item, quantity: 1 }];
+      }
+      
+      const existing = prev.find(i => i.id === item.id && i.type === item.type);
       if (existing) {
         return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
@@ -69,28 +88,94 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearCart = () => {
-    setCart([]);
+    if (directPurchaseItem) {
+      setDirectPurchaseItem(null);
+    } else {
+      setCart([]);
+    }
     setSelectedVoucher(null);
   };
 
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const totalItems = effectiveCart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalPrice = effectiveCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  const getVoucherEligibility = (voucher: Voucher) => {
+    if (effectiveCart.length === 0) {
+      return { isEligible: false, reason: '購物車目前是空的' };
+    }
+
+    const isItemEligible = (i: CartItem) => {
+      if (voucher.target_type === 'global') return true;
+      if (voucher.target_type === 'all_courses') return i.type === 'course_booking';
+      if (voucher.target_type === 'course') return i.type === 'course_booking' && i.details?.courseId === voucher.target_id;
+      if (i.type !== 'product') return false; 
+      if (voucher.target_type === 'product') return i.id === voucher.target_id;
+      if (voucher.target_type === 'category') return i.details?.category_id === voucher.target_id;
+      if (voucher.target_type === 'skiing') return i.details?.mode === 'skiing';
+      if (voucher.target_type === 'skateboard') return i.details?.mode === 'skateboard';
+      return false;
+    };
+
+    const eligibleTotal = effectiveCart.filter(isItemEligible).reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+    if (eligibleTotal === 0) {
+      return { isEligible: false, reason: '購物車內沒有符合此優惠的商品' };
+    }
+
+    if (voucher.min_amount && eligibleTotal < voucher.min_amount) {
+      return { isEligible: false, reason: `需滿 NT$${voucher.min_amount} 才能使用` };
+    }
+
+    return { isEligible: true };
+  };
 
   // Calculate discount
   let discountedPrice = totalPrice;
+  
   if (selectedVoucher) {
-    if (selectedVoucher.type === 'percentage') {
-      discountedPrice = Math.round(totalPrice * selectedVoucher.discount);
+    const { isEligible } = getVoucherEligibility(selectedVoucher);
+    
+    if (isEligible) {
+      const isItemEligible = (i: CartItem) => {
+        if (selectedVoucher.target_type === 'global') return true;
+        if (selectedVoucher.target_type === 'all_courses') return i.type === 'course_booking';
+        if (selectedVoucher.target_type === 'course') return i.type === 'course_booking' && i.details?.courseId === selectedVoucher.target_id;
+        if (i.type !== 'product') return false; 
+        if (selectedVoucher.target_type === 'product') return i.id === selectedVoucher.target_id;
+        if (selectedVoucher.target_type === 'category') return i.details?.category_id === selectedVoucher.target_id;
+        if (selectedVoucher.target_type === 'skiing') return i.details?.mode === 'skiing';
+        if (selectedVoucher.target_type === 'skateboard') return i.details?.mode === 'skateboard';
+        return false;
+      };
+      
+      const eligibleTotal = effectiveCart.filter(isItemEligible).reduce((sum, i) => sum + i.price * i.quantity, 0);
+      
+      if (selectedVoucher.type === 'percent') {
+        discountedPrice = totalPrice - Math.round(eligibleTotal * (selectedVoucher.value / 100));
+      } else {
+        discountedPrice = totalPrice - Math.min(eligibleTotal, selectedVoucher.value);
+      }
     } else {
-      discountedPrice = Math.max(0, totalPrice - selectedVoucher.discount);
+      // If selected voucher becomes ineligible (e.g. item removed), auto-deselect
+      setTimeout(() => setSelectedVoucher(null), 0);
     }
   }
 
+  // Custom handler for closing checkout to clear direct purchase item
+  const handleSetIsCheckoutOpen = (open: boolean) => {
+    setIsCheckoutOpen(open);
+    if (!open) {
+      setDirectPurchaseItem(null);
+    }
+  };
+
   return (
     <CartContext.Provider value={{ 
-      cart, vouchers, selectedVoucher, 
+      cart: effectiveCart, vouchers, selectedVoucher, 
       addToCart, removeFromCart, claimVoucher, selectVoucher, clearCart, 
-      totalItems, totalPrice, discountedPrice 
+      totalItems, totalPrice, discountedPrice,
+      isCheckoutOpen, setIsCheckoutOpen: handleSetIsCheckoutOpen,
+      setDirectPurchaseItem, getVoucherEligibility
     }}>
       {children}
     </CartContext.Provider>

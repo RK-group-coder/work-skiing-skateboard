@@ -1,20 +1,77 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useCart } from '../hooks/CartProvider';
 import type { Voucher } from '../hooks/CartProvider';
-import { ShoppingCart, User, Search, Menu, X, Ticket, Trash2, Tag, ChevronRight } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, Ticket, Trash2, Tag, ChevronRight, LogOut, Settings2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  user: SupabaseUser | null;
+  onLoginClick: () => void;
+  onAdminClick: () => void;
+  onLogout: () => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLogout }) => {
   const { mode, toggleMode } = useTheme();
   const { 
     cart, removeFromCart, totalPrice, totalItems, clearCart, 
-    vouchers, selectedVoucher, selectVoucher, discountedPrice 
+    vouchers, selectedVoucher, selectVoucher, discountedPrice,
+    isCheckoutOpen, setIsCheckoutOpen, getVoucherEligibility
   } = useCart();
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMyVouchersOpen, setIsMyVouchersOpen] = useState(false);
   const [showVoucherList, setShowVoucherList] = useState(false);
+  const [targetNames, setTargetNames] = useState<Record<string, string>>({});
+  const [isPinging, setIsPinging] = useState(false);
+
+  useEffect(() => {
+    if (totalItems > 0) {
+      const delay = setTimeout(() => {
+        setIsPinging(true);
+        const end = setTimeout(() => setIsPinging(false), 800);
+        return () => clearTimeout(end);
+      }, 700);
+      return () => clearTimeout(delay);
+    }
+  }, [totalItems]);
+
+  React.useEffect(() => {
+    const fetchTargetNames = async () => {
+      const newNames: Record<string, string> = {};
+      let hasNew = false;
+      
+      for (const v of vouchers) {
+        if (!v.target_id || targetNames[v.target_id]) continue;
+        
+        hasNew = true;
+        try {
+          if (v.target_type === 'product') {
+            const { data } = await supabase.from('products').select('name').eq('id', v.target_id).single();
+            if (data) newNames[v.target_id] = data.name;
+          } else if (v.target_type === 'course') {
+            const { data } = await supabase.from('courses').select('name').eq('id', v.target_id).single();
+            if (data) newNames[v.target_id] = data.name;
+          } else if (v.target_type === 'category') {
+            const { data } = await supabase.from('categories').select('name').eq('id', v.target_id).single();
+            if (data) newNames[v.target_id] = data.name;
+          }
+        } catch (e) {
+          console.error('Error fetching target name:', e);
+        }
+      }
+      
+      if (hasNew) {
+        setTargetNames(prev => ({ ...prev, ...newNames }));
+      }
+    };
+    fetchTargetNames();
+  }, [vouchers]);
+
 
   // Neon Colors
   const neonBlue = '#00f2ff';
@@ -31,16 +88,26 @@ const Navbar: React.FC = () => {
       <header className={`md:hidden fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6 transition-colors duration-300 ${
         mode === 'skiing' ? 'mobile-header-skiing' : 'mobile-header-skateboard'
       }`}>
-        <div className="flex items-center text-white font-black text-xl tracking-tighter">
-          <span>SK8</span>
-          <span className="ml-1 text-lg">{mode === 'skiing' ? '極限滑雪' : '極速電動滑板'}</span>
+        <div className="flex flex-col">
+          <div className="flex items-center text-white font-black text-xl tracking-tighter leading-none">
+            <span>SK8</span>
+            <span className="ml-1 text-lg">{mode === 'skiing' ? '極限滑雪' : '極速電動滑板'}</span>
+          </div>
+          {user && (
+            <div className="text-[8px] font-bold text-white/60 tracking-widest mt-1 uppercase">
+              ID: {user.email === 'managersk8@gmail.com' ? 'SK8管理者' : (user.user_metadata?.full_name || '使用者')}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => setIsCartOpen(true)} className="text-white p-2 relative">
+          <button id="header-cart-icon" onClick={() => setIsCartOpen(true)} className="text-white p-2 relative">
             <ShoppingCart size={24} />
             {totalItems > 0 && (
-              <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white/20">
-                {totalItems}
+              <span className="absolute top-0 right-0 w-5 h-5">
+                {isPinging && <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-75"></span>}
+                <span className="relative flex items-center justify-center bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full border-2 border-white/20">
+                  {totalItems}
+                </span>
               </span>
             )}
           </button>
@@ -53,9 +120,16 @@ const Navbar: React.FC = () => {
       {/* Desktop Navbar */}
       <nav className="hidden md:block fixed top-0 left-0 right-0 z-40 px-8 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between glass-pill px-8 py-3 bg-opacity-70">
-          <div className="flex items-center font-black text-2xl tracking-tighter">
-            <span className="text-primary italic">SK8</span>
-            <span className="ml-1.5 text-text text-xl">{mode === 'skiing' ? '極限滑雪' : '極速電動滑板'}</span>
+          <div className="flex flex-col">
+            <div className="flex items-center font-black text-2xl tracking-tighter leading-none">
+              <span className="text-primary italic">SK8</span>
+              <span className="ml-1.5 text-text text-xl">{mode === 'skiing' ? '極限滑雪' : '極速電動滑板'}</span>
+            </div>
+            {user && (
+              <div className="text-[9px] font-bold text-gray-400 tracking-[0.2em] mt-1 uppercase">
+                ID: {user.email === 'managersk8@gmail.com' ? 'SK8管理者' : (user.user_metadata?.full_name || '使用者')}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-8 font-medium">
@@ -79,15 +153,43 @@ const Navbar: React.FC = () => {
                 )}
               </motion.div>
             </div>
-            <button onClick={() => setIsCartOpen(true)} className="p-2 hover:bg-black/5 rounded-full transition-colors relative">
+            <button id="header-cart-icon" onClick={() => setIsCartOpen(true)} className="p-2 hover:bg-black/5 rounded-full transition-colors relative">
               <ShoppingCart size={20} />
               {totalItems > 0 && (
-                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                  {totalItems}
+                <span className="absolute top-0 right-0 w-4 h-4">
+                  {isPinging && <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-75"></span>}
+                  <span className="relative flex items-center justify-center bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full">
+                    {totalItems}
+                  </span>
                 </span>
               )}
             </button>
-            <button className="p-2 hover:bg-black/5 rounded-full transition-colors"><User size={20} /></button>
+            {user ? (
+              <div className="flex items-center gap-2 ml-4">
+                {user.email === 'managersk8@gmail.com' && (
+                  <button 
+                    onClick={onAdminClick} 
+                    className="p-2 hover:bg-black/5 rounded-full text-gray-400 hover:text-black transition-colors"
+                    title="進入管理後台"
+                  >
+                    <Settings2 size={18} />
+                  </button>
+                )}
+                <button 
+                  onClick={onLogout}
+                  className="px-6 py-2 rounded-full bg-red-50 text-red-500 font-bold text-sm hover:bg-red-100 transition-colors"
+                >
+                  退出
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={onLoginClick}
+                style={{ backgroundColor: '#111827', color: '#ffffff', padding: '8px 20px', borderRadius: 9999, fontSize: 14, fontWeight: 700, marginLeft: 16, border: 'none', cursor: 'pointer' }}
+              >
+                登入 / 註冊
+              </button>
+            )}
           </div>
         </div>
       </nav>
@@ -117,90 +219,151 @@ const Navbar: React.FC = () => {
                 </button>
               </div>
 
-              {/* Cart Items List */}
-              <div className="flex-1 overflow-y-auto no-scrollbar space-y-6">
-                {cart.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center opacity-40 text-center">
-                    <ShoppingCart size={64} className="mb-4" />
-                    <p className="font-bold">您的購物車目前是空的</p>
-                    <p className="text-xs mt-2">快去挑選一些酷裝備吧！</p>
-                  </div>
-                ) : (
-                  cart.map((item) => (
-                    <div key={item.id} className="flex gap-4">
-                      <div className={`w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0 ${mode === 'skiing' ? 'bg-gray-100' : 'bg-white/5'}`}>
-                        {item.image ? (
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="font-black text-primary italic text-xs">SK8</div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start mb-1">
-                          <h4 className="font-bold text-sm truncate pr-2">{item.name}</h4>
-                          <button onClick={() => removeFromCart(item.id)} className="text-red-500 p-1 hover:bg-red-500/10 rounded-lg">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="font-black text-primary italic">NT${item.price.toLocaleString()}</span>
-                          <span className="text-xs opacity-60 font-bold">× {item.quantity}</span>
-                        </div>
-                      </div>
+              {/* Cart Items List & Vouchers */}
+              <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col">
+                <div className="space-y-6">
+                  {cart.length === 0 ? (
+                    <div className="py-12 flex flex-col items-center justify-center opacity-40 text-center">
+                      <ShoppingCart size={48} className="mb-4" />
+                      <p className="font-bold">您的購物車目前是空的</p>
                     </div>
-                  ))
-                )}
+                  ) : (
+                    cart.map((item) => (
+                      <div key={item.id} className="flex gap-4">
+                        <div className={`w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0 ${mode === 'skiing' ? 'bg-gray-100' : 'bg-white/5'}`}>
+                          {item.image ? (
+                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="font-black text-primary italic text-xs">SK8</div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-bold text-sm truncate pr-2">{item.name}</h4>
+                            <button onClick={() => removeFromCart(item.id)} className="text-red-500 p-1 hover:bg-red-500/10 rounded-lg">
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                          <div className="flex justify-between items-center mt-2">
+                            <span className="font-black text-primary italic">NT${item.price.toLocaleString()}</span>
+                            <span className="text-xs opacity-60 font-bold">× {item.quantity}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* My Vouchers Section (Always Visible) */}
+                <div className="mt-8 pt-6 border-t border-current/10">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-black uppercase tracking-widest text-sm flex items-center gap-2">
+                      <Tag size={16} className="text-primary" /> 我的優惠券 ({vouchers.length})
+                    </h3>
+                    {selectedVoucher && (
+                      <button onClick={() => selectVoucher(null)} className="text-[10px] font-bold text-red-500 underline">取消使用</button>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col gap-3 pb-4">
+                    {vouchers.length === 0 ? (
+                      <p className="text-xs opacity-40 py-4 text-center border-2 border-dashed border-current/10 rounded-xl">尚未領取任何優惠券</p>
+                    ) : (
+                      vouchers.map(v => {
+                        const isSelected = selectedVoucher?.id === v.id;
+                        // 如果被選中且希望"使用後消失"的感覺，我們可以將其隱藏或顯示為使用中
+                        if (isSelected) return null; // 點擊後從列表中隱藏，因為上方有「取消使用」按鈕
+
+                        let targetLabel = v.target_type === 'global' ? '全站通用' : 
+                                          v.target_type === 'skiing' ? '滑雪商品專用' : 
+                                          v.target_type === 'skateboard' ? '滑板商品專用' : 
+                                          v.target_type === 'all_courses' ? '所有課程適用' : 
+                                          v.target_type === 'category' ? '指定分類' : '指定商品/課程適用';
+                                          
+                        if (v.target_id && targetNames[v.target_id]) {
+                          targetLabel = `僅適用於: ${targetNames[v.target_id]}`;
+                        }
+
+                        const eligibility = getVoucherEligibility(v);
+
+                        return (
+                          <button 
+                            key={v.id}
+                            onClick={() => {
+                              if (eligibility.isEligible) {
+                                selectVoucher(v.id);
+                              }
+                            }}
+                            disabled={!eligibility.isEligible}
+                            className={`w-full flex flex-col p-4 rounded-xl text-left transition-all border-2 relative overflow-hidden ${
+                              eligibility.isEligible 
+                                ? 'bg-current/5 border-transparent opacity-80 hover:opacity-100 cursor-pointer' 
+                                : 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed'
+                            }`}
+                          >
+                            <div className="flex justify-between items-start w-full mb-2">
+                              <p className={`text-sm font-black tracking-wider uppercase ${eligibility.isEligible ? '' : 'text-gray-500 line-through'}`}>{v.title}</p>
+                              {eligibility.isEligible ? (
+                                <div className="text-[10px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap ml-2 z-10"
+                                     style={{ backgroundColor: 'var(--secondary)', color: 'var(--primary)' }}>
+                                  點擊使用
+                                </div>
+                              ) : (
+                                <div className="text-[10px] font-bold px-2 py-1.5 rounded-lg bg-gray-200 text-gray-500 whitespace-nowrap ml-2 z-10">
+                                  {eligibility.reason}
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-[10px] font-bold text-gray-500 bg-black/5 px-2 py-1 rounded-md mb-2 inline-block w-fit">
+                              {targetLabel}
+                            </div>
+                            <p className="text-xs opacity-60 font-medium">
+                              {v.type === 'percent' ? `${v.value}% OFF` : `折抵 NT$${v.value}`}
+                              {v.min_amount > 0 && ` · 滿 NT$${v.min_amount} 可用`}
+                            </p>
+                          </button>
+                        );
+                      })
+                    )}
+                    {selectedVoucher && (() => {
+                      let selectedTargetLabel = selectedVoucher.target_type === 'global' ? '全站通用' : 
+                                                selectedVoucher.target_type === 'skiing' ? '滑雪商品專用' : 
+                                                selectedVoucher.target_type === 'skateboard' ? '滑板商品專用' : 
+                                                selectedVoucher.target_type === 'all_courses' ? '所有課程適用' : 
+                                                selectedVoucher.target_type === 'category' ? '指定分類' : '指定商品/課程適用';
+                                                
+                      if (selectedVoucher.target_id && targetNames[selectedVoucher.target_id]) {
+                        selectedTargetLabel = `僅適用於: ${targetNames[selectedVoucher.target_id]}`;
+                      }
+
+                      return (
+                        <div className="w-full flex flex-col p-4 rounded-xl text-left transition-all border-2 mt-3 shadow-sm"
+                             style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--secondary)' }}>
+                           <div className="flex justify-between items-start w-full mb-2">
+                              <p className="text-sm font-black tracking-wider uppercase" style={{ color: 'var(--primary)' }}>{selectedVoucher.title}</p>
+                              <div className="text-[10px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap ml-2 z-10 shadow-sm"
+                                   style={{ backgroundColor: 'var(--primary)', color: '#ffffff' }}>
+                                購物車套用中
+                              </div>
+                           </div>
+                           <div className="text-[10px] font-bold px-2 py-1 rounded-md mb-2 inline-block w-fit"
+                                style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-muted)' }}>
+                             {selectedTargetLabel}
+                           </div>
+                           <p className="text-xs font-bold" style={{ color: 'var(--primary)' }}>
+                             {selectedVoucher.type === 'percent' ? `${selectedVoucher.value}% OFF` : `折抵 NT$${selectedVoucher.value}`}
+                             {selectedVoucher.min_amount > 0 && ` · 滿 NT$${selectedVoucher.min_amount} 可用`}
+                           </p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
               </div>
 
-              {/* Cart Footer - Vouchers & Checkout */}
+              {/* Cart Footer - Summary & Checkout */}
               {cart.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-current/10">
-                  
-                  {/* Voucher Selection Section */}
-                  <div className="mb-6">
-                    <div className="flex justify-between items-center mb-3">
-                      <button 
-                        onClick={() => setShowVoucherList(!showVoucherList)}
-                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity"
-                      >
-                        <Tag size={12} /> 可用優惠券 ({vouchers.length})
-                        <ChevronRight size={12} className={`transition-transform ${showVoucherList ? 'rotate-90' : ''}`} />
-                      </button>
-                      {selectedVoucher && (
-                        <button onClick={() => selectVoucher(null)} className="text-[10px] font-bold text-red-500 underline">取消使用</button>
-                      )}
-                    </div>
-                    
-                    <AnimatePresence>
-                      {showVoucherList && (
-                        <motion.div 
-                          initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                          className="flex overflow-x-auto no-scrollbar gap-3 pb-2"
-                        >
-                          {vouchers.length === 0 ? (
-                            <p className="text-[10px] opacity-40 py-2">尚未領取任何優惠券</p>
-                          ) : (
-                            vouchers.map(v => (
-                              <button 
-                                key={v.id}
-                                onClick={() => selectVoucher(v.id)}
-                                className={`flex-shrink-0 px-4 py-2 rounded-xl text-left transition-all border-2 ${
-                                  selectedVoucher?.id === v.id 
-                                  ? 'bg-primary/10 border-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)]' 
-                                  : 'bg-current/5 border-transparent opacity-60'
-                                }`}
-                              >
-                                <p className="text-[10px] font-black tracking-tighter truncate w-24 uppercase">{v.title}</p>
-                                <p className="text-xs font-bold text-primary">USE NOW</p>
-                              </button>
-                            ))
-                          )}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  {/* Summary Details */}
+                <div className="mt-auto pt-6 border-t border-current/10">
                   <div className="space-y-2 mb-6">
                     <div className="flex justify-between items-center text-xs opacity-60 font-medium">
                       <span>Subtotal</span>
@@ -222,7 +385,14 @@ const Navbar: React.FC = () => {
                   </div>
 
                   <button 
-                    onClick={() => alert('進入結帳功能')}
+                    onClick={() => {
+                      if (!user) {
+                        onLoginClick();
+                        return;
+                      }
+                      setIsCartOpen(false);
+                      setIsCheckoutOpen(true);
+                    }}
                     className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-gray-900 shadow-xl active:scale-95 transition-all text-center"
                     style={{ background: silverGradient }}
                   >
@@ -230,6 +400,108 @@ const Navbar: React.FC = () => {
                   </button>
                 </div>
               )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* My Vouchers Sidebar */}
+      <AnimatePresence>
+        {isMyVouchersOpen && (
+          <div className="fixed inset-0 z-[60] flex justify-end">
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setIsMyVouchersOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
+            />
+            <motion.div 
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className={`relative w-full max-w-sm h-full shadow-2xl flex flex-col p-6 md:p-8 ${
+                mode === 'skiing' ? 'bg-white text-gray-900' : 'bg-gray-900 text-white'
+              }`}
+            >
+              <div className="flex justify-between items-center mb-8">
+                <div className="flex items-center gap-2">
+                  <Tag size={24} className="text-primary" />
+                  <h2 className="text-2xl font-black uppercase italic tracking-tighter">我的優惠券</h2>
+                </div>
+                <button onClick={() => setIsMyVouchersOpen(false)} className="p-2 hover:bg-black/10 rounded-full transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-4">
+                {vouchers.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center opacity-40 text-center">
+                    <Tag size={64} className="mb-4" />
+                    <p className="font-bold">目前沒有可用的優惠券</p>
+                  </div>
+                ) : (
+                  vouchers.map(v => {
+                    const isSelected = selectedVoucher?.id === v.id;
+                    let targetLabel = v.target_type === 'global' ? '全站通用' : 
+                                        v.target_type === 'skiing' ? '滑雪商品專用' : 
+                                        v.target_type === 'skateboard' ? '滑板商品專用' : 
+                                        v.target_type === 'all_courses' ? '所有課程適用' : 
+                                        v.target_type === 'category' ? '指定分類適用' : '指定商品/課程適用';
+                                        
+                    if (v.target_id && targetNames[v.target_id]) {
+                      targetLabel = `僅適用於: ${targetNames[v.target_id]}`;
+                    }
+
+                    const modeBorder = mode === 'skiing' ? 'border-blue-500' : 'border-red-500';
+
+                    return (
+                      <div 
+                        key={v.id} 
+                        className={`w-full flex flex-col p-5 rounded-2xl border-2 transition-all shadow-lg ${isSelected ? 'opacity-100' : 'opacity-90 hover:opacity-100'}`}
+                        style={isSelected 
+                          ? { borderColor: 'var(--primary)', backgroundColor: 'var(--bg)', boxShadow: '0 0 20px rgba(0,0,0,0.1)' } 
+                          : { borderColor: mode === 'skiing' ? '#3b82f6' : '#ef4444', backgroundColor: 'rgba(0,0,0,0.03)' }
+                        }
+                      >
+                        <div className="flex justify-between items-start w-full mb-3">
+                          <div>
+                            <p className="text-lg font-black tracking-wider uppercase mb-1 leading-tight" style={isSelected ? { color: 'var(--primary)' } : {}}>
+                              {v.title}
+                            </p>
+                            <span 
+                              className="inline-block px-2 py-0.5 rounded text-[10px] font-bold"
+                              style={isSelected 
+                                ? { backgroundColor: 'var(--primary)', color: '#ffffff' } 
+                                : { backgroundColor: 'rgba(0,0,0,0.1)' }
+                              }
+                            >
+                              {isSelected ? '購物車套用中' : targetLabel}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xl font-black italic" style={isSelected ? { color: 'var(--primary)' } : { color: 'var(--primary)' }}>
+                              {v.type === 'percent' ? `折扣 ${v.value}%` : `減免 NT$${v.value}`}
+                            </p>
+                            {v.min_amount > 0 && <p className="text-[10px] opacity-60 font-bold mt-1">滿 NT$${v.min_amount}</p>}
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            if (isSelected) {
+                              selectVoucher(null);
+                            } else {
+                              selectVoucher(v.id);
+                              setIsMyVouchersOpen(false);
+                              setIsCartOpen(true);
+                            }
+                          }}
+                          className="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest text-white shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all mt-4"
+                          style={isSelected ? { backgroundColor: '#ef4444' } : { background: 'var(--primary-gradient)' }}
+                        >
+                          {isSelected ? '取消使用 CANCEL' : '立即使用 USE NOW'}
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </motion.div>
           </div>
         )}
@@ -247,10 +519,20 @@ const Navbar: React.FC = () => {
               mode === 'skiing' ? 'mobile-header-skiing' : 'mobile-header-skateboard'
             }`}
           >
-            <div className="flex justify-between items-center mb-8 h-8 px-2">
-              <div className="flex items-center font-black text-xl tracking-tighter">
-                <span>SK8</span>
-                <span className="ml-1 text-lg uppercase tracking-widest">{mode === 'skiing' ? 'SKI' : 'SKATE'}</span>
+            <div className="flex justify-between items-center mb-8 h-10 px-2">
+              <div 
+                className="flex flex-col cursor-pointer hover:opacity-80 transition-opacity" 
+                onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setIsMenuOpen(false); }}
+              >
+                <div className="flex items-center font-black text-xl tracking-tighter leading-none">
+                  <span>SK8</span>
+                  <span className="ml-1 text-lg uppercase tracking-widest">{mode === 'skiing' ? 'SKI' : 'SKATE'}</span>
+                </div>
+                {user && (
+                  <div className="text-[10px] font-bold text-white/60 tracking-[0.2em] mt-1 uppercase">
+                    ID: {user.email === 'managersk8@gmail.com' ? 'SK8管理者' : (user.user_metadata?.full_name || '使用者')}
+                  </div>
+                )}
               </div>
               <button onClick={() => setIsMenuOpen(false)} className="text-white"><X size={28} /></button>
             </div>
@@ -263,6 +545,51 @@ const Navbar: React.FC = () => {
               <a href="#shop" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">購物商城</a>
               <div className="h-[1px] w-full bg-white/20" />
               <a href="#contact" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">聯絡我們</a>
+              <div className="h-[1px] w-full bg-white/20" />
+              
+              {user ? (
+                <div className="flex flex-col w-full">
+                  <div className="h-[1px] w-full bg-white/20" />
+                  <button 
+                    onClick={() => { setIsMenuOpen(false); setIsMyVouchersOpen(true); }}
+                    className="py-4 w-full text-center hover:bg-white/5 transition-all flex flex-col items-center justify-center cursor-pointer"
+                  >
+                    <span className="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">My Vouchers</span>
+                    <span className="text-lg font-bold">
+                      現有優惠卷: {vouchers.length} 張
+                    </span>
+                  </button>
+                  <div className="h-[1px] w-full bg-white/20" />
+                  
+                  {user.email === 'managersk8@gmail.com' && (
+                    <>
+                      <div className="p-4 w-full">
+                        <button 
+                          onClick={() => { onAdminClick(); setIsMenuOpen(false); }}
+                          className="py-4 text-xl font-bold w-full text-center rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-white/10 transition-all hover:scale-105 active:scale-95"
+                          style={{ backgroundColor: '#000000', color: '#ffffff' }}
+                        >
+                          管理後台
+                        </button>
+                      </div>
+                      <div className="h-[1px] w-full bg-white/20" />
+                    </>
+                  )}
+                  <button 
+                    onClick={() => { onLogout(); setIsMenuOpen(false); }}
+                    className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all text-red-400"
+                  >
+                    退出
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => { onLoginClick(); setIsMenuOpen(false); }}
+                  className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all"
+                >
+                  登入 / 註冊
+                </button>
+              )}
             </div>
 
             <div className="p-8 flex justify-center mt-2">
@@ -296,6 +623,7 @@ const Navbar: React.FC = () => {
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
             <span className="text-[9px] font-black mt-0.5">首頁</span>
           </a>
+
           
           {/* Courses */}
           <a href="#courses" className="flex flex-col items-center justify-center w-10 py-1">

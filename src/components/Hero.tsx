@@ -1,18 +1,67 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 import skiHero from '../assets/ski_hero.png';
 import skateHero from '../assets/skate_hero.png';
 
+interface HomepageSettings {
+  id: string;
+  hero_title: string;
+  hero_subtitle: string;
+  hero_bg_image: string;
+  hero_badge: string;
+}
+
 const Hero: React.FC = () => {
   const { mode } = useTheme();
+  const [settings, setSettings] = useState<Record<string, HomepageSettings>>({
+    skiing: { 
+      id: 'skiing', 
+      hero_title: '征服雪山，突破極限', 
+      hero_subtitle: '專業滑雪課程，從初學到進階，帶你探索雪地的無限可能', 
+      hero_bg_image: '', 
+      hero_badge: "Let's Go Skiing" 
+    },
+    skateboard: { 
+      id: 'skateboard', 
+      hero_title: '極速前行，電動新世代', 
+      hero_subtitle: '專業電動滑板課程與裝備，體驗最先進的電動滑行技術', 
+      hero_bg_image: '', 
+      hero_badge: 'Ride the Urban Wave' 
+    }
+  });
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase.from('homepage_settings').select('*');
+      if (error) throw error;
+      if (data && data.length > 0) {
+        const settingsMap = { ...settings };
+        data.forEach((item: HomepageSettings) => {
+          settingsMap[item.id] = item;
+        });
+        setSettings(settingsMap);
+      }
+    } catch (err) {
+      console.error('Error fetching hero settings:', err);
+    }
+  };
+
+  const currentSettings = settings[mode];
+  const defaultBg = mode === 'skiing' ? skiHero : skateHero;
+  const bgImage = currentSettings.hero_bg_image || defaultBg;
 
   return (
     <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
       {/* Background Images with Crossfade */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={mode}
+          key={mode + bgImage}
           initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
@@ -20,7 +69,7 @@ const Hero: React.FC = () => {
           className="absolute inset-0 z-0"
         >
           <img 
-            src={mode === 'skiing' ? skiHero : skateHero} 
+            src={bgImage} 
             alt="Hero Background"
             className="w-full h-full object-cover"
           />
@@ -40,7 +89,7 @@ const Hero: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="inline-block px-6 py-2 rounded-full border border-white/30 backdrop-blur-md text-white font-bold mb-6 tracking-widest uppercase text-sm"
         >
-          {mode === 'skiing' ? 'Let\'s Go Skiing' : 'Ride the Urban Wave'}
+          {currentSettings.hero_badge}
         </motion.div>
 
         <motion.h1 
@@ -50,7 +99,7 @@ const Hero: React.FC = () => {
           transition={{ delay: 0.1 }}
           className="text-5xl md:text-8xl font-black text-white mb-8 tracking-tighter leading-tight"
         >
-          {mode === 'skiing' ? '征服雪山，突破極限' : '極速前行，電動新世代'}
+          {currentSettings.hero_title}
         </motion.h1>
 
         <motion.p
@@ -60,9 +109,7 @@ const Hero: React.FC = () => {
           transition={{ delay: 0.2 }}
           className="text-lg md:text-xl text-white/90 mb-12 max-w-2xl mx-auto font-medium"
         >
-          {mode === 'skiing' 
-            ? '專業滑雪課程，從初學到進階，帶你探索雪地的無限可能' 
-            : '專業電動滑板課程與裝備，體驗最先進的電動滑行技術'}
+          {currentSettings.hero_subtitle}
         </motion.p>
 
         <motion.div

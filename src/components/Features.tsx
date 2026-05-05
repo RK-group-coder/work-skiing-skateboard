@@ -5,93 +5,131 @@ import { Check, Ticket } from 'lucide-react';
 import { useCart } from '../hooks/CartProvider';
 import type { Voucher } from '../hooks/CartProvider';
 import { supabase } from '../lib/supabase';
+import CourseBookingModal from './CourseBookingModal';
 
-const Features: React.FC = () => {
+interface FeaturesProps {
+  onLoginClick?: () => void;
+}
+
+const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
   const { mode } = useTheme();
-  const { claimVoucher } = useCart();
+  const { claimVoucher, vouchers } = useCart();
+  const [isBookingOpen, setIsBookingOpen] = React.useState(false);
+  const [selectedCourse, setSelectedCourse] = React.useState<any>(null);
 
-  const availableVouchers: Voucher[] = [
-    { id: 'v1', title: '首次課程 9 折優惠', discount: 0.9, type: 'percentage', code: 'SK8-HOT' },
-    { id: 'v2', title: '雙人同行 85 折專屬', discount: 0.85, type: 'percentage', code: 'SK8-DUO' },
-    { id: 'v3', title: '裝備租借 NT$500 回饋', discount: 500, type: 'fixed', code: 'SK8-GEAR' }
-  ];
+  const [availableVouchers, setAvailableVouchers] = React.useState<Voucher[]>([]);
+  const [dbCourses, setDbCourses] = React.useState<any[]>([]);
+  const [loadingCourses, setLoadingCourses] = React.useState(true);
 
-  const plans = mode === 'skiing' ? [
-    {
-      id: 'course-ski-1',
-      name: '初心者體驗班',
-      price: 2500,
-      period: '單堂 (3小時)',
-      features: ['裝備全額租借', '基礎平衡教學', '緩坡滑行練習', '專業教練指導'],
-      popular: false
-    },
-    {
-      id: 'course-ski-2',
-      name: '進階技巧營',
-      price: 8800,
-      period: '三日密集',
-      features: ['平行轉向技術', 'S型路徑優化', '煞車進階控制', '附贈午餐與證書'],
-      popular: true
-    },
-    {
-      id: 'course-ski-3',
-      name: '大師專業特訓',
-      price: 15000,
-      period: '二日 1對1',
-      features: ['全山地形攻略', '私人錄影分析', '不限次數裝借', 'VIP 專屬休息室'],
-      popular: false
-    }
-  ] : [
-    {
-      id: 'course-skate-1',
-      name: '城市滑行入門',
-      price: 1200,
-      period: '單堂 (2小時)',
-      features: ['電板基礎操作', '煞車感應練習', '城市路況解說', '安全護具提供'],
-      popular: false
-    },
-    {
-      id: 'course-skate-2',
-      name: '電能技術工坊',
-      price: 4500,
-      period: '二日特訓',
-      features: ['高速過彎技巧', 'APP 參數調教', '長途續航规划', '保養維護課程'],
-      popular: true
-    },
-    {
-      id: 'course-skate-3',
-      name: '越野大師挑戰',
-      price: 9800,
-      period: '全地形課程',
-      features: ['砂石路段攻克', '陡坡攀爬訓練', '越野專用裝備單', '社群榮譽勳章'],
-      popular: false
-    }
-  ];
+  React.useEffect(() => {
+    const fetchVouchers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('vouchers')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        setAvailableVouchers(data || []);
+      } catch (err) {
+        console.error('Error fetching vouchers:', err);
+      }
+    };
+    fetchVouchers();
+  }, []);
+
+  React.useEffect(() => {
+    const fetchCourses = async () => {
+      setLoadingCourses(true);
+      try {
+        const { data, error } = await supabase
+          .from('courses')
+          .select('*')
+          .eq('is_active', true)
+          .eq('mode', mode)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        setDbCourses(data || []);
+      } catch (err) {
+        console.error('Error fetching courses:', err);
+      } finally {
+        setLoadingCourses(false);
+      }
+    };
+    fetchCourses();
+  }, [mode]);
+
+  // Convert DB courses to UI plans
+  const plans = dbCourses.map(c => ({
+    id: c.id,
+    name: c.name,
+    price: Number(c.first_lesson_price || c.price || 0),
+    addPrice: Number(c.additional_lesson_price || 0),
+    period: '每堂 120min', 
+    description: c.description,
+    image_url: c.image_url,
+    features: c.description ? c.description.split('\n').filter((s: string) => s.trim()) : ['專業教練指導', '安全防護保證'],
+    popular: false 
+  }));
 
   const handleClaim = async (v: Voucher) => {
-    claimVoucher(v);
-    
-    // Sync to Supabase
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        if (onLoginClick) {
+          onLoginClick();
+        } else {
+          alert('請先登入才能領取優惠券！');
+        }
+        return;
+      }
+
+      // Try to record the claim in user_vouchers
       const { error } = await supabase
-        .from('claimed_vouchers')
-        .insert([
-          { 
-            voucher_id: v.id, 
-            title: v.title, 
-            claimed_at: new Date().toISOString(),
-            status: 'active'
-          }
-        ]);
-      
-      if (error) throw error;
-      alert(`【${v.title}】已領取並同步至雲端！您可以在購物車中直接點選使用。`);
+        .from('user_vouchers')
+        .insert([{ user_id: session.user.id, voucher_id: v.id }]);
+
+      if (error) {
+        if (error.code === '23505') {
+          alert('您已經領取過這張優惠券囉！');
+          // Still add to cart local state if they just forgot they had it
+          claimVoucher(v);
+        } else {
+          throw error;
+        }
+      } else {
+        alert(`【${v.title}】領取成功！您可以在購物車中直接點選使用。`);
+        claimVoucher(v);
+      }
     } catch (err) {
-      console.error('Supabase Sync Failed:', err);
-      // Fallback alert
-      alert(`【${v.title}】已領取！(本地暫存)`);
+      console.error('Voucher Claim Failed:', err);
+      alert('領取失敗，請稍後再試。');
     }
   };
+
+  const [header, setHeader] = React.useState({
+    title: '絕配您的滑行方案',
+    desc: '無論您是初出茅廬的新手，還是追求極致的專家，我們都有為您量身打造的課程。'
+  });
+
+  React.useEffect(() => {
+    const fetchHeader = async () => {
+      try {
+        const { data, error } = await supabase.from('homepage_settings').select('courses_title, courses_desc').eq('id', mode).single();
+        if (error) throw error;
+        if (data) {
+          setHeader({
+            title: data.courses_title || '絕配您的滑行方案',
+            desc: data.courses_desc || '無論您是初出茅廬的新手，還是追求極致的專家，我們都有為您量身打造的課程。'
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching courses header:', err);
+      }
+    };
+    fetchHeader();
+  }, [mode]);
 
   return (
     <section id="courses" className="py-24 bg-secondary transition-colors duration-500 overflow-hidden">
@@ -99,14 +137,17 @@ const Features: React.FC = () => {
         {/* Horizontal Coupon Slider */}
         <div className="relative mb-20">
           <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-6 px-4 py-8 -my-8">
-            {availableVouchers.map((voucher, idx) => (
+            {availableVouchers.map((voucher, idx) => {
+              const isClaimed = vouchers.some(v => v.id === voucher.id);
+              
+              return (
               <motion.div 
                 key={idx}
                 initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.1 }}
                 viewport={{ once: true }}
-                className="flex-shrink-0 w-[85%] md:w-[600px] snap-center shadow-lg"
+                className={`flex-shrink-0 w-[85%] md:w-[600px] snap-center shadow-lg transition-all duration-300 ${isClaimed ? 'grayscale opacity-60' : ''}`}
               >
                 <div className={`relative group overflow-hidden rounded-[32px] p-1 ${
                   mode === 'skiing' ? 'bg-blue-500/20' : 'bg-red-500/20'
@@ -120,7 +161,7 @@ const Features: React.FC = () => {
                     ? 'bg-white border-blue-200 shadow-[0_20px_50px_rgba(59,130,246,0.15)]' 
                     : 'bg-gray-900 border-red-900/50 shadow-[0_20px_50px_rgba(239,68,68,0.15)] text-white'
                   }`}>
-                    
+                     
                     <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
                       <Ticket size={32} className="text-primary animate-pulse" />
                     </div>
@@ -128,24 +169,27 @@ const Features: React.FC = () => {
                     <div className="flex-1 text-center md:text-left">
                       <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
                         <span className="text-[10px] font-black uppercase tracking-widest bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                          {voucher.type === 'percentage' ? 'OFFER' : 'CASH'}
+                          {voucher.type === 'percent' ? 'OFFER' : 'CASH'}
                         </span>
                       </div>
                       <h3 className="text-xl font-black italic tracking-tighter mb-1 leading-tight">
                         {voucher.title}
                       </h3>
-                      <p className="text-xs opacity-60 font-medium">
-                        適用於本季特定精選課程與裝備
+                      <p className="text-xs opacity-60 font-medium whitespace-pre-wrap">
+                        {voucher.description ? voucher.description : (voucher.min_amount && voucher.min_amount > 0 ? `滿 NT$${voucher.min_amount.toLocaleString()} 可使用` : '無最低消費限制')}
+                        {!voucher.description && <br/>}
+                        {!voucher.description && (voucher.target_type === 'global' ? '全站通用' : voucher.target_type === 'all_courses' ? '適用於所有課程' : '適用於特定商品或課程')}
                       </p>
                     </div>
 
                     <div className="flex flex-col items-center md:items-end gap-3 min-w-[120px]">
                       <button 
-                        onClick={() => handleClaim(voucher)}
-                        className="w-full py-3 px-6 rounded-xl font-black text-[10px] tracking-widest uppercase text-white shadow-xl hover:scale-105 active:scale-95 transition-all"
-                        style={{ background: 'var(--primary-gradient)' }}
+                        onClick={() => !isClaimed && handleClaim(voucher)}
+                        disabled={isClaimed}
+                        className={`w-full py-3 px-6 rounded-xl font-black text-[10px] tracking-widest uppercase text-white shadow-xl transition-all ${isClaimed ? 'cursor-not-allowed opacity-80' : 'hover:scale-105 active:scale-95'}`}
+                        style={isClaimed ? { backgroundColor: '#6b7280', color: '#ffffff' } : { background: 'var(--primary-gradient)' }}
                       >
-                        立即領取
+                        {isClaimed ? '已領取' : '立即領取'}
                       </button>
                     </div>
 
@@ -154,67 +198,105 @@ const Features: React.FC = () => {
                   </div>
                 </div>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
 
         <div className="text-center mb-16 px-4">
           <span className="text-primary font-bold tracking-widest uppercase text-sm mb-4 block">熱門選擇</span>
           <h2 className={`text-4xl md:text-5xl font-black mb-6 ${mode === 'skiing' ? 'text-gray-900' : 'text-white'}`}>
-            絕配您的滑行方案
+            {header.title}
           </h2>
           <p className={`max-w-2xl mx-auto ${mode === 'skiing' ? 'text-gray-500' : 'text-gray-300'}`}>
-            無論您是初出茅廬的新手，還是追求極致的專家，我們都有為您量身打造的課程。
+            {header.desc}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 lg:gap-8">
-          {plans.map((p, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              viewport={{ once: true }}
-              className={`relative bg-white p-8 rounded-[40px] shadow-xl flex flex-col ${
-                p.popular ? 'md:ring-2 md:ring-primary md:scale-110 z-10' : 'bg-opacity-80'
-              }`}
-            >
-
-              <div className="mb-8">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">{p.name}</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-black text-gray-900">NT${p.price.toLocaleString()}</span>
-                  <span className="text-sm text-gray-400">/ {p.period}</span>
-                </div>
-              </div>
-
-              <ul className="flex-1 space-y-4 mb-8">
-                {p.features.map((feat, idx) => (
-                  <li key={idx} className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Check size={12} className="text-primary" strokeWidth={3} />
-                    </div>
-                    {feat}
-                  </li>
-                ))}
-              </ul>
-
-              <button 
-                onClick={() => alert('進入預約流程...')}
-                className={`w-full py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 text-white ${
-                  p.popular 
-                  ? 'shadow-primary/30 hover:brightness-110 scale-105 md:scale-100' 
-                  : 'shadow-black/5 hover:brightness-110'
+        {loadingCourses ? (
+          <div className="flex justify-center py-20">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : plans.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-gray-400 font-bold">目前無開放課程</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 lg:gap-8">
+            {plans.map((p, i) => (
+              <motion.div
+                key={p.id || i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className={`relative p-8 md:p-10 rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-100 flex flex-col group overflow-hidden transition-all duration-500 h-full bg-white hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)] hover:-translate-y-1 ${
+                  p.popular ? 'md:ring-2 md:ring-primary md:scale-110 z-10' : 'bg-opacity-95'
                 }`}
-                style={{ background: 'var(--primary-gradient)' }}
               >
-                立即報名
-              </button>
-            </motion.div>
-          ))}
-        </div>
+                {/* Course Image Background Shell */}
+                <div className="absolute top-0 right-0 -translate-y-8 translate-x-8 w-32 h-32 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
+
+                <div className="relative z-10 mb-8">
+                  <h3 className="text-3xl font-black text-gray-900 tracking-tighter mb-4 leading-tight">{p.name}</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-black text-gray-900 tracking-tighter">NT${p.price.toLocaleString()}</span>
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-0.5 rounded ml-1">初次體驗</span>
+                    </div>
+                    {p.addPrice > 0 && p.addPrice < p.price && (
+                      <div className={`p-4 rounded-2xl flex flex-col gap-1 shadow-lg ring-1 ring-white/20 animate-in slide-in-from-left duration-500 ${
+                        mode === 'skiing' ? 'bg-[#38bdf8] text-white' : 'bg-[#ef4444] text-white'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-black animate-pulse">PROMOTION</span>
+                          <span className="text-[10px] font-bold opacity-80 uppercase tracking-widest">買越多越划算</span>
+                        </div>
+                        <div className="text-xl font-black italic">加購續報：NT${p.addPrice.toLocaleString()} / 堂</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <ul className="flex-1 space-y-4 mb-8">
+                  {p.features.map((feat, idx) => (
+                    <li key={idx} className="flex items-center gap-3 text-sm text-gray-600 font-semibold leading-snug">
+                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Check size={12} className="text-primary" strokeWidth={3} />
+                      </div>
+                      {feat}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="mt-auto pt-4">
+                  <button 
+                    onClick={() => {
+                      setSelectedCourse(p);
+                      setIsBookingOpen(true);
+                    }}
+                    className={`w-full py-5 rounded-2xl font-black italic uppercase tracking-tighter transition-all shadow-xl active:scale-95 text-white ${
+                      p.popular 
+                      ? 'shadow-primary/30 hover:brightness-110 scale-105 md:scale-100' 
+                      : 'shadow-black/5 hover:brightness-110'
+                    }`}
+                    style={{ background: 'var(--primary-gradient)' }}
+                  >
+                    立即報名
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
+
+      {selectedCourse && (
+        <CourseBookingModal 
+          isOpen={isBookingOpen} 
+          onClose={() => setIsBookingOpen(false)} 
+          course={selectedCourse} 
+        />
+      )}
     </section>
   );
 };

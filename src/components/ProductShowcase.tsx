@@ -1,128 +1,330 @@
-import React from 'react';
-import { useTheme } from '../hooks/useTheme';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShoppingCart, Star, X, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useCart } from '../hooks/CartProvider';
-import { motion } from 'framer-motion';
-import skiProd from '../assets/ski_product_1.png';
-import skateProd from '../assets/skate_product_1.png';
-import { ShoppingBag, Heart, ShoppingCart } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
+import { supabase } from '../lib/supabase';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
+  category_id?: string;
+  mode?: string;
+  tag?: string;
+  description?: string;
+  stock: number;
+  material?: string;
+  weight?: string;
+  dimensions?: string;
+  size_chart_url?: string;
+}
 
 const ProductShowcase: React.FC = () => {
   const { mode } = useTheme();
-  const { addToCart } = useCart();
-  const [activeCategory, setActiveCategory] = React.useState('全部');
+  const { addToCart, setIsCheckoutOpen, setDirectPurchaseItem } = useCart();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const categories = mode === 'skiing' 
-    ? ['全部', '滑雪板', '護具', '服飾', '配件']
-    : ['全部', '電動滑板', '護具', '配件'];
+  useEffect(() => {
+    const fetchContent = async () => {
+      setLoading(true);
+      try {
+        // Fetch Title & Description
+        const { data: settings } = await supabase
+          .from('homepage_settings')
+          .select('shop_title, shop_desc')
+          .eq('id', mode)
+          .single();
+        
+        if (settings) {
+          setTitle(settings.shop_title);
+          setDescription(settings.shop_desc);
+        }
 
-  const rawProducts = mode === 'skiing' ? [
-    { id: 'ski-1', name: '專業雙板滑板', price: 24900, rating: 4.9, image: skiProd, tag: '雪板', desc: '適合中高級滑雪者' },
-    { id: 'ski-2', name: '全地形單板', price: 18500, rating: 4.8, image: skiProd, tag: '雪板', desc: '全山地穩定性極佳' },
-    { id: 'ski-3', name: '碳纖維雪杖', price: 3200, rating: 4.7, image: skiProd, tag: '配件', desc: '極輕量化設計' },
-    { id: 'ski-4', name: '專業滑雪頭盔', price: 4500, rating: 4.9, image: skiProd, tag: '護具', desc: 'MIPS 安全系統' },
-    { id: 'ski-5', name: '偏光滑雪鏡', price: 3800, rating: 4.6, image: skiProd, tag: '配件', desc: '防霧廣角視野' },
-    { id: 'ski-6', name: '保暖滑雪手套', price: 2600, rating: 4.8, image: skiProd, tag: '服飾', desc: '防水透氣 GORE-TEX' },
-    { id: 'ski-7', name: '滑雪防護背甲', price: 5200, rating: 4.5, image: skiProd, tag: '護具', desc: '吸震減壓材質' },
-    { id: 'ski-8', name: '雪靴收納包', price: 1500, rating: 4.7, image: skiProd, tag: '配件', desc: '耐磨防水材質' }
-  ] : [
-    { id: 'skate-1', name: '高性能電滑板', price: 32800, rating: 4.9, image: skateProd, tag: '滑板', desc: '雙馬達驅動' },
-    { id: 'skate-2', name: '城市通勤電滑板', price: 15800, rating: 4.8, image: skateProd, tag: '滑板', desc: '輕量化設計' },
-    { id: 'skate-3', name: '越野全地形板', price: 45000, rating: 4.9, image: skateProd, tag: '滑板', desc: '超強馬力突破' },
-    { id: 'skate-4', name: '智能燈光頭盔', price: 3500, rating: 4.7, image: skateProd, tag: '護具', desc: '內建轉向燈' },
-    { id: 'skate-5', name: '防摔護膝組', price: 1200, rating: 4.6, image: skateProd, tag: '護具', desc: '硬殼防護襯墊' },
-    { id: 'skate-6', name: '藍牙遙控手把', price: 2800, rating: 4.8, image: skateProd, tag: '配件', desc: 'LCD 螢幕顯示' },
-    { id: 'skate-7', name: '滑板背包', price: 2400, rating: 4.7, image: skateProd, tag: '配件', desc: '可固定滑板設計' },
-    { id: 'skate-8', name: '備用高效電池', price: 8900, rating: 4.9, image: skateProd, tag: '配件', desc: '快速充電技術' }
-  ];
+        // Fetch Products
+        const { data: productsData } = await supabase
+          .from('products')
+          .select('*')
+          .eq('mode', mode)
+          .eq('is_active', true);
+        
+        if (productsData) {
+          setProducts(productsData.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: p.special_price || p.price,
+            image: p.image_url,
+            category: 'Gear',
+            category_id: p.category_id,
+            mode: p.mode,
+            tag: p.tag,
+            description: p.description,
+            stock: p.stock,
+            material: p.material,
+            weight: p.weight,
+            dimensions: p.dimensions,
+            size_chart_url: p.size_chart_url
+          })));
+        }
+      } catch (err) {
+        console.error('Error fetching shop data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filteredProducts = activeCategory === '全部' 
-    ? rawProducts 
-    : rawProducts.filter(p => p.tag === activeCategory);
+    fetchContent();
+    fetchContent();
+  }, [mode]);
+
+  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>, product: Product) => {
+    const btn = e.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    
+    // Create flying image
+    const img = document.createElement('img');
+    img.src = product.image;
+    img.className = 'fixed z-[9999] rounded-[20px] object-cover shadow-2xl pointer-events-none transition-all';
+    img.style.width = '120px';
+    img.style.height = '150px';
+    // Start from the button's position
+    img.style.left = `${rect.left + rect.width / 2 - 60}px`;
+    img.style.top = `${rect.top - 100}px`;
+    img.style.transform = 'scale(1)';
+    img.style.opacity = '1';
+    img.style.transition = 'all 0.8s cubic-bezier(0.2, 1, 0.3, 1)';
+    
+    document.body.appendChild(img);
+    
+    // Force reflow
+    void img.offsetWidth;
+    
+    // Find visible cart icon
+    const cartIcons = document.querySelectorAll('#header-cart-icon');
+    let targetX = window.innerWidth - 40;
+    let targetY = 20;
+    
+    for (let i = 0; i < cartIcons.length; i++) {
+      const el = cartIcons[i] as HTMLElement;
+      if (el.offsetWidth > 0 && el.offsetHeight > 0) {
+        const iconRect = el.getBoundingClientRect();
+        targetX = iconRect.left + iconRect.width / 2 - 30; // center of 60x60
+        targetY = iconRect.top + iconRect.height / 2 - 30;
+        break;
+      }
+    }
+    
+    img.style.left = `${targetX}px`;
+    img.style.top = `${targetY}px`;
+    img.style.transform = 'scale(0.1)';
+    img.style.opacity = '0';
+    
+    // Clean up
+    setTimeout(() => {
+      if (document.body.contains(img)) {
+        document.body.removeChild(img);
+      }
+    }, 800);
+
+    addToCart({ 
+      id: product.id, 
+      name: product.name, 
+      price: product.price, 
+      type: 'product', 
+      image: product.image,
+      details: { mode: product.mode, category_id: product.category_id }
+    });
+    setSelectedProduct(null);
+  };
+
+  if (loading && products.length === 0) return null;
 
   return (
-    <section id="shop" className="py-20 md:py-32 bg-white">
-      <div className="container px-4">
-        {/* Mobile Header */}
-        <div className="md:hidden text-center mb-10 pt-4">
-          <h2 className="text-4xl font-black mb-3 text-gray-900">
-            {mode === 'skiing' ? '滑雪裝備商店' : '電動滑板商店'}
-          </h2>
-          <p className="text-gray-500 font-medium">
-            {mode === 'skiing' ? '頂級滑雪裝備，讓你征服每一座雪山的極致首選' : '頂級電動滑板裝備，體驗極速快感'}
-          </p>
+    <section id="shop" className="py-24 bg-white overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-5xl font-black italic tracking-tighter text-gray-900 mb-4 uppercase"
+          >
+            {title || (mode === 'skiing' ? '滑雪套裝' : '滑板套裝')}
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-gray-500 max-w-2xl mx-auto font-medium"
+          >
+            {description || '為您精選最優質的極限運動裝備。'}
+          </motion.p>
         </div>
 
-        {/* Desktop Header */}
-        <div className="hidden md:flex flex-col md:flex-row items-end justify-between mb-16 gap-4">
-          <div>
-            <span className="text-primary font-bold tracking-widest uppercase text-sm mb-4 block">精選裝備</span>
-            <h2 className="text-5xl font-black">{mode === 'skiing' ? '頂級雪具專區' : '越野電能板專區'}</h2>
-          </div>
-          <button className="text-primary font-bold hover:underline flex items-center gap-2">
-            查看全部商品 <ShoppingBag size={20} />
-          </button>
-        </div>
-
-        {/* Categories Bar */}
-        <div className="relative mb-8 overflow-hidden">
-          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
-            {categories.map(cat => (
-              <button 
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`filter-chip ${activeCategory === cat ? 'active' : ''}`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-          {filteredProducts.map((p) => (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+          {products.map((product, index) => (
             <motion.div
-              key={p.id}
+              key={product.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              className="group"
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1 }}
+              onClick={() => setSelectedProduct(product)}
+              className="group cursor-pointer"
             >
-              <div className="relative aspect-square bg-gray-100 rounded-3xl overflow-hidden mb-4">
-                <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                <div className="absolute top-4 left-4 bg-primary text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
-                  HOT
-                </div>
-                
-                {/* Quick Actions Overlay */}
-                <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <button 
-                    onClick={() => addToCart({ id: p.id, name: p.name, price: p.price, type: 'product', image: p.image })}
-                    className="w-12 h-12 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-2xl hover:bg-primary hover:text-white transition-all transform translate-y-4 group-hover:translate-y-0"
-                  >
-                    <ShoppingCart size={20} />
-                  </button>
-                  <button className="w-12 h-12 bg-white text-gray-900 rounded-full flex items-center justify-center shadow-2xl hover:text-red-500 transition-all transform translate-y-4 group-hover:translate-y-0 delay-75">
-                    <Heart size={20} />
-                  </button>
-                </div>
+              <div className="relative aspect-[4/5] rounded-[32px] overflow-hidden bg-gray-50 mb-6 border border-gray-100 shadow-sm transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-1">
+                <img 
+                  src={product.image} 
+                  alt={product.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
               </div>
 
-              <div className="px-1">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-30">{p.tag}</span>
-                  <div className="flex items-center gap-1 text-[10px] font-bold">
-                    <span>⭐ {p.rating}</span>
-                  </div>
+              <div className="px-2">
+                <div className="flex justify-between items-start mb-1">
+                   <span className="text-[10px] font-black uppercase tracking-widest text-primary">{product.tag || 'New Arrival'}</span>
+                   <span className="text-[10px] font-bold text-gray-400">STOCK: {product.stock}</span>
                 </div>
-                <h3 className="text-sm font-bold mb-1 truncate text-gray-900 group-hover:text-primary transition-colors">{p.name}</h3>
-                <div className="text-lg font-black text-gray-900">
-                  NT${p.price.toLocaleString()}
+                <h3 className="text-lg font-black italic tracking-tighter text-gray-900 mb-2 truncate group-hover:text-primary transition-colors">
+                  {product.name}
+                </h3>
+                <div className="flex items-center justify-between">
+                  <span className="text-xl font-black text-gray-900">NT${product.price.toLocaleString()}</span>
+                  <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                    <ChevronRight size={16} />
+                  </div>
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
       </div>
+
+      {/* Product Details Modal */}
+      <AnimatePresence>
+        {selectedProduct && (
+          <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-hidden"
+            onClick={() => setSelectedProduct(null)}
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-[40px] w-full max-w-5xl overflow-hidden shadow-2xl relative max-h-[90vh] flex flex-col"
+            >
+              {/* Header / Close Button Area */}
+              <div className="flex justify-end p-4 absolute top-0 right-0 z-[110]">
+                <button 
+                  onClick={() => setSelectedProduct(null)}
+                  className="p-3 bg-white/80 backdrop-blur-sm hover:bg-gray-100 text-gray-400 hover:text-gray-900 rounded-full transition-all shadow-sm"
+                >
+                  <X size={24} strokeWidth={2} />
+                </button>
+              </div>
+
+              {/* Main Scrollable Content */}
+              <div className="flex-1 overflow-y-auto no-scrollbar">
+                <div className="flex flex-col md:flex-row min-h-full">
+                  {/* Images Section */}
+                  <div className="md:w-1/2 p-6 md:p-10 h-fit">
+                    <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-4 md:flex-col md:overflow-visible">
+                      <div className="flex-shrink-0 w-full snap-center rounded-[32px] overflow-hidden bg-gray-50 border border-gray-100 aspect-[4/5] shadow-sm relative">
+                        <img src={selectedProduct.image} className="w-full h-full object-cover" alt={selectedProduct.name} />
+                      </div>
+                      
+                      {(selectedProduct.size_chart_url || "").split(',').filter(Boolean).map((url: string, idx: number) => (
+                        <div key={idx} className="flex-shrink-0 w-full snap-center rounded-[32px] overflow-hidden bg-gray-50 border border-gray-100 aspect-[4/5] shadow-sm relative">
+                          <img src={url} className="w-full h-full object-cover" alt={`Sub ${idx + 1}`} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Info Section */}
+                  <div className="md:w-1/2 p-8 md:p-12 pb-32">
+                    <div className="mb-10">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 block">{selectedProduct.tag || 'Premium Gear'}</span>
+                      <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter text-gray-900 mb-4 leading-tight">{selectedProduct.name}</h3>
+                      <div className="text-3xl font-black text-primary mb-8">NT${selectedProduct.price.toLocaleString()}</div>
+                      <div className="h-px bg-gray-100 w-full mb-8" />
+                      <p className="text-gray-500 leading-relaxed font-medium whitespace-pre-wrap text-base">
+                        {selectedProduct.description || '--'}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6 bg-neutral-50 p-8 rounded-[32px] border border-gray-100">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">庫存狀態</p>
+                        <p className="text-sm font-bold text-gray-900">
+                          {selectedProduct.stock > 0 ? `現貨: ${selectedProduct.stock}件` : '--'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">主要材質</p>
+                        <p className="text-sm font-bold text-gray-900">{selectedProduct.material || '--'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">重量參考</p>
+                        <p className="text-sm font-bold text-gray-900">{selectedProduct.weight || '--'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">包裝尺寸</p>
+                        <p className="text-sm font-bold text-gray-900">{selectedProduct.dimensions || '--'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fixed Bottom Action Bar */}
+              <div className="sticky bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-100 flex gap-3 z-[120] shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+                <button 
+                  onClick={(e) => handleAddToCart(e, selectedProduct)}
+                  style={{ 
+                    backgroundColor: mode === 'skiing' ? '#dbeafe' : '#fee2e2', 
+                    color: mode === 'skiing' ? '#1e40af' : '#991b1b',
+                    borderColor: mode === 'skiing' ? '#bfdbfe' : '#fecaca'
+                  }}
+                  className="flex-1 py-4 rounded-2xl font-black italic uppercase transition-all hover:opacity-80 active:scale-95 flex items-center justify-center gap-2 border"
+                >
+                  <ShoppingCart size={18} />
+                  <span className="hidden sm:inline text-xs">加入購物車</span>
+                  <span className="sm:hidden text-[10px]">購物車</span>
+                </button>
+                <button 
+                  onClick={() => {
+                    setDirectPurchaseItem({ 
+                      id: selectedProduct.id, 
+                      name: selectedProduct.name, 
+                      price: selectedProduct.price, 
+                      type: 'product', 
+                      image: selectedProduct.image, 
+                      quantity: 1,
+                      details: { mode: selectedProduct.mode, category_id: selectedProduct.category_id }
+                    });
+                    setIsCheckoutOpen(true);
+                    setSelectedProduct(null);
+                  }}
+                  style={{ backgroundColor: mode === 'skiing' ? '#2563eb' : '#dc2626', color: '#ffffff' }}
+                  className="flex-[2] py-4 rounded-2xl font-black italic shadow-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all uppercase"
+                >
+                  立刻直接購買
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
