@@ -148,9 +148,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
             console.log('Using Course Template ID:', courseTemplateId);
             
             // 處理多個日期與時段 (配合 CourseBookingModal 的資料結構)
-            const formattedDates = Array.isArray(item.details?.dates) ? item.details.dates.join(', ') : (item.details?.date || '未指定');
-            const formattedTimes = Array.isArray(item.details?.times) ? item.details.times.join(', ') : (item.details?.time || '未指定');
-            const courseDetailsStr = `課程: ${item.name}\n日期: ${formattedDates}\n時段: ${formattedTimes}`;
             const currentTime = new Date().toLocaleString('zh-TW', { hour12: false });
 
             if (isEmailConfigured && courseTemplateId) {
@@ -290,12 +287,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
               }
 
               // (C) 寄給 老闆 (Admin)
-              if (emailJsSettings.admin_email) {
+              if (emailJsSettings?.admin_email) {
                 try {
                   await sendWithSDK({
                     template_id: courseTemplateId,
                     template_params: {
-                      to_email: emailJsSettings.admin_email,
+                      to_email: emailJsSettings?.admin_email,
                       subject: `【後台通知】新預約 - ${customerName}`,
                       status_html: statusRedHtml,
                       customer_name: customerName,

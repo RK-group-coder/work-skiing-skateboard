@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Calendar, Clock, MapPin, Users, 
   ChevronRight, ChevronLeft, CreditCard, 
-  CheckCircle2, Camera, Video, AlertCircle 
+  CheckCircle2, Camera 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTheme } from '../hooks/useTheme';
@@ -291,7 +291,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
 
                   <div className="grid grid-cols-7 gap-1">
                     {(() => {
-                      const days: JSX.Element[] = [];
+                      const days: React.ReactElement[] = [];
                       const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
                       const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
                       const today = new Date();

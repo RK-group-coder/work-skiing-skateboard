@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Star, X, ChevronRight, ChevronLeft } from 'lucide-react';
+import { ShoppingCart, X, ChevronRight } from 'lucide-react';
 import { useCart } from '../hooks/CartProvider';
 import { useTheme } from '../hooks/useTheme';
 import { supabase } from '../lib/supabase';

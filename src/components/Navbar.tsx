@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { useCart } from '../hooks/CartProvider';
-import type { Voucher } from '../hooks/CartProvider';
-import { ShoppingCart, User, Search, Menu, X, Ticket, Trash2, Tag, ChevronRight, LogOut, Settings2 } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, Ticket, Trash2, Tag, Settings2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
@@ -17,15 +16,14 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLogout }) => {
   const { mode, toggleMode } = useTheme();
   const { 
-    cart, removeFromCart, totalPrice, totalItems, clearCart, 
+    cart, removeFromCart, totalPrice, totalItems, 
     vouchers, selectedVoucher, selectVoucher, discountedPrice,
-    isCheckoutOpen, setIsCheckoutOpen, getVoucherEligibility
+    setIsCheckoutOpen, getVoucherEligibility
   } = useCart();
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isMyVouchersOpen, setIsMyVouchersOpen] = useState(false);
-  const [showVoucherList, setShowVoucherList] = useState(false);
   const [targetNames, setTargetNames] = useState<Record<string, string>>({});
   const [isPinging, setIsPinging] = useState(false);
 
@@ -319,7 +317,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                             </div>
                             <p className="text-xs opacity-60 font-medium">
                               {v.type === 'percent' ? `${v.value}% OFF` : `折抵 NT$${v.value}`}
-                              {v.min_amount > 0 && ` · 滿 NT$${v.min_amount} 可用`}
+                              {(v.min_amount ?? 0) > 0 && ` · 滿 NT$${v.min_amount} 可用`}
                             </p>
                           </button>
                         );
@@ -352,7 +350,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                            </div>
                            <p className="text-xs font-bold" style={{ color: 'var(--primary)' }}>
                              {selectedVoucher.type === 'percent' ? `${selectedVoucher.value}% OFF` : `折抵 NT$${selectedVoucher.value}`}
-                             {selectedVoucher.min_amount > 0 && ` · 滿 NT$${selectedVoucher.min_amount} 可用`}
+                             {(selectedVoucher.min_amount ?? 0) > 0 && ` · 滿 NT$${selectedVoucher.min_amount} 可用`}
                            </p>
                         </div>
                       );
@@ -449,8 +447,6 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                       targetLabel = `僅適用於: ${targetNames[v.target_id]}`;
                     }
 
-                    const modeBorder = mode === 'skiing' ? 'border-blue-500' : 'border-red-500';
-
                     return (
                       <div 
                         key={v.id} 
@@ -479,7 +475,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                             <p className="text-xl font-black italic" style={isSelected ? { color: 'var(--primary)' } : { color: 'var(--primary)' }}>
                               {v.type === 'percent' ? `折扣 ${v.value}%` : `減免 NT$${v.value}`}
                             </p>
-                            {v.min_amount > 0 && <p className="text-[10px] opacity-60 font-bold mt-1">滿 NT$${v.min_amount}</p>}
+                            {(v.min_amount ?? 0) > 0 && <p className="text-[10px] opacity-60 font-bold mt-1">滿 NT$${v.min_amount}</p>}
                           </div>
                         </div>
                         <button 

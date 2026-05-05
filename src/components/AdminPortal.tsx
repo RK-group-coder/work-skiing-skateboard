@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogIn, UserPlus, LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Check, ToggleLeft, ToggleRight, AlertCircle, Database, Calendar, Users, MapPin, Landmark, Search, MoreHorizontal } from 'lucide-react';
+import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { User } from '@supabase/supabase-js';
@@ -903,15 +903,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
     }
   };
 
-  const handleUpdateOrderStatus = async (id: string, status: Order['status']) => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.from('orders').update({ status }).eq('id', id);
-      if (error) throw error;
-      await fetchOrders();
-    } catch (err: any) { alert('更新失敗: ' + err.message); }
-    finally { setLoading(false); }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setError(null);
@@ -1556,7 +1547,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
         return (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {['skiing', 'skateboard'].map((id) => (
+              {['skiing', 'skateboard'].map((id) => {
+                const settings = homepageSettings[id];
+                if (!settings) return null;
+                return (
                 <div key={id} className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
                   <div className="flex items-center gap-4 mb-8">
                     <div className={`p-3 rounded-2xl ${id === 'skiing' ? 'bg-sky-50 text-sky-600' : 'bg-red-50 text-red-600'}`}><Settings2 size={24} /></div>
@@ -1569,25 +1563,29 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                       { label: 'Hero Title (大標)', key: 'hero_title', type: 'input' },
                       { label: 'Hero Badge (標記)', key: 'hero_badge', type: 'input' },
                       { label: 'Hero Subtitle (內文)', key: 'hero_subtitle', type: 'textarea' },
-                    ].map(({ label, key, type }) => (
-                      <div key={key}>
-                        <label className={labelCls}>{label}</label>
-                        {type === 'textarea'
-                          ? <textarea rows={3} value={(homepageSettings[id] as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...homepageSettings[id], [key]: e.target.value } })} className={`${inputCls} resize-none`} />
-                          : <input type="text" value={(homepageSettings[id] as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...homepageSettings[id], [key]: e.target.value } })} className={inputCls} />
-                        }
-                      </div>
-                    ))}
+                    ].map(({ label, key, type }) => {
+                      const settings = homepageSettings[id];
+                      if (!settings) return null;
+                      return (
+                        <div key={key}>
+                          <label className={labelCls}>{label}</label>
+                          {type === 'textarea'
+                            ? <textarea rows={3} value={(settings as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, [key]: e.target.value } })} className={`${inputCls} resize-none`} />
+                            : <input type="text" value={(settings as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, [key]: e.target.value } })} className={inputCls} />
+                          }
+                        </div>
+                      );
+                    })}
                     <ImageUploadField 
                       label="Background Image (背景圖)" 
-                      value={homepageSettings[id].hero_bg_image} 
-                      onChange={url => setHomepageSettings({ ...homepageSettings, [id]: { ...homepageSettings[id], hero_bg_image: url } })} 
+                      value={settings.hero_bg_image} 
+                      onChange={url => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, hero_bg_image: url } })} 
                     />
                     <div className="grid grid-cols-2 gap-3 bg-neutral-50 p-4 rounded-2xl">
                       {[1, 2, 3, 4].map(num => (
                         <div key={num}>
                           <label className={labelCls}>Trust Item {num}</label>
-                          <input type="text" value={(homepageSettings[id] as any)[`trust_item_${num}`]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...homepageSettings[id], [`trust_item_${num}`]: e.target.value } })} className={inputCls} />
+                          <input type="text" value={(settings as any)[`trust_item_${num}`]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, [`trust_item_${num}`]: e.target.value } })} className={inputCls} />
                         </div>
                       ))}
                     </div>
@@ -1597,8 +1595,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                       <h4 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-primary" /> Contact Section (聯絡區塊)
                       </h4>
-                      <input type="text" placeholder="Section Title" value={homepageSettings[id].contact_title} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...homepageSettings[id], contact_title: e.target.value } })} className={inputCls} />
-                      <textarea rows={2} placeholder="Section Description" value={homepageSettings[id].contact_desc} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...homepageSettings[id], contact_desc: e.target.value } })} className={`${inputCls} resize-none`} />
+                      <input type="text" placeholder="Section Title" value={settings.contact_title} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, contact_title: e.target.value } })} className={inputCls} />
+                      <textarea rows={2} placeholder="Section Description" value={settings.contact_desc} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, contact_desc: e.target.value } })} className={`${inputCls} resize-none`} />
                       <div className="grid grid-cols-1 gap-3 bg-neutral-50 p-4 rounded-2xl">
                         <p className={labelCls}>聯絡跳轉連結 Contact Links</p>
                         {[
@@ -1609,7 +1607,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         ].map(({ key, label, placeholder }) => (
                           <div key={key}>
                             <label className={labelCls}>{label}</label>
-                            <input type="text" placeholder={placeholder} value={(homepageSettings[id] as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...homepageSettings[id], [key]: e.target.value } })} className={inputCls} />
+                            <input type="text" placeholder={placeholder} value={(settings as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, [key]: e.target.value } })} className={inputCls} />
                           </div>
                         ))}
                       </div>
@@ -1631,8 +1629,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                           <div key={key}>
                             <label className={labelCls}>{label}</label>
                             {type === 'textarea'
-                              ? <textarea rows={2} value={(homepageSettings[id] as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...homepageSettings[id], [key]: e.target.value } })} className={`${inputCls} resize-none`} />
-                              : <input type="text" value={(homepageSettings[id] as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...homepageSettings[id], [key]: e.target.value } })} className={inputCls} />
+                              ? <textarea rows={2} value={(settings as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, [key]: e.target.value } })} className={`${inputCls} resize-none`} />
+                              : <input type="text" value={(settings as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, [key]: e.target.value } })} className={inputCls} />
                             }
                           </div>
                         ))}
@@ -1646,7 +1644,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* EmailJS System Settings */}

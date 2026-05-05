@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 
 interface DashboardViewProps {
@@ -11,7 +10,6 @@ interface DashboardViewProps {
   categories?: any[];
 }
 
-const COLORS = ['#1f2937', '#6b7280']; // Tailwind gray-900, gray-500
 
 const DashboardView: React.FC<DashboardViewProps> = ({ products, courses, vouchers, coaches, orders, categories = [] }) => {
   const [dataMode, setDataMode] = useState<'all' | 'skiing' | 'skateboard'>('all');
@@ -287,7 +285,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ products, courses, vouche
                   dataKey="value" 
                   stroke="none"
                   isAnimationActive={false}
-                  label={({ name, percent }) => `${name.replace('品牌','')}\n${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${(name || '').replace('品牌','')}\n${((percent || 0) * 100).toFixed(0)}%`}
                   labelLine={true}
                   style={{ fontSize: '10px', fontWeight: 'bold' }}
                 >
@@ -300,7 +298,7 @@ const DashboardView: React.FC<DashboardViewProps> = ({ products, courses, vouche
             </ResponsiveContainer>
           </div>
           <div className="flex justify-center gap-6 mt-2">
-            {brandData.map((d, i) => (
+            {brandData.map((d) => (
               <div key={d.name} className="flex items-center gap-2 text-[10px] font-black text-gray-900 uppercase tracking-widest">
                 <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.name === '滑雪品牌' ? '#0ea5e9' : '#ef4444' }}/> 
                 {d.name} {totalRev > 0 ? Math.round((d.value/totalRev)*100) : 0}%

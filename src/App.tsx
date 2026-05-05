@@ -10,7 +10,7 @@ import ProductShowcase from './components/ProductShowcase';
 import Contact from './components/Contact';
 import AdminPortal from './components/AdminPortal';
 import AuthModal from './components/AuthModal';
-import { Award, ShieldCheck, Users, Heart, X, LogOut, User as UserIcon } from 'lucide-react';
+import { Award, ShieldCheck, Users, Heart, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { User } from '@supabase/supabase-js';
 import { useCart } from './hooks/CartProvider';

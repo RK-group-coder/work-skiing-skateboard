@@ -258,7 +258,7 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                 </div>
 
                 <ul className="flex-1 space-y-4 mb-8">
-                  {p.features.map((feat, idx) => (
+                  {p.features.map((feat: string, idx: number) => (
                     <li key={idx} className="flex items-center gap-3 text-sm text-gray-600 font-semibold leading-snug">
                       <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                         <Check size={12} className="text-primary" strokeWidth={3} />
