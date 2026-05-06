@@ -712,13 +712,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
             <button 
               disabled={!screenshot || isUploading}
               onClick={handleSubmit}
-              className={`w-full py-5 rounded-[24px] font-black uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(255,255,255,0.1)] active:scale-95 transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
-                !screenshot || isUploading ? 'opacity-30 grayscale cursor-not-allowed text-gray-400' : 'hover:scale-[1.02]'
+              className={`w-full py-5 rounded-[24px] font-black uppercase tracking-[0.3em] active:scale-95 transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
+                !screenshot || isUploading ? 'cursor-not-allowed border-2 border-white/10' : 'shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:scale-[1.02]'
               }`}
               style={{ 
-                background: !screenshot || isUploading ? '#374151' : '#ffffff',
-                color: !screenshot || isUploading ? '#9ca3af' : '#000000',
-                border: 'none'
+                background: !screenshot || isUploading ? 'rgba(255,255,255,0.05)' : '#ef4444',
+                color: !screenshot || isUploading ? 'rgba(255,255,255,0.3)' : '#ffffff',
+                border: !screenshot || isUploading ? '2px solid rgba(255,255,255,0.1)' : 'none'
               }}
             >
               {/* Button Shine Animation */}
