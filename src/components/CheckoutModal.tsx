@@ -605,21 +605,21 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                   placeholder="收件人姓名 Name"
                   value={customerName}
                   onChange={e => setCustomerName(e.target.value)}
-                  className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-primary outline-none transition-all text-sm font-medium"
+                  className="w-full p-4 rounded-xl border border-gray-200 bg-white focus:border-primary outline-none transition-all text-sm font-medium text-gray-900 placeholder:text-gray-400"
                 />
                 <input
                   type="tel"
                   placeholder="聯絡電話 Phone Number"
                   value={customerPhone}
                   onChange={e => setCustomerPhone(e.target.value)}
-                  className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-primary outline-none transition-all text-sm font-medium"
+                  className="w-full p-4 rounded-xl border border-gray-200 bg-white focus:border-primary outline-none transition-all text-sm font-medium text-gray-900 placeholder:text-gray-400"
                 />
                 <input
                   type="email"
                   placeholder="電子信箱 Email"
                   value={customerEmail}
                   onChange={e => setCustomerEmail(e.target.value)}
-                  className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-primary outline-none transition-all text-sm font-medium"
+                  className="w-full p-4 rounded-xl border border-gray-200 bg-white focus:border-primary outline-none transition-all text-sm font-medium text-gray-900 placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -661,7 +661,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     placeholder="請輸入超商門市名稱/店號 (例如: 7-11 鑫安門市)"
                     value={convenienceStoreInfo}
                     onChange={e => setConvenienceStoreInfo(e.target.value)}
-                    className="w-full p-3.5 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-primary outline-none transition-all text-sm font-medium"
+                    className="w-full p-3.5 rounded-xl border border-gray-200 bg-white focus:border-primary outline-none transition-all text-sm font-medium text-gray-900 placeholder:text-gray-400"
                   />
                 ) : (
                   <div className="relative">
