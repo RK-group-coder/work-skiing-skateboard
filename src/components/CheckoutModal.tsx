@@ -113,6 +113,27 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
 
       if (error) throw error;
 
+      // 🛒 自動扣除庫存 (Stock Reduction)
+      try {
+        const productItems = cart.filter(item => item.type === 'product');
+        for (const item of productItems) {
+          // 獲取目前最新庫存
+          const { data: pData } = await supabase.from('products').select('stock').eq('id', item.id).single();
+          if (pData && typeof pData.stock === 'number') {
+            const currentStock = pData.stock;
+            // 只有當庫存大於 0 時才扣除 (避免負數，雖然理論上前端會擋)
+            if (currentStock > 0) {
+              const newStock = Math.max(0, currentStock - (item.quantity || 1));
+              await supabase.from('products').update({ stock: newStock }).eq('id', item.id);
+              console.log(`Product ${item.id} stock updated: ${currentStock} -> ${newStock}`);
+            }
+          }
+        }
+      } catch (stockErr) {
+        console.error('Failed to update stock:', stockErr);
+        // 庫存更新失敗不影響訂單完成，但記錄錯誤
+      }
+
       // 取得 EmailJS 系統設定
       let emailJsSettings: { 
         service_id?: string; 
