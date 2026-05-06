@@ -1042,10 +1042,25 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         }
                         <div className="flex-1 min-w-0">
                           <div className="font-black text-sm truncate">{p.name}</div>
-                          <div className="text-xs text-gray-400 font-medium">
-                            {catName ? <span className="text-primary">{catName} · </span> : ''}
-                            {p.tag && <span>{p.tag} · </span>}
-                            {p.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
+                          <div className="text-xs text-gray-400 font-medium truncate flex flex-wrap gap-1">
+                            {(() => {
+                              const allCatIds = [p.category_id, ...(p.tag || "").split(',')].filter(id => id && id.length === 36);
+                              const uniqueCatIds = Array.from(new Set(allCatIds));
+                              const resolvedNames = uniqueCatIds.map(id => categories.find(c => c.id === id)?.name).filter(Boolean);
+                              const otherTags = (p.tag || "").split(',').filter(t => t && t.length !== 36);
+                              
+                              return (
+                                <>
+                                  {resolvedNames.map((name, i) => (
+                                    <span key={i} className="text-primary bg-primary/5 px-1.5 py-0.5 rounded-md">#{name}</span>
+                                  ))}
+                                  {otherTags.map((tag, i) => (
+                                    <span key={i} className="text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-md">{tag}</span>
+                                  ))}
+                                  <span className="ml-1 text-gray-300">{p.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}</span>
+                                </>
+                              );
+                            })()}
                           </div>
                         </div>
                         <div className="text-right shrink-0">
