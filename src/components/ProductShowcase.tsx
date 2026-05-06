@@ -229,8 +229,37 @@ const ProductShowcase: React.FC = () => {
 
               <div className="px-2">
                 <div className="flex justify-between items-start mb-1">
-                   <span className="text-[10px] font-black uppercase tracking-widest text-primary">{product.tag || 'New Arrival'}</span>
-                   <span className="text-[10px] font-bold text-gray-400">STOCK: {product.stock}</span>
+                   <div className="flex flex-wrap gap-1">
+                     {(() => {
+                       const catIds = [product.category_id, ...(product.tag || "").split(',')].filter(id => id && id.length === 36);
+                       const uniqueCatIds = Array.from(new Set(catIds));
+                       const resolvedNames = uniqueCatIds.map(id => categories.find(c => c.id === id)?.name).filter(Boolean);
+                       const otherTags = (product.tag || "").split(',').filter(t => t && t.length !== 36);
+                       
+                       return (
+                         <>
+                           {resolvedNames.length > 0 ? (
+                             resolvedNames.map((name, i) => (
+                               <span key={i} className="text-[9px] font-black uppercase tracking-widest text-primary bg-primary/5 px-1.5 py-0.5 rounded">
+                                 {name}
+                               </span>
+                             ))
+                           ) : (
+                             otherTags.length > 0 ? (
+                               otherTags.map((t, i) => (
+                                 <span key={i} className="text-[9px] font-black uppercase tracking-widest text-primary">
+                                   {t}
+                                 </span>
+                               ))
+                             ) : (
+                               <span className="text-[9px] font-black uppercase tracking-widest text-primary">New Arrival</span>
+                             )
+                           )}
+                         </>
+                       );
+                     })()}
+                   </div>
+                   <span className="text-[10px] font-bold text-gray-400 shrink-0">STOCK: {product.stock}</span>
                 </div>
                 <h3 className="text-lg font-black italic tracking-tighter text-gray-900 mb-2 truncate group-hover:text-primary transition-colors">
                   {product.name}
