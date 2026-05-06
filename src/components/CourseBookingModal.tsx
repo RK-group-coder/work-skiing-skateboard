@@ -250,8 +250,8 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                 STEP {step} / {totalSteps}
               </span>
             </div>
-            <h3 className="text-2xl font-black italic uppercase tracking-tighter">
-              {course.name} <span className="text-gray-300 not-italic ml-2 font-medium tracking-normal text-lg">RESERVATION</span>
+            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-gray-900">
+              {course.name} <span className="text-gray-400 not-italic ml-2 font-medium tracking-normal text-lg">RESERVATION</span>
             </h3>
           </div>
           <button onClick={onClose} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl shadow-sm hover:scale-110 active:scale-95 transition-all text-gray-400 hover:text-black">
@@ -266,25 +266,25 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Calendar size={24} /></div>
-                  <h4 className="text-xl font-bold">選擇上課日期 <span className="text-gray-400 font-normal text-base">(可複選多個日期)</span></h4>
+                  <h4 className="text-xl font-bold text-gray-900">選擇上課日期 <span className="text-gray-400 font-normal text-base">(可複選多個日期)</span></h4>
                 </div>
 
                 {/* Interactive Calendar */}
                 <div className="bg-gray-50 p-6 rounded-[32px] border border-gray-100">
                   <div className="flex items-center justify-between mb-6 px-2">
-                    <h5 className="font-black text-lg italic uppercase tracking-tight">
+                    <h5 className="font-black text-lg italic uppercase tracking-tight text-gray-900">
                       {currentMonth.getFullYear()}年 {currentMonth.getMonth() + 1}月
                     </h5>
                     <div className="flex gap-2">
                       <button 
                         onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
-                        className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm hover:bg-gray-100 transition-all"
+                        className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm hover:bg-gray-100 transition-all text-gray-900"
                       >
                         <ChevronLeft size={20} />
                       </button>
                       <button 
                         onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
-                        className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm hover:bg-gray-100 transition-all"
+                        className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm hover:bg-gray-100 transition-all text-gray-900"
                       >
                         <ChevronRight size={20} />
                       </button>
@@ -457,7 +457,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10 text-center">
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-2"><MapPin size={32} /></div>
-                  <h4 className="text-2xl font-black italic uppercase">確認上課地點</h4>
+                  <h4 className="text-2xl font-black italic uppercase text-gray-900">確認上課地點</h4>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
                   {locations.length > 0 ? locations.map(l => (
@@ -483,7 +483,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               <motion.div key="s4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Users size={24} /></div>
-                  <h4 className="text-xl font-bold">參與人員與教練</h4>
+                  <h4 className="text-xl font-bold text-gray-900">參與人員與教練</h4>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-6">
