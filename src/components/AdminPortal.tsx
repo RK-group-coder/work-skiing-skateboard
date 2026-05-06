@@ -981,7 +981,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               <div className="flex gap-2">
                 {(['all', 'skiing', 'skateboard'] as const).map(f => (
                   <button key={f} onClick={() => setProductFilter(f)}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${productFilter === f ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 border border-gray-100 hover:text-black'}`}>
+                    style={productFilter === f ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
+                    className="px-4 py-2 rounded-xl text-sm font-black transition-all border border-gray-200 shadow-sm">
                     {f === 'all' ? '全部' : f === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
                   </button>
                 ))}
@@ -1167,7 +1168,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               <div className="flex gap-2">
                 {(['all', 'skiing', 'skateboard'] as const).map(f => (
                   <button key={f} onClick={() => setCourseFilter(f)}
-                    className={`px-4 py-2 rounded-xl text-sm font-black transition-all border ${courseFilter === f ? 'bg-black text-white border-black shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:text-black'}`}>
+                    style={courseFilter === f ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
+                    className="px-4 py-2 rounded-xl text-sm font-black transition-all border border-gray-200 shadow-sm">
                     {f === 'all' ? '全部' : f === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
                   </button>
                 ))}
