@@ -465,9 +465,9 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                       style={{
                         borderColor: selectedLocation === l.id ? activeColor : 'transparent'
                       }}
-                      className={`p-6 rounded-3xl border-2 text-left transition-all ${selectedLocation === l.id ? 'bg-white shadow-xl ring-4 ring-primary/5' : 'bg-gray-50 opacity-60 hover:opacity-100'}`}>
+                      className={`p-6 rounded-3xl border-2 text-left transition-all ${selectedLocation === l.id ? 'bg-white shadow-xl ring-4 ring-primary/5' : 'bg-gray-100 hover:bg-gray-200'}`}>
                       <div className="font-black text-lg mb-1 text-gray-900">{l.name}</div>
-                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{l.address}</div>
+                      <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{l.address || '地點詳細資訊'}</div>
                     </button>
                   )) : (
                     <div className="col-span-2 py-20 px-8 bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-200">
