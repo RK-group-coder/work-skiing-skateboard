@@ -1062,11 +1062,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               </div>
 
               <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <input type="text" placeholder="據點名稱" value={pickupLocationName} onChange={e => setPickupLocationName(e.target.value)} className="flex-1 px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-gray-200 outline-none font-medium" />
-                <input type="text" placeholder="據點地址" value={pickupLocationAddress} onChange={e => setPickupLocationAddress(e.target.value)} className="flex-[2] px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-gray-200 outline-none font-medium" />
-                <select value={pickupLocationMode} onChange={e => setPickupLocationMode(e.target.value as 'skiing' | 'skateboard')} className="px-4 py-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-gray-200 outline-none font-bold">
+                <input type="text" placeholder="據點名稱" value={pickupLocationName} onChange={e => setPickupLocationName(e.target.value)} className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-medium text-gray-900 placeholder:text-gray-400" />
+                <input type="text" placeholder="據點地址" value={pickupLocationAddress} onChange={e => setPickupLocationAddress(e.target.value)} className="flex-[2] px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-medium text-gray-900 placeholder:text-gray-400" />
+                <select value={pickupLocationMode} onChange={e => setPickupLocationMode(e.target.value as 'skiing' | 'skateboard')} className="px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-bold text-gray-900">
                   <option value="skiing">⛷️ 滑雪區</option>
-                  <option value="skateboard">🛹 滑板區</option>
+                  <option value="skateboard"> skateboard 🛹 滑板區</option>
                 </select>
                 <button onClick={handleSavePickupLocation} disabled={isSavingPickupLocation} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50">
                   <Plus size={18} /> 新增
@@ -1075,17 +1075,17 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {pickupLocations.map(loc => (
-                  <div key={loc.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                    <div>
+                  <div key={loc.id} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-200 shadow-sm">
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-white border border-gray-200">
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${loc.mode === 'skiing' ? 'bg-sky-50 text-sky-600 border-sky-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
                           {loc.mode === 'skiing' ? '滑雪' : '滑板'}
                         </span>
-                        <span className="font-bold text-sm">{loc.name}</span>
+                        <span className="font-bold text-sm text-gray-900 truncate">{loc.name}</span>
                       </div>
-                      <p className="text-[10px] text-gray-400 font-medium truncate max-w-[200px]">{loc.address}</p>
+                      <p className="text-[10px] text-gray-500 font-medium truncate max-w-[200px]">{loc.address}</p>
                     </div>
-                    <button onClick={() => handleDeletePickupLocation(loc.id)} className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors">
+                    <button onClick={() => handleDeletePickupLocation(loc.id)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm">
                       <Trash2 size={16} />
                     </button>
                   </div>
