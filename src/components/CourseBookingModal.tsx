@@ -125,7 +125,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     if (totalPersonSlots === 0) return 0;
 
     const firstPrice = course.first_lesson_price || course.price || 0;
-    const additionalPrice = course.additional_lesson_price || course.addPrice || (course.price !== firstPrice ? course.price : 0) || 5000; 
+    const additionalPrice = course.additional_lesson_price || course.addPrice || firstPrice; 
 
     let total = 0;
     if (isFirstLesson) {
