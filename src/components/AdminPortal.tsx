@@ -124,9 +124,9 @@ interface Order {
 const EMPTY_PRODUCT: Product = { 
   mode: 'skiing', 
   name: '', 
-  price: 0, 
-  special_price: 0,
-  stock: 0,
+  price: '' as any, 
+  special_price: '' as any,
+  stock: '' as any,
   weight: '',
   dimensions: '',
   material: '',
@@ -137,10 +137,10 @@ const EMPTY_PRODUCT: Product = {
   rating: 5.0, 
   is_active: true 
 };
-const EMPTY_COURSE: Course = { mode: 'skiing', name: '', price: 0, first_lesson_price: 0, additional_lesson_price: 0, description: '', image_url: '', is_active: true };
+const EMPTY_COURSE: Course = { mode: 'skiing', name: '', price: '' as any, first_lesson_price: '' as any, additional_lesson_price: '' as any, description: '', image_url: '', is_active: true };
 const EMPTY_COACH: Coach = { name: '', email: '', mode: 'skiing', image_url: '', description: '' };
 const EMPTY_LOCATION: CourseLocation = { name: '', mode: 'skiing', address: '' };
-const EMPTY_VOUCHER: Voucher = { code: '', title: '', description: '', type: 'percent', value: 10, min_amount: 0, valid_until: '', target_type: 'global', target_id: '', is_active: true, is_published: true };
+const EMPTY_VOUCHER: Voucher = { code: '', title: '', description: '', type: 'percent', value: '' as any, min_amount: '' as any, valid_until: '', target_type: 'global', target_id: '', is_active: true, is_published: true };
 
 // ── Shared UI Constants & Helpers ─────────────────────────────────────
 const inputCls = "w-full px-4 py-3 bg-neutral-50 rounded-xl border border-gray-100 focus:ring-2 focus:ring-primary outline-none transition-all font-semibold text-sm text-gray-900";
@@ -225,15 +225,15 @@ const ProductForm = ({ form, setForm, onSave, onCancel, categories, loading }: {
     <div className="grid grid-cols-3 gap-4">
       <div>
         <label className={labelCls}>原價 Price (NT$)</label>
-        <input type="number" value={form.price} onChange={e => setForm({ ...form, price: Number(e.target.value) })} className={inputCls} />
+        <input type="number" value={form.price ?? ''} onChange={e => setForm({ ...form, price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
       </div>
       <div>
         <label className={labelCls}>特價 Special Price (NT$)</label>
-        <input type="number" value={form.special_price} onChange={e => setForm({ ...form, special_price: Number(e.target.value) })} className={inputCls} />
+        <input type="number" value={form.special_price ?? ''} onChange={e => setForm({ ...form, special_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
       </div>
       <div>
         <label className={labelCls}>庫存數量 Stock</label>
-        <input type="number" value={form.stock} onChange={e => setForm({ ...form, stock: Number(e.target.value) })} className={inputCls} />
+        <input type="number" value={form.stock ?? ''} onChange={e => setForm({ ...form, stock: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
       </div>
     </div>
     <div className="grid grid-cols-3 gap-4">
@@ -319,14 +319,18 @@ const CourseForm = ({ form, setForm, onSave, onCancel, loading }: { form: Course
       </div>
     </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
       <div>
-        <label className={labelCls}>第一堂課價格 First Lesson (NT$)</label>
-        <input type="number" value={form.first_lesson_price} onChange={e => setForm({ ...form, first_lesson_price: Number(e.target.value) })} className={inputCls} placeholder="初次體驗/單堂價格" />
+        <label className={labelCls}>單堂原價 Base Price (NT$)</label>
+        <input type="number" value={form.price ?? ''} onChange={e => setForm({ ...form, price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
       </div>
       <div>
-        <label className={labelCls}>續購價格 (第二堂起) Add-on Price (NT$)</label>
-        <input type="number" value={form.additional_lesson_price} onChange={e => setForm({ ...form, additional_lesson_price: Number(e.target.value) })} className={inputCls} placeholder="續購優惠價格" />
+        <label className={labelCls}>初次體驗價 First Price (NT$)</label>
+        <input type="number" value={form.first_lesson_price ?? ''} onChange={e => setForm({ ...form, first_lesson_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+      </div>
+      <div>
+        <label className={labelCls}>加購續報價 Add Price (NT$)</label>
+        <input type="number" value={form.additional_lesson_price ?? ''} onChange={e => setForm({ ...form, additional_lesson_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
       </div>
     </div>
 
@@ -402,13 +406,13 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, categories, products, co
       </div>
       <div>
         <label className={labelCls}>折扣值 Value ({form.type === 'percent' ? '%' : 'NT$'})</label>
-        <input type="number" value={form.value} onChange={e => setForm({ ...form, value: Number(e.target.value) })} className={inputCls} />
+        <input type="number" value={form.value ?? ''} onChange={e => setForm({ ...form, value: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
       </div>
     </div>
     <div className="grid grid-cols-2 gap-4">
       <div>
         <label className={labelCls}>最低消費 Min (NT$)</label>
-        <input type="number" value={form.min_amount} onChange={e => setForm({ ...form, min_amount: Number(e.target.value) })} className={inputCls} />
+        <input type="number" value={form.min_amount ?? ''} onChange={e => setForm({ ...form, min_amount: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
       </div>
       <div>
         <label className={labelCls}>有效期限 Valid Until (選填)</label>
