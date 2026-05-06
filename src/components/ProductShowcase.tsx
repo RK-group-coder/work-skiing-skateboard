@@ -152,7 +152,7 @@ const ProductShowcase: React.FC = () => {
       price: product.price, 
       type: 'product', 
       image: product.image,
-      details: { mode: product.mode, category_id: product.category_id }
+      details: { mode: product.mode, category_id: product.category_id, tag: product.tag }
     });
     setSelectedProduct(null);
   };
@@ -406,7 +406,7 @@ const ProductShowcase: React.FC = () => {
                       type: 'product', 
                       image: selectedProduct.image, 
                       quantity: 1,
-                      details: { mode: selectedProduct.mode, category_id: selectedProduct.category_id }
+                      details: { mode: selectedProduct.mode, category_id: selectedProduct.category_id, tag: selectedProduct.tag }
                     });
                     setIsCheckoutOpen(true);
                     setSelectedProduct(null);

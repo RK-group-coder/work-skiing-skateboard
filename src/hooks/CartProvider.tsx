@@ -110,7 +110,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (voucher.target_type === 'course') return i.type === 'course_booking' && i.details?.courseId === voucher.target_id;
       if (i.type !== 'product') return false; 
       if (voucher.target_type === 'product') return i.id === voucher.target_id;
-      if (voucher.target_type === 'category') return i.details?.category_id === voucher.target_id;
+      if (voucher.target_type === 'category') {
+        // Support multi-category: check primary category_id AND all IDs in tag field
+        const allCatIds = [i.details?.category_id, ...((i.details?.tag || '').split(','))].filter((id: string) => id && id.length === 36);
+        return allCatIds.includes(voucher.target_id);
+      }
       if (voucher.target_type === 'skiing') return i.details?.mode === 'skiing';
       if (voucher.target_type === 'skateboard') return i.details?.mode === 'skateboard';
       return false;
@@ -142,7 +146,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (selectedVoucher.target_type === 'course') return i.type === 'course_booking' && i.details?.courseId === selectedVoucher.target_id;
         if (i.type !== 'product') return false; 
         if (selectedVoucher.target_type === 'product') return i.id === selectedVoucher.target_id;
-        if (selectedVoucher.target_type === 'category') return i.details?.category_id === selectedVoucher.target_id;
+        if (selectedVoucher.target_type === 'category') {
+          const allCatIds = [i.details?.category_id, ...((i.details?.tag || '').split(','))].filter((id: string) => id && id.length === 36);
+          return allCatIds.includes(selectedVoucher.target_id);
+        }
         if (selectedVoucher.target_type === 'skiing') return i.details?.mode === 'skiing';
         if (selectedVoucher.target_type === 'skateboard') return i.details?.mode === 'skateboard';
         return false;
