@@ -1200,19 +1200,21 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                       <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200">
                         <BookOpen size={20} className="text-gray-600" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-black text-base text-gray-900 truncate mb-1">{c.name}</div>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${c.mode === 'skiing' ? 'bg-sky-50 text-sky-600 border-sky-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                      <div className="flex-[2] min-w-0">
+                        <div className="font-black text-base text-gray-900 mb-1">
+                          {c.name.length > 10 ? c.name.slice(0, 10) + '...' : c.name}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border whitespace-nowrap ${c.mode === 'skiing' ? 'bg-sky-50 text-sky-600 border-sky-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
                             {c.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
                           </span>
-                          <span className="text-xs font-bold text-gray-400">
+                          <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
                             NT${(c.first_lesson_price || 0).toLocaleString()} / NT${(c.additional_lesson_price || 0).toLocaleString()}
                           </span>
                         </div>
                       </div>
-                      <div className="text-right shrink-0 mr-4">
-                        <div className={`text-[10px] font-black uppercase tracking-widest ${c.is_active ? 'text-green-600' : 'text-gray-400'}`}>
+                      <div className="flex-1 text-right shrink-0 pr-2">
+                        <div className={`text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${c.is_active ? 'text-green-600' : 'text-gray-400'}`}>
                           {c.is_active ? '開放報名' : '已關閉'}
                         </div>
                       </div>
