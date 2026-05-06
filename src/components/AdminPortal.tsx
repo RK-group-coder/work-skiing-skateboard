@@ -225,15 +225,15 @@ const ProductForm = ({ form, setForm, onSave, onCancel, categories, loading }: {
     <div className="grid grid-cols-3 gap-4">
       <div>
         <label className={labelCls}>原價 Price (NT$)</label>
-        <input type="number" value={form.price ?? ''} onChange={e => setForm({ ...form, price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+        <input type="number" value={form.price ?? ''} onChange={e => setForm({ ...form, price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} placeholder="e.g. 1200" />
       </div>
       <div>
-        <label className={labelCls}>特價 Special Price (NT$)</label>
-        <input type="number" value={form.special_price ?? ''} onChange={e => setForm({ ...form, special_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+        <label className={labelCls}>會員價 Member Price (NT$)</label>
+        <input type="number" value={form.special_price ?? ''} onChange={e => setForm({ ...form, special_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} placeholder="e.g. 1000" />
       </div>
       <div>
-        <label className={labelCls}>庫存數量 Stock</label>
-        <input type="number" value={form.stock ?? ''} onChange={e => setForm({ ...form, stock: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+        <label className={labelCls}>庫存數量 Stock (選填)</label>
+        <input type="number" value={form.stock ?? ''} onChange={e => setForm({ ...form, stock: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} placeholder="不填代表無限" />
       </div>
     </div>
     <div className="grid grid-cols-3 gap-4">
@@ -720,11 +720,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const handleSaveProduct = async () => {
     setLoading(true);
     try {
+      const finalData = { ...productForm };
+      if (finalData.price === '' as any) finalData.price = 0;
+      if (finalData.special_price === '' as any) finalData.special_price = null;
+      if (finalData.stock === '' as any) finalData.stock = 0; 
+
       if (productForm.id) {
-        const { error } = await supabase.from('products').update(productForm).eq('id', productForm.id);
+        const { error } = await supabase.from('products').update(finalData).eq('id', productForm.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('products').insert({ ...productForm });
+        const { error } = await supabase.from('products').insert(finalData);
         if (error) throw error;
       }
       await fetchProducts();
@@ -826,11 +831,16 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const handleSaveCourse = async () => {
     setLoading(true);
     try {
+      const finalData = { ...courseForm };
+      if (finalData.price === '' as any) finalData.price = 0;
+      if (finalData.first_lesson_price === '' as any) finalData.first_lesson_price = 0;
+      if (finalData.additional_lesson_price === '' as any) finalData.additional_lesson_price = 0;
+
       if (courseForm.id) {
-        const { error } = await supabase.from('courses').update(courseForm).eq('id', courseForm.id);
+        const { error } = await supabase.from('courses').update(finalData).eq('id', courseForm.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('courses').insert({ ...courseForm });
+        const { error } = await supabase.from('courses').insert(finalData);
         if (error) throw error;
       }
       await fetchCourses();
@@ -851,11 +861,15 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const handleSaveVoucher = async () => {
     setLoading(true);
     try {
+      const finalData = { ...voucherForm };
+      if (finalData.value === '' as any) finalData.value = 0;
+      if (finalData.min_amount === '' as any) finalData.min_amount = 0;
+
       if (voucherForm.id) {
-        const { error } = await supabase.from('vouchers').update(voucherForm).eq('id', voucherForm.id);
+        const { error } = await supabase.from('vouchers').update(finalData).eq('id', voucherForm.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('vouchers').insert({ ...voucherForm });
+        const { error } = await supabase.from('vouchers').insert(finalData);
         if (error) throw error;
       }
       await fetchVouchers();
