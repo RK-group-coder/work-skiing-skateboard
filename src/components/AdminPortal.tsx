@@ -1378,7 +1378,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                     {coaches.map(c => (
                       <div key={c.id} className="bg-white p-6 rounded-3xl border border-gray-100 flex items-center gap-4 group">
                         {c.image_url
-                          ? <img src={c.image_url} className="w-16 h-16 rounded-2xl object-cover grayscale group-hover:grayscale-0 transition-all shadow-md" alt="" />
+                          ? <img src={c.image_url} className="w-16 h-16 rounded-2xl object-cover transition-all shadow-md" alt="" />
                           : <span className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                               <svg viewBox="0 0 40 40" fill="none" className="w-16 h-16">
                                 <ellipse cx="20" cy="34" rx="13" ry="9" fill="#9ca3af"/>
@@ -1393,7 +1393,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                           )}
                           <div className="text-[10px] font-bold text-gray-400 mt-0.5">{c.mode === 'skiing' ? '⛷ 滑雪教練' : '🛹 滑板教練'}</div>
                         </div>
-                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+                        <div className="flex gap-2 shrink-0">
                           <button 
                             onClick={() => { 
                               setCoachForm(c); 
@@ -1402,15 +1402,17 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                                 document.getElementById('coach-editor')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                               }, 100);
                             }} 
-                            className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-all"
+                            className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center transition-all shadow-sm"
+                            title="編輯教練"
                           >
-                            <Settings2 size={14} />
+                            <Settings2 size={15} />
                           </button>
                           <button 
                             onClick={() => c.id && handleDeleteCoach(c.id)} 
-                            className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-all"
+                            className="w-9 h-9 rounded-xl bg-red-50 text-red-500 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all shadow-sm"
+                            title="刪除教練"
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       </div>
