@@ -27,6 +27,8 @@ const ProductShowcase: React.FC = () => {
   const { mode } = useTheme();
   const { addToCart, setIsCheckoutOpen, setDirectPurchaseItem } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
+  const [activeCategory, setActiveCategory] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -46,6 +48,16 @@ const ProductShowcase: React.FC = () => {
         if (settings) {
           setTitle(settings.shop_title);
           setDescription(settings.shop_desc);
+        }
+
+        // Fetch Categories
+        const { data: catData } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('mode', mode);
+        
+        if (catData) {
+          setCategories(catData.map(c => ({ id: c.id, name: c.name })));
         }
 
         // Fetch Products
@@ -81,7 +93,6 @@ const ProductShowcase: React.FC = () => {
       }
     };
 
-    fetchContent();
     fetchContent();
   }, [mode]);
 
@@ -170,8 +181,28 @@ const ProductShowcase: React.FC = () => {
           </motion.p>
         </div>
 
+        <div className="flex flex-wrap justify-center gap-3 mb-12">
+          <button 
+            onClick={() => setActiveCategory('all')}
+            style={activeCategory === 'all' ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#f9fafb', color: '#6b7280' }}
+            className="px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all shadow-sm border border-gray-100"
+          >
+            全部 ALL
+          </button>
+          {categories.map(cat => (
+            <button 
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              style={activeCategory === cat.id ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#f9fafb', color: '#6b7280' }}
+              className="px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all shadow-sm border border-gray-100"
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-          {products.map((product, index) => (
+          {products.filter(p => activeCategory === 'all' || p.category_id === activeCategory).map((product, index) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 20 }}
