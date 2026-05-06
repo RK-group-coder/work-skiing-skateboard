@@ -467,8 +467,8 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                       }}
                       className={`p-6 rounded-3xl border-2 text-left transition-all ${
                         selectedLocation === l.id 
-                          ? 'bg-white shadow-xl ring-4 ring-primary/5 border-primary' 
-                          : 'bg-white border-gray-100 shadow-sm hover:border-gray-200 hover:shadow-md'
+                          ? 'bg-white shadow-xl ring-4 ring-primary/5 border-primary scale-[1.02]' 
+                          : 'bg-white border-black hover:border-primary/50'
                       }`}>
                       <div className="font-black text-lg mb-1 text-gray-900">{l.name}</div>
                       <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{l.address || '地點詳細資訊'}</div>
