@@ -712,20 +712,20 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
             <button 
               disabled={!screenshot || isUploading}
               onClick={handleSubmit}
-              className={`w-full py-5 rounded-[24px] font-black uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(0,0,0,0.3)] active:scale-95 transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
-                !screenshot || isUploading ? 'opacity-30 grayscale cursor-not-allowed' : 'hover:brightness-125'
+              className={`w-full py-5 rounded-[24px] font-black uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(255,255,255,0.1)] active:scale-95 transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
+                !screenshot || isUploading ? 'opacity-30 grayscale cursor-not-allowed text-gray-400' : 'hover:scale-[1.02]'
               }`}
               style={{ 
-                background: blackMetallic,
-                color: '#ffffff',
-                border: '1px solid #374151'
+                background: !screenshot || isUploading ? '#374151' : '#ffffff',
+                color: !screenshot || isUploading ? '#9ca3af' : '#000000',
+                border: 'none'
               }}
             >
               {/* Button Shine Animation */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               
               {isUploading ? (
-                <div className="w-6 h-6 border-2 border-slate-400 border-t-white rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-slate-200 border-t-black rounded-full animate-spin" />
               ) : (
                 <span className="relative z-10 flex items-center gap-3 font-black">確認送出訂單 <Send size={20} /></span>
               )}
