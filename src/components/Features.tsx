@@ -64,6 +64,7 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
   const plans = dbCourses.map(c => ({
     id: c.id,
     name: c.name,
+    mode: c.mode,
     price: Number(c.first_lesson_price || c.price || 0),
     addPrice: Number(c.additional_lesson_price || 0),
     period: '每堂 120min', 

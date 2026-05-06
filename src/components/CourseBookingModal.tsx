@@ -19,6 +19,7 @@ interface BookingModalProps {
     first_lesson_price?: number;
     additional_lesson_price?: number;
     addPrice?: number;
+    mode?: string;
   };
 }
 
@@ -64,12 +65,13 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   }, [isOpen, mode]);
 
   const fetchBookingData = async () => {
+    const targetMode = course.mode || mode;
     try {
       const [sch, tSet, coa, loc, vouc] = await Promise.all([
-        supabase.from('course_schedules').select('*').eq('mode', mode),
-        supabase.from('course_time_settings').select('*').eq('mode', mode).maybeSingle(),
-        supabase.from('coaches').select('*').eq('mode', mode),
-        supabase.from('locations').select('*').eq('mode', mode),
+        supabase.from('course_schedules').select('*').eq('mode', targetMode),
+        supabase.from('course_time_settings').select('*').eq('mode', targetMode).maybeSingle(),
+        supabase.from('coaches').select('*').eq('mode', targetMode),
+        supabase.from('locations').select('*').eq('mode', targetMode),
         supabase.from('vouchers').select('*').eq('is_active', true)
       ]);
       if (sch.data) setSchedules(sch.data);
@@ -82,14 +84,20 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     }
   };
 
-  const parseSlots = (rawSlots: string[]) => {
+  const parseSlots = (rawSlots: any) => {
     if (!rawSlots) return [];
+    const slotsArr = Array.isArray(rawSlots) ? rawSlots : (typeof rawSlots === 'string' ? rawSlots.split(',').map(s => s.trim()) : []);
+    
     let expanded: string[] = [];
-    rawSlots.forEach(s => {
+    slotsArr.forEach(s => {
+      if (typeof s !== 'string') return;
       if (s.includes('~') || s.includes('-')) {
-        const [start, end] = s.split(/[~-]/).map(t => t.trim());
+        const parts = s.split(/[~-]/).map(t => t.trim());
+        if (parts.length < 2) return;
+        const [start, end] = parts;
         const startHour = parseInt(start.split(':')[0]);
         const endHour = parseInt(end.split(':')[0]);
+        if (isNaN(startHour) || isNaN(endHour)) return;
         for (let h = startHour; h < endHour; h++) {
           expanded.push(`${String(h).padStart(2, '0')}:00`);
         }
@@ -462,7 +470,10 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                       <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{l.address}</div>
                     </button>
                   )) : (
-                    <div className="col-span-2 py-10 text-gray-400 font-bold italic">目前該模式尚無設定地點</div>
+                    <div className="col-span-2 py-20 px-8 bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-200">
+                      <div className="text-gray-400 font-bold italic mb-2">目前該模式尚無預設地點</div>
+                      <div className="text-[10px] text-gray-400 font-medium italic">您可以直接點擊「下一步」繼續預約</div>
+                    </div>
                   )}
                 </div>
               </motion.div>
@@ -479,7 +490,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                     <div>
                       <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SELECT COACH</label>
                       <div className="grid grid-cols-2 gap-3">
-                        {coaches.map(c => (
+                        {coaches.length > 0 ? coaches.map(c => (
                           <button key={c.id} onClick={() => setSelectedCoach(c.id)}
                             className={`p-3 rounded-xl border-2 flex items-center gap-3 transition-all ${selectedCoach === c.id ? 'bg-white shadow-md border-transparent' : 'bg-gray-50 opacity-60 border-transparent'}`}>
                             {/* Left checkbox */}
@@ -510,7 +521,11 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                             )}
                             <span className="font-bold text-sm">{c.name}</span>
                           </button>
-                        ))}
+                        )) : (
+                          <div className="col-span-2 p-6 bg-gray-50 rounded-2xl text-center text-gray-400 font-bold italic text-xs">
+                            目前無可用教練
+                          </div>
+                        )}
                       </div>
                     </div>
                     
