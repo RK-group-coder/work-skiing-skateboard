@@ -838,6 +838,15 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
     } catch (err: any) { alert('刪除失敗: ' + err.message); }
   };
 
+  const handleDeleteOrder = async (id: string) => {
+    if (!confirm('確定要刪除這筆訂單嗎？此操作無法復原。')) return;
+    try {
+      const { error } = await supabase.from('orders').delete().eq('id', id);
+      if (error) throw error;
+      await fetchOrders();
+    } catch (err: any) { alert('刪除訂單失敗: ' + err.message); }
+  };
+
   const toggleBlockedDate = async (date: string) => {
     const existing = schedules.find(s => s.blocked_date === date && s.mode === scheduleMode);
     try {
@@ -1028,7 +1037,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 <div className="text-center py-20 text-gray-300 font-bold">尚無商品，點擊「新增商品」開始新增</div>
               )}
               {filtered.map(p => {
-                const catName = categories.find(c => c.id === p.category_id)?.name;
                 return (
                   <div key={p.id}>
                     {editingProduct?.id === p.id ? (
