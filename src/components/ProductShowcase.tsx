@@ -37,6 +37,7 @@ const ProductShowcase: React.FC = () => {
   useEffect(() => {
     const fetchContent = async () => {
       setLoading(true);
+      setActiveCategory('all'); // Reset filter when switching modes
       try {
         // Fetch Title & Description
         const { data: settings } = await supabase
