@@ -9,6 +9,7 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  originalPrice?: number;
   image: string;
   category: string;
   category_id?: string;
@@ -59,6 +60,7 @@ const ProductShowcase: React.FC = () => {
             id: p.id,
             name: p.name,
             price: p.special_price || p.price,
+            originalPrice: p.special_price ? p.price : undefined,
             image: p.image_url,
             category: 'Gear',
             category_id: p.category_id,
@@ -197,7 +199,17 @@ const ProductShowcase: React.FC = () => {
                   {product.name}
                 </h3>
                 <div className="flex items-center justify-between">
-                  <span className="text-xl font-black text-gray-900">NT${product.price.toLocaleString()}</span>
+                  <div className="flex flex-col">
+                    {product.originalPrice && (
+                      <span className="text-[10px] text-gray-400 line-through font-bold">NT${product.originalPrice.toLocaleString()}</span>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl font-black text-gray-900">NT${product.price.toLocaleString()}</span>
+                      {product.originalPrice && (
+                        <span className="text-[10px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded">會員價</span>
+                      )}
+                    </div>
+                  </div>
                   <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
                     <ChevronRight size={16} />
                   </div>
@@ -255,7 +267,17 @@ const ProductShowcase: React.FC = () => {
                     <div className="mb-10">
                       <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 block">{selectedProduct.tag || 'Premium Gear'}</span>
                       <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter text-gray-900 mb-4 leading-tight">{selectedProduct.name}</h3>
-                      <div className="text-3xl font-black text-primary mb-8">NT${selectedProduct.price.toLocaleString()}</div>
+                      <div className="flex flex-col mb-8">
+                        {selectedProduct.originalPrice && (
+                          <span className="text-sm text-gray-400 line-through font-bold">NT${selectedProduct.originalPrice.toLocaleString()}</span>
+                        )}
+                        <div className="flex items-center gap-3">
+                          <div className="text-3xl font-black text-primary">NT${selectedProduct.price.toLocaleString()}</div>
+                          {selectedProduct.originalPrice && (
+                            <span className="bg-primary/10 text-primary text-xs font-black px-2 py-1 rounded-lg">會員獨享價</span>
+                          )}
+                        </div>
+                      </div>
                       <div className="h-px bg-gray-100 w-full mb-8" />
                       <p className="text-gray-500 leading-relaxed font-medium whitespace-pre-wrap text-base">
                         {selectedProduct.description || '--'}
