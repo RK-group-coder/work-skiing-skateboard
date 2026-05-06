@@ -1777,13 +1777,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner w-full md:w-auto">
                 <button 
                   onClick={() => setOrderType('product')}
-                  className={`flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all ${orderType === 'product' ? 'bg-white text-gray-900 shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all ${orderType === 'product' ? 'bg-white text-gray-900 shadow-md border border-gray-200' : 'text-gray-500 hover:text-gray-900'}`}
                 >
                   商品訂單
                 </button>
                 <button 
                   onClick={() => setOrderType('course')}
-                  className={`flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all ${orderType === 'course' ? 'bg-white text-gray-900 shadow-md' : 'text-gray-400 hover:text-gray-600'}`}
+                  className={`flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all ${orderType === 'course' ? 'bg-white text-gray-900 shadow-md border border-gray-200' : 'text-gray-500 hover:text-gray-900'}`}
                 >
                   課程預約
                 </button>
@@ -1792,7 +1792,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               <div className="flex gap-2 w-full md:w-auto">
                 {(['all', 'skiing', 'skateboard'] as const).map(f => (
                   <button key={f} onClick={() => setOrderFilter(f)}
-                    className={`flex-1 md:px-6 py-3 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${orderFilter === f ? 'bg-gray-200 text-gray-900 border border-gray-300' : 'bg-gray-100 text-gray-500 border border-gray-100 hover:text-gray-900'}`}>
+                    className={`flex-1 md:px-6 py-3 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${orderFilter === f ? 'bg-gray-900 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-200 hover:text-gray-900'}`}>
                     {f === 'all' ? '全部' : f === 'skiing' ? '滑雪' : '滑板'}
                   </button>
                 ))}
@@ -1802,9 +1802,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
             
             <div className="flex justify-between items-center px-2">
-              <h3 className="font-black text-xl italic uppercase tracking-tighter">
+              <h3 className="font-black text-xl italic uppercase tracking-tighter text-gray-900">
                 {orderType === 'product' ? 'Product Orders' : 'Course Bookings'} 
-                <span className="text-gray-300 ml-2">[{filtered.length}]</span>
+                <span className="text-gray-400 ml-2 font-bold">[{filtered.length}]</span>
               </h3>
             </div>
 
@@ -1843,26 +1843,40 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                   {/* Collapsed Summary Row */}
                   <div 
                     onClick={toggleExpand}
-                    className="flex items-center gap-4 p-5 md:p-6 cursor-pointer select-none hover:bg-gray-50/50 transition-colors"
+                    className="flex items-center gap-4 p-5 md:p-6 cursor-pointer select-none hover:bg-neutral-50 transition-colors"
                   >
-                    <div className="font-black text-sm text-gray-900 truncate min-w-0 shrink-0 w-20 md:w-28">
+                    <div className="font-black text-sm text-gray-900 truncate min-w-0 shrink-0 w-24 md:w-32">
                       {order.customer_name || '未具名'}
                     </div>
 
-                    <div className="flex-1 text-xs font-medium text-gray-400 truncate min-w-0 hidden md:block">
+                    <div className="flex-1 text-xs font-bold text-gray-500 truncate min-w-0 hidden md:block">
                       {itemNames}
                     </div>
 
-                    <div className="font-black text-sm text-gray-900 shrink-0 tabular-nums">
-                      NT${order.total_price.toLocaleString()}
+                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 shrink-0">
+                      <div className="font-black text-sm text-gray-900 tabular-nums">
+                        NT${order.total_price.toLocaleString()}
+                      </div>
+                      <div className="text-[10px] font-bold text-gray-500 tabular-nums">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </div>
                     </div>
 
-                    <div className="text-[10px] font-bold text-gray-400 shrink-0 tabular-nums">
-                      {new Date(order.created_at).toLocaleString('zh-TW')}
-                    </div>
-
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-transform shrink-0 ${isExpanded ? 'rotate-180 bg-black text-white' : 'bg-gray-100 text-gray-400'}`}>
-                      <ChevronLeft size={14} className="rotate-[-90deg]" />
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); toggleExpand(e); }}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-sm border ${isExpanded ? 'bg-blue-600 text-white border-blue-600' : 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-600 hover:text-white'}`}
+                        title="查看詳情"
+                      >
+                        <Search size={16} />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id); }}
+                        className="w-10 h-10 rounded-xl bg-red-50 text-red-500 border border-red-100 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all shadow-sm"
+                        title="刪除訂單"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
 
