@@ -186,8 +186,10 @@ const ImageUploadField = ({ label, value, onChange, bucket }: { label: string; v
           </div>
           {value && (
             <button 
+              type="button"
               onClick={(e) => { e.stopPropagation(); onChange(''); }}
-              className="absolute -bottom-1 -right-1 w-6 h-6 bg-gray-900 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-black transition-all active:scale-90 border border-white/20"
+              style={{ backgroundColor: '#000000', color: '#ffffff' }}
+              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all active:scale-90 border border-white/40 z-20"
             >
               <X size={14} strokeWidth={3} />
             </button>
