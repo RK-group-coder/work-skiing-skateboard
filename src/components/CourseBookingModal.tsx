@@ -541,7 +541,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         placeholder="請描述您的運動程度，以便教練準備..."
                         value={skillLevel}
                         onChange={(e) => setSkillLevel(e.target.value)}
-                        className="w-full p-6 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-primary outline-none font-medium h-32"
+                        className="w-full p-6 bg-white rounded-2xl border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none font-medium h-32 text-gray-900 placeholder:text-gray-400 shadow-sm"
                       />
                     </div>
 
