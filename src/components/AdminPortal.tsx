@@ -218,20 +218,24 @@ const ProductForm = ({ form, setForm, onSave, onCancel, categories, loading }: {
         <label className={labelCls}>產品分類 Category (可複選)</label>
         <div className="flex flex-wrap gap-2 p-3 bg-neutral-50 rounded-xl border border-gray-100 min-h-[50px]">
           {categories.filter(c => c.mode === form.mode).map(cat => {
-            const selectedIds = (form.category_id || "").split(',').filter(Boolean);
-            const isSelected = selectedIds.includes(cat.id);
+            // We'll store multiple IDs in the 'tag' field, and the first one in 'category_id'
+            const selectedIds = (form.tag || "").split(',').filter(id => id.length === 36); // UUID length is 36
+            const isSelected = selectedIds.includes(cat.id) || form.category_id === cat.id;
+            
             return (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => {
-                  let newIds;
+                  let newIds = selectedIds;
                   if (isSelected) {
-                    newIds = selectedIds.filter(id => id !== cat.id);
+                    newIds = newIds.filter(id => id !== cat.id);
                   } else {
-                    newIds = [...selectedIds, cat.id];
+                    if (!newIds.includes(cat.id)) newIds.push(cat.id);
                   }
-                  setForm({ ...form, category_id: newIds.join(',') });
+                  // Keep first ID in category_id for backward compat, and full list in tag
+                  const finalTag = newIds.join(',');
+                  setForm({ ...form, tag: finalTag, category_id: newIds[0] || '' });
                 }}
                 style={isSelected ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
                 className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 transition-all active:scale-95 shadow-sm"
@@ -241,20 +245,13 @@ const ProductForm = ({ form, setForm, onSave, onCancel, categories, loading }: {
               </button>
             );
           })}
-          {categories.filter(c => c.mode === form.mode).length === 0 && (
-            <span className="text-gray-400 text-xs italic">請先至分類管理新增標籤</span>
-          )}
         </div>
       </div>
     </div>
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4">
       <div>
         <label className={labelCls}>商品名稱 Name</label>
         <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={inputCls} placeholder="商品名稱" />
-      </div>
-      <div>
-        <label className={labelCls}>標籤 Tag (e.g. HOT, NEW)</label>
-        <input type="text" value={form.tag} onChange={e => setForm({ ...form, tag: e.target.value })} className={inputCls} placeholder="標籤" />
       </div>
     </div>
     <div className="grid grid-cols-3 gap-4">

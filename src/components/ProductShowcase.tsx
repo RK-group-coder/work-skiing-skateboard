@@ -203,7 +203,7 @@ const ProductShowcase: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-          {products.filter(p => activeCategory === 'all' || (p.category_id || "").split(',').includes(activeCategory)).map((product, index) => (
+          {products.filter(p => activeCategory === 'all' || p.category_id === activeCategory || (p.tag || "").split(',').includes(activeCategory)).map((product, index) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 20 }}
