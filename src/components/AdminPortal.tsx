@@ -1108,45 +1108,45 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 <div className="flex flex-col md:flex-row gap-6">
                   <div className="flex-1">
                     <label className={labelCls}>分類名稱 Name</label>
-                    <input type="text" placeholder="例如：專業滑雪板" value={categoryForm.name} onChange={e => setCategoryForm({ ...categoryForm, name: e.target.value })} className={inputCls} />
+                    <input type="text" placeholder="例如：專業滑雪板" value={categoryForm.name} onChange={e => setCategoryForm({ ...categoryForm, name: e.target.value })} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-semibold text-sm text-gray-900 placeholder:text-gray-400 shadow-sm" />
                   </div>
                   <div className="w-full md:w-48">
                     <label className={labelCls}>所屬模式 Mode</label>
-                    <select value={categoryForm.mode} onChange={e => setCategoryForm({ ...categoryForm, mode: e.target.value as any })} className={inputCls}>
+                    <select value={categoryForm.mode} onChange={e => setCategoryForm({ ...categoryForm, mode: e.target.value as any })} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-bold text-sm text-gray-900 shadow-sm">
                       <option value="skiing">⛷ 滑雪 Skiing</option>
-                      <option value="skateboard"> 滑板 Skateboard</option>
+                      <option value="skateboard"> skateboard 🛹 滑板 Skateboard</option>
                     </select>
                   </div>
                 </div>
                 <button
                   onClick={handleSaveCategory}
                   disabled={loading || !categoryForm.name}
-                  style={{ backgroundColor: '#111827', color: '#ffffff' }}
-                  className="w-full py-4 rounded-2xl font-black hover:opacity-90 transition-all disabled:opacity-50 disabled:bg-gray-200 active:scale-95 flex items-center justify-center gap-2 shadow-lg"
+                  style={{ backgroundColor: '#000000', color: '#ffffff' }}
+                  className="w-full py-4 rounded-2xl font-black hover:scale-[1.01] transition-all disabled:opacity-50 active:scale-95 flex items-center justify-center gap-2 shadow-lg"
                 >
-                  <Save size={18} /> 儲存分類
+                  <Save size={18} /> 儲存新分類
                 </button>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
               {['skiing', 'skateboard'].map((m) => (
-                <div key={m} className="bg-white border border-gray-100 rounded-[28px] overflow-hidden">
+                <div key={m} className="bg-white border border-gray-100 rounded-[28px] overflow-hidden shadow-sm">
                   <div className={`px-6 py-4 font-black flex items-center justify-between ${m === 'skiing' ? 'bg-sky-50 text-sky-600' : 'bg-red-50 text-red-600'}`}>
                     <span>{m === 'skiing' ? '⛷ 滑雪分類' : '🛹 滑板分類'}</span>
                     <span className="text-xs opacity-50">{categories.filter(c => c.mode === m).length} ITEMS</span>
                   </div>
                   <div className="divide-y divide-gray-50">
                     {categories.filter(c => c.mode === m).map(cat => (
-                      <div key={cat.id} className="px-6 py-3 flex items-center justify-between hover:bg-neutral-50 transition-colors">
-                        <span className="font-bold">{cat.name}</span>
-                        <button onClick={() => handleDeleteCategory(cat.id)} className="w-8 h-8 text-gray-300 hover:text-red-500 transition-colors">
-                          <Trash2 size={16} />
+                      <div key={cat.id} className="px-6 py-4 flex items-center justify-between hover:bg-neutral-50 transition-colors">
+                        <span className="font-black text-gray-900">{cat.name}</span>
+                        <button onClick={() => handleDeleteCategory(cat.id)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm">
+                          <Trash2 size={15} />
                         </button>
                       </div>
                     ))}
                     {categories.filter(c => c.mode === m).length === 0 && (
-                      <div className="px-6 py-8 text-center text-gray-300 font-bold italic">尚無分類</div>
+                      <div className="px-6 py-12 text-center text-gray-300 font-bold italic">尚無分類</div>
                     )}
                   </div>
                 </div>
