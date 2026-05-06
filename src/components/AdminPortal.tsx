@@ -1034,12 +1034,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         </div>
                         <div className="flex gap-2 shrink-0">
                           <button onClick={() => { setEditingProduct(p); setProductForm(p); setIsAddingProduct(false); }}
-                            className="w-9 h-9 bg-gray-50 hover:bg-blue-50 hover:text-blue-600 rounded-xl flex items-center justify-center transition-colors">
-                            <Pencil size={15} />
+                            className="w-10 h-10 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-blue-100">
+                            <Pencil size={16} />
                           </button>
                           <button onClick={() => p.id && handleDeleteProduct(p.id)}
-                            className="w-9 h-9 bg-gray-50 hover:bg-red-50 hover:text-red-500 rounded-xl flex items-center justify-center transition-colors">
-                            <Trash2 size={15} />
+                            className="w-10 h-10 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-red-100">
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </div>
@@ -1216,12 +1216,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                       </div>
                       <div className="flex gap-2 shrink-0">
                         <button onClick={() => { setEditingCourse(c); setCourseForm(c); setIsAddingCourse(false); }}
-                          className="w-9 h-9 bg-gray-50 hover:bg-blue-50 hover:text-blue-600 rounded-xl flex items-center justify-center transition-colors">
-                          <Pencil size={15} />
+                          className="w-10 h-10 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-blue-100">
+                          <Pencil size={16} />
                         </button>
                         <button onClick={() => c.id && handleDeleteCourse(c.id)}
-                          className="w-9 h-9 bg-gray-50 hover:bg-red-50 hover:text-red-500 rounded-xl flex items-center justify-center transition-colors">
-                          <Trash2 size={15} />
+                          className="w-10 h-10 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-red-100">
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </div>
@@ -1557,12 +1557,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                       </div>
                       <div className="flex gap-2 shrink-0">
                         <button onClick={() => { setEditingVoucher(v); setVoucherForm(v); setIsAddingVoucher(false); }}
-                          className="w-9 h-9 bg-gray-50 hover:bg-blue-50 hover:text-blue-600 rounded-xl flex items-center justify-center transition-colors">
-                          <Pencil size={15} />
+                          className="w-10 h-10 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-blue-100">
+                          <Pencil size={16} />
                         </button>
                         <button onClick={() => v.id && handleDeleteVoucher(v.id)}
-                          className="w-9 h-9 bg-gray-50 hover:bg-red-50 hover:text-red-500 rounded-xl flex items-center justify-center transition-colors">
-                          <Trash2 size={15} />
+                          className="w-10 h-10 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-red-100">
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </div>
