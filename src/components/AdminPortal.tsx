@@ -175,12 +175,22 @@ const ImageUploadField = ({ label, value, onChange, bucket }: { label: string; v
     <div className="space-y-2">
       <label className={labelCls}>{label}</label>
       <div className="flex items-center gap-4">
-        <div onClick={() => fileInputRef.current?.click()} className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group overflow-hidden">
-          {value ? <img src={value} alt="Preview" className="w-full h-full object-cover" /> : (
-            <>
-              <ImageIcon size={20} className="text-gray-400 group-hover:text-primary" />
-              <span className="text-[10px] font-bold text-gray-400 group-hover:text-primary mt-1">{uploading ? '上傳中...' : '選取圖片'}</span>
-            </>
+        <div className="relative">
+          <div onClick={() => fileInputRef.current?.click()} className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group overflow-hidden">
+            {value ? <img src={value} alt="Preview" className="w-full h-full object-cover" /> : (
+              <>
+                <ImageIcon size={20} className="text-gray-400 group-hover:text-primary" />
+                <span className="text-[10px] font-bold text-gray-400 group-hover:text-primary mt-1">{uploading ? '上傳中...' : '選取圖片'}</span>
+              </>
+            )}
+          </div>
+          {value && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); onChange(''); }}
+              className="absolute -bottom-1 -right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-all active:scale-90"
+            >
+              <X size={14} strokeWidth={3} />
+            </button>
           )}
         </div>
         <div className="flex-1 space-y-1">
