@@ -79,12 +79,12 @@
   --primary: #ef4444;
   --primary-gradient: linear-gradient(90deg, #ef4444 0%, #7f1d1d 100%);
   --primary-dark: #b91c1c;
-  --secondary: #fef2f2;
+  --secondary: #1a0505;
   --accent: #f87171;
   --bg: #0a0a0a;
   --text: #ffffff;
   --text-muted: #94a3b8;
-  --card-bg: #1a1a1a;
+  --card-bg: #111111;
   --glass: rgba(0, 0, 0, 0.7);
 }
 
