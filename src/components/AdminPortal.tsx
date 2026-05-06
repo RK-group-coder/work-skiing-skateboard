@@ -1540,27 +1540,31 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                     <VoucherForm form={voucherForm} setForm={setVoucherForm}
                       onSave={handleSaveVoucher} onCancel={() => setEditingVoucher(null)} categories={categories} products={products} courses={courses} loading={loading} />
                   ) : (
-                    <div className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex items-center gap-4 hover:shadow-sm transition-shadow">
-                      <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center shrink-0">
-                        <Tag size={20} className="text-gray-400" />
+                    <div className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex flex-col md:flex-row items-start md:items-center gap-4 hover:shadow-sm transition-shadow">
+                      <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 border border-gray-100">
+                        <Tag size={20} className="text-gray-500" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-black text-sm font-mono tracking-wider">{v.title} <span className="text-gray-400 text-xs">({v.code})</span></div>
-                        {v.description && <div className="text-[10px] text-gray-500 font-medium leading-tight mt-0.5 whitespace-pre-wrap">{v.description}</div>}
-                        <div className="text-xs text-gray-400 mt-1">
-                          <span className="font-bold text-primary">{v.type === 'percent' ? `${(v.value || 0)}% OFF` : `NT$${(v.value || 0).toLocaleString()} OFF`}</span>
-                          {(v.min_amount || 0) > 0 && ` · 門檻 NT$${(v.min_amount || 0).toLocaleString()}`}
-                          {' · '}<span className="text-gray-600">{getTargetLabel(v)}</span>
+                      <div className="flex-[3] min-w-0">
+                        <div className="font-black text-sm text-gray-900 tracking-tight">
+                          {v.title} <span className="text-gray-400 font-mono text-xs ml-1">[{v.code}]</span>
+                        </div>
+                        {v.description && <div className="text-[10px] text-gray-500 font-medium leading-normal mt-1">{v.description}</div>}
+                        <div className="text-xs mt-2 flex flex-wrap items-center gap-2">
+                          <span className="font-black text-primary bg-primary/5 px-2 py-0.5 rounded">
+                            {v.type === 'percent' ? `${(v.value || 0)}% OFF` : `NT$${(v.value || 0).toLocaleString()} OFF`}
+                          </span>
+                          {(v.min_amount || 0) > 0 && <span className="text-gray-400 text-[10px] font-bold">滿 NT$${(v.min_amount || 0).toLocaleString()} 可用</span>}
+                          <span className="text-gray-500 font-bold text-[10px]">· {getTargetLabel(v)}</span>
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <div className="text-xs text-gray-400">{v.valid_until ? `至 ${v.valid_until}` : '無期限'}</div>
-                        <div className="flex flex-col items-end gap-1 mt-1">
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${v.is_active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
-                            {v.is_active ? '可使用' : '未啟用'}
+                      <div className="flex flex-col items-start md:items-end gap-2 shrink-0 border-t md:border-t-0 md:border-l border-gray-50 pt-3 md:pt-0 md:pl-4">
+                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{v.valid_until ? `至 ${v.valid_until}` : '無使用期限'}</div>
+                        <div className="flex gap-1">
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${v.is_active ? 'bg-green-50 text-green-600 border-green-100' : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
+                            {v.is_active ? '已啟用' : '未啟用'}
                           </span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${v.is_published ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
-                            {v.is_published ? '網站顯示' : '網站隱藏'}
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${v.is_published ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
+                            {v.is_published ? '前台顯示' : '隱藏'}
                           </span>
                         </div>
                       </div>
