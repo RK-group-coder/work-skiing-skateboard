@@ -1056,20 +1056,20 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                   <MapPin size={20} />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg">實體據點管理</h3>
-                  <p className="text-sm font-medium text-gray-400">設置商品結帳時可選擇的取貨據點</p>
+                  <h3 className="font-black text-lg text-gray-900">實體據點管理</h3>
+                  <p className="text-sm font-bold text-gray-500">設置商品結帳時可選擇的取貨據點</p>
                 </div>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
-                <input type="text" placeholder="據點名稱" value={pickupLocationName} onChange={e => setPickupLocationName(e.target.value)} className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-medium text-gray-900 placeholder:text-gray-400" />
-                <input type="text" placeholder="據點地址" value={pickupLocationAddress} onChange={e => setPickupLocationAddress(e.target.value)} className="flex-[2] px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-medium text-gray-900 placeholder:text-gray-400" />
-                <select value={pickupLocationMode} onChange={e => setPickupLocationMode(e.target.value as 'skiing' | 'skateboard')} className="px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-bold text-gray-900">
+              <div className="flex flex-col md:flex-row gap-4 mb-8">
+                <input type="text" placeholder="據點名稱" value={pickupLocationName} onChange={e => setPickupLocationName(e.target.value)} className="flex-1 px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-medium text-gray-900 placeholder:text-gray-400 shadow-sm" />
+                <input type="text" placeholder="據點地址" value={pickupLocationAddress} onChange={e => setPickupLocationAddress(e.target.value)} className="flex-[2] px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-medium text-gray-900 placeholder:text-gray-400 shadow-sm" />
+                <select value={pickupLocationMode} onChange={e => setPickupLocationMode(e.target.value as 'skiing' | 'skateboard')} className="px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-bold text-gray-900 shadow-sm">
                   <option value="skiing">⛷️ 滑雪區</option>
                   <option value="skateboard"> skateboard 🛹 滑板區</option>
                 </select>
-                <button onClick={handleSavePickupLocation} disabled={isSavingPickupLocation} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all disabled:opacity-50">
-                  <Plus size={18} /> 新增
+                <button onClick={handleSavePickupLocation} disabled={isSavingPickupLocation} style={{ backgroundColor: '#000000', color: '#ffffff' }} className="px-8 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-[0_4px_15px_rgba(0,0,0,0.2)] disabled:opacity-50 min-w-[120px]">
+                  <Plus size={18} /> 新增據點
                 </button>
               </div>
 
