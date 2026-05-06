@@ -371,7 +371,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Clock size={24} /></div>
-                    <h4 className="text-xl font-bold">選擇上課時段 <span className="text-sm text-gray-400 font-normal">(請分別為每天選擇時段)</span></h4>
+                    <h4 className="text-xl font-bold text-gray-900">選擇上課時段 <span className="text-sm text-gray-400 font-normal">(請分別為每天選擇時段)</span></h4>
                   </div>
                   
                   {/* Real-time Price Summary for Step 2 */}
@@ -432,14 +432,14 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                 <div className="flex items-center gap-3 bg-gray-100/50 p-1 rounded-2xl">
                                   <button 
                                     onClick={() => updateSlotQty(dateStr, t, -1)}
-                                    className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all"
+                                    className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all text-gray-900"
                                   >-</button>
                                   <span className={`w-8 text-center font-black italic text-xl ${isSelected ? 'text-primary' : 'text-gray-400'}`} style={{ color: isSelected ? activeColor : undefined }}>
                                     {qty}
                                   </span>
                                   <button 
                                     onClick={() => updateSlotQty(dateStr, t, 1)}
-                                    className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all"
+                                    className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all text-gray-900"
                                   >+</button>
                                 </div>
                               </div>
@@ -466,7 +466,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         borderColor: selectedLocation === l.id ? activeColor : 'transparent'
                       }}
                       className={`p-6 rounded-3xl border-2 text-left transition-all ${selectedLocation === l.id ? 'bg-white shadow-xl ring-4 ring-primary/5' : 'bg-gray-50 opacity-60 hover:opacity-100'}`}>
-                      <div className="font-black text-lg mb-1">{l.name}</div>
+                      <div className="font-black text-lg mb-1 text-gray-900">{l.name}</div>
                       <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{l.address}</div>
                     </button>
                   )) : (
@@ -519,7 +519,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                 </svg>
                               </span>
                             )}
-                            <span className="font-bold text-sm">{c.name}</span>
+                            <span className="font-bold text-sm text-gray-900">{c.name}</span>
                           </button>
                         )) : (
                           <div className="col-span-2 p-6 bg-gray-50 rounded-2xl text-center text-gray-400 font-bold italic text-xs">
@@ -594,11 +594,11 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">ESTIMATED TOTAL</div>
                         <div className="text-4xl font-black italic tracking-tighter text-primary">NT${totalTWD.toLocaleString()}</div>
                         <div className="text-xs font-black text-gray-500 mt-1 flex items-center gap-2">
-                          <span className="bg-white/5 py-1 px-2 rounded">約 ￥{totalJPY.toLocaleString()} JPY</span>
-                          <span className="opacity-40 italic">匯率參考：{JPY_RATE}</span>
+                          <span className="bg-white/5 py-1 px-2 rounded text-gray-400">約 ￥{totalJPY.toLocaleString()} JPY</span>
+                          <span className="opacity-40 italic text-gray-500">匯率參考：{JPY_RATE}</span>
                         </div>
                       </div>
-                      <div className="text-[10px] text-gray-600 font-bold">
+                      <div className="text-[10px] text-gray-500 font-bold">
                         已選 {selectedDates.length} 天 × {Object.values(selectedTimes).reduce((acc, slots) => acc + Object.keys(slots).length, 0)} 時段
                       </div>
                     </div>
@@ -615,9 +615,9 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
         {step <= totalSteps && step !== 6 && (
           <div className="p-8 md:p-10 border-t border-gray-100 flex justify-between items-center bg-white">
             <button 
-              onClick={() => setStep(Math.max(1, step - 1))}
+              onClick={() => setStep(step - 1)}
               disabled={step === 1}
-              className="flex items-center gap-2 text-gray-400 hover:text-black font-bold disabled:opacity-0 transition-all"
+              className="px-8 py-4 rounded-2xl font-black italic uppercase tracking-tighter text-gray-400 hover:text-gray-900 disabled:opacity-0 transition-all flex items-center gap-2"
             >
               <ChevronLeft size={20} /> 上一步
             </button>
