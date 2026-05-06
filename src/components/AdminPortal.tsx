@@ -215,13 +215,36 @@ const ProductForm = ({ form, setForm, onSave, onCancel, categories, loading }: {
         </select>
       </div>
       <div>
-        <label className={labelCls}>產品分類 Category</label>
-        <select value={form.category_id || ''} onChange={e => setForm({ ...form, category_id: e.target.value })} className={inputCls}>
-          <option value="">選擇分類...</option>
-          {categories.filter(c => c.mode === form.mode).map(cat => (
-            <option key={cat.id} value={cat.id}>{cat.name}</option>
-          ))}
-        </select>
+        <label className={labelCls}>產品分類 Category (可複選)</label>
+        <div className="flex flex-wrap gap-2 p-3 bg-neutral-50 rounded-xl border border-gray-100 min-h-[50px]">
+          {categories.filter(c => c.mode === form.mode).map(cat => {
+            const selectedIds = (form.category_id || "").split(',').filter(Boolean);
+            const isSelected = selectedIds.includes(cat.id);
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => {
+                  let newIds;
+                  if (isSelected) {
+                    newIds = selectedIds.filter(id => id !== cat.id);
+                  } else {
+                    newIds = [...selectedIds, cat.id];
+                  }
+                  setForm({ ...form, category_id: newIds.join(',') });
+                }}
+                style={isSelected ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 transition-all active:scale-95 shadow-sm"
+              >
+                {isSelected && <span className="mr-1">✓</span>}
+                {cat.name}
+              </button>
+            );
+          })}
+          {categories.filter(c => c.mode === form.mode).length === 0 && (
+            <span className="text-gray-400 text-xs italic">請先至分類管理新增標籤</span>
+          )}
+        </div>
       </div>
     </div>
     <div className="grid grid-cols-2 gap-4">
