@@ -1167,7 +1167,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               <div className="flex gap-2">
                 {(['all', 'skiing', 'skateboard'] as const).map(f => (
                   <button key={f} onClick={() => setCourseFilter(f)}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${courseFilter === f ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 border border-gray-100 hover:text-black'}`}>
+                    className={`px-4 py-2 rounded-xl text-sm font-black transition-all border ${courseFilter === f ? 'bg-black text-white border-black shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:text-black'}`}>
                     {f === 'all' ? '全部' : f === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
                   </button>
                 ))}
@@ -1777,13 +1777,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner w-full md:w-auto">
                 <button 
                   onClick={() => setOrderType('product')}
-                  className={`flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all ${orderType === 'product' ? 'bg-white text-gray-900 shadow-md border border-gray-200' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border ${orderType === 'product' ? 'bg-black text-white border-black shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-900'}`}
                 >
                   商品訂單
                 </button>
                 <button 
                   onClick={() => setOrderType('course')}
-                  className={`flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all ${orderType === 'course' ? 'bg-white text-gray-900 shadow-md border border-gray-200' : 'text-gray-500 hover:text-gray-900'}`}
+                  className={`flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border ${orderType === 'course' ? 'bg-black text-white border-black shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-900'}`}
                 >
                   課程預約
                 </button>
@@ -1792,7 +1792,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               <div className="flex gap-2 w-full md:w-auto">
                 {(['all', 'skiing', 'skateboard'] as const).map(f => (
                   <button key={f} onClick={() => setOrderFilter(f)}
-                    className={`flex-1 md:px-6 py-3 rounded-xl text-xs font-black transition-all uppercase tracking-widest ${orderFilter === f ? 'bg-gray-900 text-white shadow-md' : 'bg-white text-gray-500 border border-gray-200 hover:text-gray-900'}`}>
+                    className={`flex-1 md:px-6 py-3 rounded-xl text-xs font-black transition-all uppercase tracking-widest border ${orderFilter === f ? 'bg-black text-white border-black shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-900'}`}>
                     {f === 'all' ? '全部' : f === 'skiing' ? '滑雪' : '滑板'}
                   </button>
                 ))}
