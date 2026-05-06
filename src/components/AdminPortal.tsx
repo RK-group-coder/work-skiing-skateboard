@@ -28,8 +28,8 @@ interface Product {
   mode: 'skiing' | 'skateboard';
   name: string;
   price: number;
-  special_price?: number;
-  stock: number;
+  special_price?: number | null;
+  stock?: number | null;
   weight: string;
   dimensions: string;
   material: string;
@@ -53,9 +53,9 @@ interface Course {
   id?: string;
   mode: 'skiing' | 'skateboard';
   name: string;
-  price: number;
-  first_lesson_price: number;
-  additional_lesson_price: number;
+  price: number | null;
+  first_lesson_price: number | null;
+  additional_lesson_price: number | null;
   description: string;
   image_url: string;
   is_active: boolean;
@@ -96,8 +96,8 @@ interface Voucher {
   title: string;
   description?: string;
   type: 'percent' | 'fixed';
-  value: number;
-  min_amount: number;
+  value: number | null;
+  min_amount: number | null;
   valid_until?: string;
   target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses';
   target_id?: string;
@@ -735,7 +735,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       const finalData = { ...productForm };
       if (finalData.price === '' as any) finalData.price = 0;
       if (finalData.special_price === '' as any) finalData.special_price = null;
-      if (finalData.stock === '' as any) finalData.stock = 0; 
+      if (finalData.stock === '' as any) finalData.stock = null; 
 
       if (productForm.id) {
         const { error } = await supabase.from('products').update(finalData).eq('id', productForm.id);
@@ -1209,7 +1209,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="font-black text-sm text-gray-900">NT${c.first_lesson_price.toLocaleString()} / NT${c.additional_lesson_price.toLocaleString()}</div>
+                        <div className="font-black text-sm text-gray-900">NT${(c.first_lesson_price || 0).toLocaleString()} / NT${(c.additional_lesson_price || 0).toLocaleString()}</div>
                         <div className={`text-[10px] font-bold ${c.is_active ? 'text-green-500' : 'text-gray-400'}`}>
                           {c.is_active ? '開放報名' : '已關閉'}
                         </div>
@@ -1537,8 +1537,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         <div className="font-black text-sm font-mono tracking-wider">{v.title} <span className="text-gray-400 text-xs">({v.code})</span></div>
                         {v.description && <div className="text-[10px] text-gray-500 font-medium leading-tight mt-0.5 whitespace-pre-wrap">{v.description}</div>}
                         <div className="text-xs text-gray-400 mt-1">
-                          <span className="font-bold text-primary">{v.type === 'percent' ? `${v.value}% OFF` : `NT$${v.value.toLocaleString()} OFF`}</span>
-                          {v.min_amount > 0 && ` · 門檻 NT$${v.min_amount.toLocaleString()}`}
+                          <span className="font-bold text-primary">{v.type === 'percent' ? `${(v.value || 0)}% OFF` : `NT$${(v.value || 0).toLocaleString()} OFF`}</span>
+                          {(v.min_amount || 0) > 0 && ` · 門檻 NT$${(v.min_amount || 0).toLocaleString()}`}
                           {' · '}<span className="text-gray-600">{getTargetLabel(v)}</span>
                         </div>
                       </div>

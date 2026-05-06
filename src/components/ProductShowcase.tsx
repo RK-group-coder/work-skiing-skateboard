@@ -9,14 +9,14 @@ interface Product {
   id: string;
   name: string;
   price: number;
-  originalPrice?: number;
+  originalPrice?: number | null;
   image: string;
   category: string;
   category_id?: string;
   mode?: string;
   tag?: string;
   description?: string;
-  stock: number;
+  stock: number | null;
   material?: string;
   weight?: string;
   dimensions?: string;
@@ -185,10 +185,10 @@ const ProductShowcase: React.FC = () => {
                 <img 
                   src={product.image} 
                   alt={product.name}
-                  className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${product.stock <= 0 ? 'grayscale opacity-60' : ''}`}
+                  className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${product.stock !== null && product.stock <= 0 ? 'grayscale opacity-60' : ''}`}
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
-                {product.stock <= 0 && (
+                {product.stock !== null && product.stock <= 0 && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
                     <span className="px-4 py-2 bg-black text-white text-xs font-black italic uppercase tracking-tighter rounded-xl shadow-xl ring-1 ring-white/20">SOLD OUT / 完售</span>
                   </div>
@@ -299,7 +299,7 @@ const ProductShowcase: React.FC = () => {
                       <div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">庫存狀態</p>
                         <p className="text-sm font-bold text-gray-900">
-                          {selectedProduct.stock > 0 ? `現貨: ${selectedProduct.stock}件` : '--'}
+                          {selectedProduct.stock === null ? '無限庫存' : (selectedProduct.stock > 0 ? `現貨: ${selectedProduct.stock}件` : '--')}
                         </p>
                       </div>
                       <div>
@@ -323,21 +323,21 @@ const ProductShowcase: React.FC = () => {
               <div className="sticky bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-100 flex gap-3 z-[120] shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
                 <button 
                   onClick={(e) => handleAddToCart(e, selectedProduct)}
-                  disabled={selectedProduct.stock <= 0}
+                  disabled={selectedProduct.stock !== null && selectedProduct.stock <= 0}
                   style={{ 
-                    backgroundColor: selectedProduct.stock <= 0 ? '#f3f4f6' : (mode === 'skiing' ? '#dbeafe' : '#fee2e2'), 
-                    color: selectedProduct.stock <= 0 ? '#9ca3af' : (mode === 'skiing' ? '#1e40af' : '#991b1b'),
-                    borderColor: selectedProduct.stock <= 0 ? '#e5e7eb' : (mode === 'skiing' ? '#bfdbfe' : '#fecaca')
+                    backgroundColor: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#f3f4f6' : (mode === 'skiing' ? '#dbeafe' : '#fee2e2'), 
+                    color: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#9ca3af' : (mode === 'skiing' ? '#1e40af' : '#991b1b'),
+                    borderColor: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#e5e7eb' : (mode === 'skiing' ? '#bfdbfe' : '#fecaca')
                   }}
                   className="flex-1 py-4 rounded-2xl font-black italic uppercase transition-all hover:opacity-80 active:scale-95 flex items-center justify-center gap-2 border disabled:cursor-not-allowed"
                 >
                   <ShoppingCart size={18} />
-                  <span className="hidden sm:inline text-xs">{selectedProduct.stock <= 0 ? '庫存不足' : '加入購物車'}</span>
-                  <span className="sm:hidden text-[10px]">{selectedProduct.stock <= 0 ? '完售' : '購物車'}</span>
+                  <span className="hidden sm:inline text-xs">{(selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '庫存不足' : '加入購物車'}</span>
+                  <span className="sm:hidden text-[10px]">{(selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '完售' : '購物車'}</span>
                 </button>
                 <button 
                   onClick={() => {
-                    if (selectedProduct.stock <= 0) return;
+                    if (selectedProduct.stock !== null && selectedProduct.stock <= 0) return;
                     setDirectPurchaseItem({ 
                       id: selectedProduct.id, 
                       name: selectedProduct.name, 
@@ -350,11 +350,11 @@ const ProductShowcase: React.FC = () => {
                     setIsCheckoutOpen(true);
                     setSelectedProduct(null);
                   }}
-                  disabled={selectedProduct.stock <= 0}
-                  style={{ backgroundColor: selectedProduct.stock <= 0 ? '#e5e7eb' : (mode === 'skiing' ? '#2563eb' : '#dc2626'), color: selectedProduct.stock <= 0 ? '#9ca3af' : '#ffffff' }}
+                  disabled={selectedProduct.stock !== null && selectedProduct.stock <= 0}
+                  style={{ backgroundColor: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#e5e7eb' : (mode === 'skiing' ? '#2563eb' : '#dc2626'), color: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#9ca3af' : '#ffffff' }}
                   className="flex-[2] py-4 rounded-2xl font-black italic shadow-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all uppercase disabled:cursor-not-allowed disabled:shadow-none"
                 >
-                  {selectedProduct.stock <= 0 ? 'SOLD OUT / 已完售' : '立刻直接購買'}
+                  {(selectedProduct.stock !== null && selectedProduct.stock <= 0) ? 'SOLD OUT / 已完售' : '立刻直接購買'}
                 </button>
               </div>
             </motion.div>
