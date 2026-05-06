@@ -1777,13 +1777,15 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner w-full md:w-auto">
                 <button 
                   onClick={() => setOrderType('product')}
-                  className={`flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border ${orderType === 'product' ? 'bg-black text-white border-black shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-900'}`}
+                  style={orderType === 'product' ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
+                  className="flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border border-gray-200 shadow-sm"
                 >
                   商品訂單
                 </button>
                 <button 
                   onClick={() => setOrderType('course')}
-                  className={`flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border ${orderType === 'course' ? 'bg-black text-white border-black shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-900'}`}
+                  style={orderType === 'course' ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
+                  className="flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border border-gray-200 shadow-sm"
                 >
                   課程預約
                 </button>
@@ -1792,7 +1794,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               <div className="flex gap-2 w-full md:w-auto">
                 {(['all', 'skiing', 'skateboard'] as const).map(f => (
                   <button key={f} onClick={() => setOrderFilter(f)}
-                    className={`flex-1 md:px-6 py-3 rounded-xl text-xs font-black transition-all uppercase tracking-widest border ${orderFilter === f ? 'bg-black text-white border-black shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:text-gray-900'}`}>
+                    style={orderFilter === f ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
+                    className="flex-1 md:px-6 py-3 rounded-xl text-xs font-black transition-all uppercase tracking-widest border border-gray-200 shadow-sm">
                     {f === 'all' ? '全部' : f === 'skiing' ? '滑雪' : '滑板'}
                   </button>
                 ))}
