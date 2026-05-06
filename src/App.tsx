@@ -73,7 +73,7 @@ const CourseTrust: React.FC = () => {
   const icons = [Award, ShieldCheck, Users, Heart];
 
   return (
-    <section className="py-12 bg-white">
+    <section className="py-12 bg-[var(--bg)] transition-colors duration-500">
       <div className="container px-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
           {trustItems.map((item, i) => {
@@ -84,12 +84,12 @@ const CourseTrust: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="flex items-center gap-3 p-6 rounded-3xl bg-neutral-50 border border-gray-100"
+                className="flex items-center gap-3 p-6 rounded-3xl bg-[var(--card-bg)] border border-white/5 shadow-xl"
               >
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0" style={{ color: 'var(--primary)' }}>
                   <Icon size={20} />
                 </div>
-                <span className="font-bold text-sm tracking-tight text-gray-900">{item}</span>
+                <span className="font-bold text-sm tracking-tight text-[var(--text)]">{item}</span>
               </motion.div>
             );
           })}
