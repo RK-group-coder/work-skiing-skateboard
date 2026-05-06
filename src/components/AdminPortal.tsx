@@ -1248,7 +1248,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                   { id: 'locations', label: '場地管理', icon: <MapPin size={16} /> }
                 ].map(t => (
                   <button key={t.id} onClick={() => setCourseHubTab(t.id as any)}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black transition-all ${courseHubTab === t.id ? 'bg-white text-black shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
+                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black transition-all ${courseHubTab === t.id ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-black'}`}>
                     {t.icon} {t.label}
                   </button>
                 ))}
@@ -1391,11 +1391,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                             </span>
                         }
                         <div className="flex-1 min-w-0">
-                          <div className="font-black text-sm">{c.name}</div>
+                          <div className="font-black text-sm text-gray-900">{c.name}</div>
                           {c.email && (
-                            <div className="text-[10px] font-bold text-gray-500 mt-0.5 truncate" title={c.email}>{c.email}</div>
+                            <div className="text-[10px] font-bold text-gray-600 mt-0.5 truncate" title={c.email}>{c.email}</div>
                           )}
-                          <div className="text-[10px] font-bold text-gray-400 mt-0.5">{c.mode === 'skiing' ? '⛷ 滑雪教練' : '🛹 滑板教練'}</div>
+                          <div className="text-[10px] font-bold text-gray-500 mt-0.5 uppercase tracking-widest">{c.mode === 'skiing' ? '⛷ 滑雪教練' : '🛹 滑板教練'}</div>
                         </div>
                         <div className="flex gap-2 shrink-0">
                           <button 
@@ -1463,16 +1463,21 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                   <div className="space-y-3">
                     {locations.map(l => (
                       <div key={l.id} className="bg-white px-8 py-5 rounded-[28px] border border-gray-100 flex items-center justify-between group hover:shadow-md transition-all">
-                        <div className="flex items-center gap-6">
-                          <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-primary"><MapPin size={24} /></div>
-                          <div>
-                            <div className="font-black text-sm">{l.name}</div>
-                            <div className="text-xs text-gray-400 mt-0.5">{l.address}</div>
+                        <div className="flex items-center gap-6 min-w-0">
+                          <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-500 border border-gray-100 shrink-0"><MapPin size={24} /></div>
+                          <div className="min-w-0">
+                            <div className="font-black text-sm text-gray-900 truncate">{l.name}</div>
+                            <div className="text-xs text-gray-500 mt-0.5 truncate">{l.address}</div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">{l.mode}</span>
-                          <button onClick={() => l.id && handleDeleteLocation(l.id)} className="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-sm"><Trash2 size={16} /></button>
+                        <div className="flex items-center gap-4 shrink-0 ml-4">
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${l.mode === 'skiing' ? 'bg-sky-50 text-sky-600 border-sky-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                            {l.mode}
+                          </span>
+                          <button onClick={() => l.id && handleDeleteLocation(l.id)} 
+                            className="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all shadow-sm border border-red-100">
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
                     ))}
