@@ -314,7 +314,16 @@ const ProductShowcase: React.FC = () => {
                   {/* Info Section */}
                   <div className="md:w-1/2 p-8 md:p-12 pb-32">
                     <div className="mb-10">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 block">{selectedProduct.tag || 'Premium Gear'}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-2 block">
+                        {(() => {
+                          const catIds = [selectedProduct.category_id, ...(selectedProduct.tag || "").split(',')].filter(id => id && id.length === 36);
+                          const uniqueCatIds = Array.from(new Set(catIds));
+                          const firstName = uniqueCatIds.map(id => categories.find(c => c.id === id)?.name).filter(Boolean)[0];
+                          if (firstName) return firstName;
+                          const otherTag = (selectedProduct.tag || "").split(',').filter(t => t && t.length !== 36)[0];
+                          return otherTag || 'Premium Gear';
+                        })()}
+                      </span>
                       <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter text-gray-900 mb-4 leading-tight">{selectedProduct.name}</h3>
                       <div className="flex flex-col mb-8">
                         {selectedProduct.originalPrice && (
