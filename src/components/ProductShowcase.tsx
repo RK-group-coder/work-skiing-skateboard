@@ -201,12 +201,15 @@ const ProductShowcase: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex flex-col">
                     {product.originalPrice && (
-                      <span className="text-[10px] text-gray-400 line-through font-bold">NT${product.originalPrice.toLocaleString()}</span>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">原價</span>
+                        <span className="text-[10px] text-gray-400 line-through font-bold">NT${product.originalPrice.toLocaleString()}</span>
+                      </div>
                     )}
                     <div className="flex items-center gap-2">
                       <span className="text-xl font-black text-gray-900">NT${product.price.toLocaleString()}</span>
                       {product.originalPrice && (
-                        <span className="text-[10px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded">會員價</span>
+                        <span className="text-[9px] font-black text-primary bg-primary/10 px-1.5 py-0.5 rounded whitespace-nowrap">會員價</span>
                       )}
                     </div>
                   </div>
@@ -269,7 +272,10 @@ const ProductShowcase: React.FC = () => {
                       <h3 className="text-3xl md:text-4xl font-black italic tracking-tighter text-gray-900 mb-4 leading-tight">{selectedProduct.name}</h3>
                       <div className="flex flex-col mb-8">
                         {selectedProduct.originalPrice && (
-                          <span className="text-sm text-gray-400 line-through font-bold">NT${selectedProduct.originalPrice.toLocaleString()}</span>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm text-gray-400 font-bold uppercase tracking-wider">原價</span>
+                            <span className="text-sm text-gray-400 line-through font-bold">NT${selectedProduct.originalPrice.toLocaleString()}</span>
+                          </div>
                         )}
                         <div className="flex items-center gap-3">
                           <div className="text-3xl font-black text-primary">NT${selectedProduct.price.toLocaleString()}</div>
