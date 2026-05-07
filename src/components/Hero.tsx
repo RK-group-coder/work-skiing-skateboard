@@ -72,10 +72,19 @@ const Hero: React.FC = () => {
   
   const ytInfo = getYoutubeInfo(bgImage);
   const [isMuted, setIsMuted] = useState(!isSettingSoundOn);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
 
   useEffect(() => {
     setIsMuted(!isSettingSoundOn);
   }, [isSettingSoundOn, mode]);
+
+  useEffect(() => {
+    if (ytInfo) {
+      setIsVideoLoaded(false);
+      const timer = setTimeout(() => setIsVideoLoaded(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [ytInfo?.id]);
 
   return (
     <section className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-black">
@@ -90,16 +99,17 @@ const Hero: React.FC = () => {
           className="absolute inset-0 z-0 overflow-hidden"
         >
           {ytInfo ? (
-            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-black">
               <iframe
                 src={`https://www.youtube.com/embed/${ytInfo.id}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytInfo.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                className={`absolute top-1/2 left-1/2 transition-opacity duration-[1500ms] pointer-events-none ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
                 style={{ 
                   border: 'none',
-                  ...(ytInfo.isShort 
-                    ? { width: '100vw', height: '177.78vw', minHeight: '100vh', minWidth: '56.25vh' }
-                    : { width: '100vw', height: '56.25vw', minHeight: '100vh', minWidth: '177.78vh' }
-                  )
+                  width: '100vw', 
+                  height: '56.25vw', 
+                  minHeight: '100vh', 
+                  minWidth: '177.78vh',
+                  transform: 'translate(-50%, -50%) scale(1.15)'
                 }}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
