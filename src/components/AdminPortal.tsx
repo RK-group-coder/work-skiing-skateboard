@@ -1909,7 +1909,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                       >
                         <Search size={16} />
                       </button>
-                      </button>
                     </div>
                   </div>
 
