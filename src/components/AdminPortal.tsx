@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight } from 'lucide-react';
+import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { User } from '@supabase/supabase-js';
@@ -1666,13 +1666,29 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                     })}
                     <div className="space-y-2">
                       <ImageUploadField 
-                        label="Background Image (背景圖 / YouTube 網址)" 
+                        label="Background Image (背景圖 / MP4 / YT網址)" 
                         value={settings.hero_bg_image.split('&sound=1')[0]} 
                         onChange={url => {
                           const hasSound = settings.hero_bg_image.includes('&sound=1');
                           setHomepageSettings({ ...homepageSettings, [id]: { ...settings, hero_bg_image: url ? (url + (hasSound ? '&sound=1' : '')) : '' } });
                         }} 
                       />
+                      
+                      {/* YouTube to MP4 Helper Tool */}
+                      <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex items-center justify-between mt-2 mb-4">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-black text-blue-800">想要無按鈕、零延遲的完美背景？</span>
+                          <span className="text-[10px] font-bold text-blue-600/80 mt-0.5">請將 YT 影片轉成 MP4 後，直接點上方虛線框上傳檔案</span>
+                        </div>
+                        <a 
+                          href="https://cobalt.tools/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap active:scale-95"
+                        >
+                          免費轉檔工具 <ExternalLink size={12} strokeWidth={3} />
+                        </a>
+                      </div>
                       {settings.hero_bg_image && (settings.hero_bg_image.includes('youtu.be') || settings.hero_bg_image.includes('youtube.com')) && (
                         <div className="flex items-center gap-2 px-2 pb-2">
                           <input 
