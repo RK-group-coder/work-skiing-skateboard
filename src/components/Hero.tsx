@@ -160,10 +160,24 @@ const Hero: React.FC = () => {
         >
           {ytInfo ? (
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-black">
+              {/* Thumbnail Preload - Provides instant visual feedback */}
+              <img 
+                src={`https://img.youtube.com/vi/${ytInfo.id}/maxresdefault.jpg`}
+                onError={(e) => { e.currentTarget.src = `https://img.youtube.com/vi/${ytInfo.id}/hqdefault.jpg`; }}
+                alt="Video Loading"
+                className={`absolute top-1/2 left-1/2 object-cover transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-0' : 'opacity-100'}`}
+                style={{ 
+                  width: '100vw', 
+                  height: '56.25vw', 
+                  minHeight: '100vh', 
+                  minWidth: '177.78vh',
+                  transform: 'translate(-50%, -50%) scale(1.15)'
+                }}
+              />
               <iframe
                 id="youtube-bg-player"
                 src={`https://www.youtube.com/embed/${ytInfo.id}?enablejsapi=1&autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytInfo.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
-                className={`absolute top-1/2 left-1/2 transition-opacity duration-[1500ms] pointer-events-none ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute top-1/2 left-1/2 transition-opacity duration-700 pointer-events-none ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
                 style={{ 
                   border: 'none',
                   width: '100vw', 
