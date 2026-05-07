@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import { Volume2, VolumeX } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import skiHero from '../assets/ski_hero.png';
+
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
 import skateHero from '../assets/skate_hero.png';
 
 interface HomepageSettings {
@@ -73,18 +80,71 @@ const Hero: React.FC = () => {
   const ytInfo = getYoutubeInfo(bgImage);
   const [isMuted, setIsMuted] = useState(!isSettingSoundOn);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const playerRef = useRef<any>(null);
 
   useEffect(() => {
     setIsMuted(!isSettingSoundOn);
   }, [isSettingSoundOn, mode]);
 
   useEffect(() => {
-    if (ytInfo) {
-      setIsVideoLoaded(false);
-      const timer = setTimeout(() => setIsVideoLoaded(true), 1500);
-      return () => clearTimeout(timer);
+    if (!ytInfo) return;
+
+    setIsVideoLoaded(false);
+
+    const loadPlayer = () => {
+      playerRef.current = new window.YT.Player('youtube-bg-player', {
+        events: {
+          onStateChange: (event: any) => {
+            // PlayerState.PLAYING is 1
+            if (event.data === 1) {
+              setIsVideoLoaded(true);
+            }
+          }
+        }
+      });
+    };
+
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      if (firstScriptTag?.parentNode) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      } else {
+        document.head.appendChild(tag);
+      }
+
+      window.onYouTubeIframeAPIReady = () => {
+        loadPlayer();
+      };
+    } else if (window.YT && window.YT.Player) {
+      // Small delay to ensure iframe is rendered before attaching API
+      setTimeout(loadPlayer, 100);
     }
-  }, [ytInfo?.id]);
+
+    // Fallback: if autoplay is completely blocked by OS, show it anyway after 3.5s
+    const fallbackTimer = setTimeout(() => setIsVideoLoaded(true), 3500);
+
+    return () => {
+      clearTimeout(fallbackTimer);
+      if (playerRef.current && typeof playerRef.current.destroy === 'function') {
+        try { playerRef.current.destroy(); } catch (e) {}
+      }
+    };
+  }, [ytInfo?.id, mode]);
+
+  const toggleSound = () => {
+    const nextMute = !isMuted;
+    if (playerRef.current && typeof playerRef.current.unMute === 'function') {
+      if (nextMute) {
+        playerRef.current.mute();
+      } else {
+        playerRef.current.unMute();
+        playerRef.current.playVideo(); // Force play in case OS blocked initial autoplay
+      }
+    }
+    setIsMuted(nextMute);
+  };
 
   return (
     <section className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-black">
@@ -101,7 +161,8 @@ const Hero: React.FC = () => {
           {ytInfo ? (
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-black">
               <iframe
-                src={`https://www.youtube.com/embed/${ytInfo.id}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytInfo.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+                id="youtube-bg-player"
+                src={`https://www.youtube.com/embed/${ytInfo.id}?enablejsapi=1&autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytInfo.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
                 className={`absolute top-1/2 left-1/2 transition-opacity duration-[1500ms] pointer-events-none ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
                 style={{ 
                   border: 'none',
@@ -133,7 +194,7 @@ const Hero: React.FC = () => {
       {/* Video Sound Toggle Button */}
       {ytInfo && (
         <button 
-          onClick={() => setIsMuted(!isMuted)}
+          onClick={toggleSound}
           className="absolute bottom-8 right-8 z-50 w-12 h-12 bg-black/30 hover:bg-black/60 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all border border-white/20 active:scale-95"
           title={isMuted ? "播放聲音" : "靜音"}
         >
