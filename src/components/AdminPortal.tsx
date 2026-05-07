@@ -838,15 +838,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
     } catch (err: any) { alert('刪除失敗: ' + err.message); }
   };
 
-  const handleDeleteOrder = async (id: string) => {
-    if (!confirm('確定要刪除這筆訂單嗎？此操作無法復原。')) return;
-    try {
-      const { error } = await supabase.from('orders').delete().eq('id', id);
-      if (error) throw error;
-      await fetchOrders();
-    } catch (err: any) { alert('刪除訂單失敗: ' + err.message); }
-  };
-
   const toggleBlockedDate = async (date: string) => {
     const existing = schedules.find(s => s.blocked_date === date && s.mode === scheduleMode);
     try {
@@ -1918,12 +1909,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                       >
                         <Search size={16} />
                       </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id); }}
-                        className="w-10 h-10 rounded-xl bg-red-50 text-red-500 border border-red-100 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all shadow-sm"
-                        title="刪除訂單"
-                      >
-                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
