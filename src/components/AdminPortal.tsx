@@ -177,7 +177,13 @@ const ImageUploadField = ({ label, value, onChange, bucket }: { label: string; v
       <div className="flex items-center gap-4">
         <div className="relative">
           <div onClick={() => fileInputRef.current?.click()} className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group overflow-hidden">
-            {value ? <img src={value} alt="Preview" className="w-full h-full object-cover" /> : (
+            {value ? (
+              value.toLowerCase().includes('.mp4') ? (
+                <video src={value} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+              ) : (
+                <img src={value} alt="Preview" className="w-full h-full object-cover" />
+              )
+            ) : (
               <>
                 <ImageIcon size={20} className="text-gray-400 group-hover:text-primary" />
                 <span className="text-[10px] font-bold text-gray-400 group-hover:text-primary mt-1">{uploading ? '上傳中...' : '選取圖片'}</span>
@@ -196,8 +202,8 @@ const ImageUploadField = ({ label, value, onChange, bucket }: { label: string; v
           )}
         </div>
         <div className="flex-1 space-y-1">
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={onFileSelect} className="hidden" />
-          <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder="或輸入圖片網址..." className={inputCls} />
+          <input ref={fileInputRef} type="file" accept="image/*,video/mp4" onChange={onFileSelect} className="hidden" />
+          <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder="或輸入圖片/影片網址..." className={inputCls} />
         </div>
       </div>
     </div>

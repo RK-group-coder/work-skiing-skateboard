@@ -77,10 +77,13 @@ const Hero: React.FC = () => {
   const isSettingSoundOn = rawBgImage.includes('&sound=1');
   const bgImage = rawBgImage.replace('&sound=1', '') || defaultBg;
   
-  const ytInfo = getYoutubeInfo(bgImage);
+  const isMp4 = bgImage.toLowerCase().includes('.mp4');
+  const ytInfo = !isMp4 ? getYoutubeInfo(bgImage) : null;
+  
   const [isMuted, setIsMuted] = useState(!isSettingSoundOn);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const playerRef = useRef<any>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     setIsMuted(!isSettingSoundOn);
@@ -135,7 +138,14 @@ const Hero: React.FC = () => {
 
   const toggleSound = () => {
     const nextMute = !isMuted;
-    if (playerRef.current && typeof playerRef.current.unMute === 'function') {
+    if (isMp4) {
+      if (videoRef.current) {
+        videoRef.current.muted = nextMute;
+        if (!nextMute) {
+          videoRef.current.play().catch(console.error);
+        }
+      }
+    } else if (playerRef.current && typeof playerRef.current.unMute === 'function') {
       if (nextMute) {
         playerRef.current.mute();
       } else {
@@ -158,7 +168,19 @@ const Hero: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="absolute inset-0 z-0 overflow-hidden"
         >
-          {ytInfo ? (
+          {isMp4 ? (
+            <div className="absolute inset-0 w-full h-full bg-black">
+              <video 
+                ref={videoRef}
+                src={bgImage}
+                autoPlay 
+                loop 
+                muted={isMuted} 
+                playsInline 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : ytInfo ? (
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-black">
               {/* Thumbnail Preload - Provides instant visual feedback */}
               <img 
@@ -206,7 +228,7 @@ const Hero: React.FC = () => {
       </AnimatePresence>
 
       {/* Video Sound Toggle Button */}
-      {ytInfo && (
+      {(ytInfo || isMp4) && (
         <button 
           onClick={toggleSound}
           className="absolute bottom-8 right-8 z-50 w-12 h-12 bg-black/30 hover:bg-black/60 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all border border-white/20 active:scale-95"
