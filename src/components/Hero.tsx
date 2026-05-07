@@ -14,11 +14,14 @@ interface HomepageSettings {
   hero_badge: string;
 }
 
-const getYoutubeId = (url: string) => {
+const getYoutubeInfo = (url: string) => {
   if (!url) return null;
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
   const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
+  if (match && match[2].length === 11) {
+    return { id: match[2], isShort: url.includes('shorts/') };
+  }
+  return null;
 };
 
 const Hero: React.FC = () => {
@@ -67,7 +70,7 @@ const Hero: React.FC = () => {
   const isSettingSoundOn = rawBgImage.includes('&sound=1');
   const bgImage = rawBgImage.replace('&sound=1', '') || defaultBg;
   
-  const ytId = getYoutubeId(bgImage);
+  const ytInfo = getYoutubeInfo(bgImage);
   const [isMuted, setIsMuted] = useState(!isSettingSoundOn);
 
   useEffect(() => {
@@ -86,13 +89,19 @@ const Hero: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="absolute inset-0 z-0 overflow-hidden"
         >
-          {ytId ? (
-            <div className="absolute inset-0 w-[300vw] h-[300vh] -left-[100vw] -top-[100vh] sm:w-[200vw] sm:h-[200vh] sm:-left-[50vw] sm:-top-[50vh] md:w-[150vw] md:h-[150vh] md:-left-[25vw] md:-top-[25vh] pointer-events-none">
+          {ytInfo ? (
+            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
               <iframe
-                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
-                className="w-full h-full object-cover"
-                style={{ border: 'none' }}
-                allow="autoplay; encrypted-media"
+                src={`https://www.youtube.com/embed/${ytInfo.id}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytInfo.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                style={{ 
+                  border: 'none',
+                  ...(ytInfo.isShort 
+                    ? { width: '100vw', height: '177.78vw', minHeight: '100vh', minWidth: '56.25vh' }
+                    : { width: '100vw', height: '56.25vw', minHeight: '100vh', minWidth: '177.78vh' }
+                  )
+                }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
               />
             </div>
@@ -112,7 +121,7 @@ const Hero: React.FC = () => {
       </AnimatePresence>
 
       {/* Video Sound Toggle Button */}
-      {ytId && (
+      {ytInfo && (
         <button 
           onClick={() => setIsMuted(!isMuted)}
           className="absolute bottom-8 right-8 z-50 w-12 h-12 bg-black/30 hover:bg-black/60 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all border border-white/20 active:scale-95"
