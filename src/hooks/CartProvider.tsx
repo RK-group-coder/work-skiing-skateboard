@@ -24,11 +24,11 @@ interface CartItem {
   details?: any; // For booking dates, times, etc.
 }
 
-interface CartContextType {
+export interface CartContextType {
   cart: CartItem[];
   vouchers: Voucher[];
   selectedVoucher: Voucher | null;
-  addToCart: (item: Omit<CartItem, 'quantity'>) => void;
+  addToCart: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
   removeFromCart: (id: string) => void;
   claimVoucher: (voucher: Voucher) => void;
   selectVoucher: (voucherId: string | null) => void;
@@ -69,7 +69,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         if (session?.user) {
           fetchUserVouchers(session.user.id);
         } else {
@@ -92,18 +92,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const effectiveCart = directPurchaseItem ? [directPurchaseItem] : cart;
 
-  const addToCart = (item: Omit<CartItem, 'quantity'>) => {
+  const addToCart = (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
     setCart(prev => {
       // For course bookings, we usually want them as unique items even if the course ID is the same
       if (item.type === 'course_booking') {
-        return [...prev, { ...item, quantity: 1 }];
+        return [...prev, { ...item, quantity: item.quantity || 1 }];
       }
       
       const existing = prev.find(i => i.id === item.id && i.type === item.type);
       if (existing) {
-        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
+        return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + (item.quantity || 1) } : i);
       }
-      return [...prev, { ...item, quantity: 1 }];
+      return [...prev, { ...item, quantity: item.quantity || 1 }];
     });
   };
 
