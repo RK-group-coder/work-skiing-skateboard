@@ -480,6 +480,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'categories' | 'courses' | 'vouchers' | 'homepage' | 'orders' | 'users'>('dashboard');
   const [orderType, setOrderType] = useState<'product' | 'course'>('product');
   const [orderFilter, setOrderFilter] = useState<'all' | 'skiing' | 'skateboard'>('all');
+  const [searchPhone, setSearchPhone] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [usersList, setUsersList] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -1657,11 +1658,36 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         </div>
                       );
                     })}
-                    <ImageUploadField 
-                      label="Background Image (背景圖)" 
-                      value={settings.hero_bg_image} 
-                      onChange={url => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, hero_bg_image: url } })} 
-                    />
+                    <div className="space-y-2">
+                      <ImageUploadField 
+                        label="Background Image (背景圖 / YouTube 網址)" 
+                        value={settings.hero_bg_image.split('&sound=1')[0]} 
+                        onChange={url => {
+                          const hasSound = settings.hero_bg_image.includes('&sound=1');
+                          setHomepageSettings({ ...homepageSettings, [id]: { ...settings, hero_bg_image: url ? (url + (hasSound ? '&sound=1' : '')) : '' } });
+                        }} 
+                      />
+                      {settings.hero_bg_image && (settings.hero_bg_image.includes('youtu.be') || settings.hero_bg_image.includes('youtube.com')) && (
+                        <div className="flex items-center gap-2 px-2 pb-2">
+                          <input 
+                            type="checkbox" 
+                            id={`sound-${id}`}
+                            checked={settings.hero_bg_image.includes('&sound=1')}
+                            onChange={e => {
+                              const base = settings.hero_bg_image.split('&sound=1')[0];
+                              setHomepageSettings({ 
+                                ...homepageSettings, 
+                                [id]: { ...settings, hero_bg_image: base + (e.target.checked ? '&sound=1' : '') } 
+                              });
+                            }}
+                            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <label htmlFor={`sound-${id}`} className="text-[10px] font-bold text-gray-500 uppercase tracking-widest cursor-pointer">
+                            播放影片聲音 (Play Sound) <span className="text-red-400 normal-case tracking-normal ml-1">※ 注意：開啟聲音可能會被瀏覽器阻擋自動播放</span>
+                          </label>
+                        </div>
+                      )}
+                    </div>
                     <div className="grid grid-cols-2 gap-3 bg-neutral-50 p-4 rounded-2xl">
                       {[1, 2, 3, 4].map(num => (
                         <div key={num}>
@@ -1796,6 +1822,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
           ? filteredByType 
           : filteredByType.filter(o => o.mode === orderFilter);
 
+        const finalFiltered = searchPhone.trim() 
+          ? filtered.filter(o => o.customer_phone?.includes(searchPhone.trim()))
+          : filtered;
+
         return (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Order Image Modal */}
@@ -1808,33 +1838,46 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               </div>
             )}
 
-            {/* Type Selector & Mode Filter */}
-            <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
-              <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner w-full md:w-auto">
-                <button 
-                  onClick={() => setOrderType('product')}
-                  style={orderType === 'product' ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
-                  className="flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border border-gray-200 shadow-sm"
-                >
-                  商品訂單
-                </button>
-                <button 
-                  onClick={() => setOrderType('course')}
-                  style={orderType === 'course' ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
-                  className="flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border border-gray-200 shadow-sm"
-                >
-                  課程預約
-                </button>
+            {/* Type Selector, Mode Filter & Search */}
+            <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
+              <div className="flex flex-col md:flex-row gap-6 w-full xl:w-auto">
+                <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner w-full md:w-auto">
+                  <button 
+                    onClick={() => setOrderType('product')}
+                    style={orderType === 'product' ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
+                    className="flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border border-gray-200 shadow-sm"
+                  >
+                    商品訂單
+                  </button>
+                  <button 
+                    onClick={() => setOrderType('course')}
+                    style={orderType === 'course' ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
+                    className="flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border border-gray-200 shadow-sm"
+                  >
+                    課程預約
+                  </button>
+                </div>
+
+                <div className="flex gap-2 w-full md:w-auto">
+                  {(['all', 'skiing', 'skateboard'] as const).map(f => (
+                    <button key={f} onClick={() => setOrderFilter(f)}
+                      style={orderFilter === f ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
+                      className="flex-1 md:px-6 py-3 rounded-xl text-xs font-black transition-all uppercase tracking-widest border border-gray-200 shadow-sm">
+                      {f === 'all' ? '全部' : f === 'skiing' ? '滑雪' : '滑板'}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex gap-2 w-full md:w-auto">
-                {(['all', 'skiing', 'skateboard'] as const).map(f => (
-                  <button key={f} onClick={() => setOrderFilter(f)}
-                    style={orderFilter === f ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
-                    className="flex-1 md:px-6 py-3 rounded-xl text-xs font-black transition-all uppercase tracking-widest border border-gray-200 shadow-sm">
-                    {f === 'all' ? '全部' : f === 'skiing' ? '滑雪' : '滑板'}
-                  </button>
-                ))}
+              <div className="relative w-full xl:w-72 shrink-0">
+                <input 
+                  type="text" 
+                  value={searchPhone}
+                  onChange={e => setSearchPhone(e.target.value)}
+                  placeholder="輸入電話號碼搜尋..." 
+                  className="w-full px-4 py-3 pl-11 bg-white rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none text-sm font-bold transition-all shadow-sm"
+                />
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
               </div>
             </div>
 
@@ -1843,7 +1886,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
             <div className="flex justify-between items-center px-2">
               <h3 className="font-black text-xl italic uppercase tracking-tighter text-gray-900">
                 {orderType === 'product' ? 'Product Orders' : 'Course Bookings'} 
-                <span className="text-gray-400 ml-2 font-bold">[{filtered.length}]</span>
+                <span className="text-gray-400 ml-2 font-bold">[{finalFiltered.length}]</span>
               </h3>
             </div>
 
@@ -1857,14 +1900,14 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 </div>
               )}
 
-              {!ordersError && filtered.length === 0 && (
+              {!ordersError && finalFiltered.length === 0 && (
                 <div className="text-center py-32 bg-white rounded-[40px] border border-gray-100 shadow-sm">
                   <Database size={48} className="mx-auto mb-4 text-gray-100" />
                   <p className="text-gray-300 font-black uppercase tracking-widest">目前沒有符合條件的訂單</p>
                 </div>
               )}
 
-              {!ordersError && filtered.map(order => {
+              {!ordersError && finalFiltered.map(order => {
                 const isExpanded = expandedOrders.has(order.id);
                 const toggleExpand = (e: React.MouseEvent) => {
                   e.stopPropagation();

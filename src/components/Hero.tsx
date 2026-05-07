@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../hooks/useTheme';
+import { Volume2, VolumeX } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import skiHero from '../assets/ski_hero.png';
@@ -12,6 +13,13 @@ interface HomepageSettings {
   hero_bg_image: string;
   hero_badge: string;
 }
+
+const getYoutubeId = (url: string) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=|shorts\/)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
 
 const Hero: React.FC = () => {
   const { mode } = useTheme();
@@ -54,10 +62,20 @@ const Hero: React.FC = () => {
 
   const currentSettings = settings[mode];
   const defaultBg = mode === 'skiing' ? skiHero : skateHero;
-  const bgImage = currentSettings.hero_bg_image || defaultBg;
+  
+  const rawBgImage = currentSettings.hero_bg_image || '';
+  const isSettingSoundOn = rawBgImage.includes('&sound=1');
+  const bgImage = rawBgImage.replace('&sound=1', '') || defaultBg;
+  
+  const ytId = getYoutubeId(bgImage);
+  const [isMuted, setIsMuted] = useState(!isSettingSoundOn);
+
+  useEffect(() => {
+    setIsMuted(!isSettingSoundOn);
+  }, [isSettingSoundOn, mode]);
 
   return (
-    <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
+    <section className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-black">
       {/* Background Images with Crossfade */}
       <AnimatePresence mode="wait">
         <motion.div
@@ -66,13 +84,25 @@ const Hero: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8 }}
-          className="absolute inset-0 z-0"
+          className="absolute inset-0 z-0 overflow-hidden"
         >
-          <img 
-            src={bgImage} 
-            alt="Hero Background"
-            className="w-full h-full object-cover"
-          />
+          {ytId ? (
+            <div className="absolute inset-0 w-[300vw] h-[300vh] -left-[100vw] -top-[100vh] sm:w-[200vw] sm:h-[200vh] sm:-left-[50vw] sm:-top-[50vh] md:w-[150vw] md:h-[150vh] md:-left-[25vw] md:-top-[25vh] pointer-events-none">
+              <iframe
+                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+                className="w-full h-full object-cover"
+                style={{ border: 'none' }}
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+              />
+            </div>
+          ) : (
+            <img 
+              src={bgImage} 
+              alt="Hero Background"
+              className="w-full h-full object-cover"
+            />
+          )}
           <div className={`absolute inset-0 bg-gradient-to-b ${
             mode === 'skiing' 
               ? 'from-sky-900/40 via-transparent to-white' 
@@ -80,6 +110,17 @@ const Hero: React.FC = () => {
           }`} />
         </motion.div>
       </AnimatePresence>
+
+      {/* Video Sound Toggle Button */}
+      {ytId && (
+        <button 
+          onClick={() => setIsMuted(!isMuted)}
+          className="absolute bottom-8 right-8 z-50 w-12 h-12 bg-black/30 hover:bg-black/60 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all border border-white/20 active:scale-95"
+          title={isMuted ? "播放聲音" : "靜音"}
+        >
+          {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+        </button>
+      )}
 
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-4xl">

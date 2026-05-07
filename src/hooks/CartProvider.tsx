@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 export interface Voucher {
   id: string;
@@ -49,6 +50,45 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [directPurchaseItem, setDirectPurchaseItem] = useState<CartItem | null>(null);
+
+  useEffect(() => {
+    const fetchUserVouchers = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('user_vouchers')
+          .select('voucher_id, vouchers (*)')
+          .eq('user_id', userId);
+        
+        if (data && !error) {
+          const userVouchers = data.map((d: any) => d.vouchers).filter(Boolean);
+          setVouchers(userVouchers);
+        }
+      } catch (err) {
+        console.error('Error fetching user vouchers:', err);
+      }
+    };
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.user) {
+          fetchUserVouchers(session.user.id);
+        } else {
+          setVouchers([]);
+          setSelectedVoucher(null);
+        }
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchUserVouchers(session.user.id);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   const effectiveCart = directPurchaseItem ? [directPurchaseItem] : cart;
 

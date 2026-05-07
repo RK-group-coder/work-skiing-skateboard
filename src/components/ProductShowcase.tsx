@@ -30,6 +30,7 @@ const ProductShowcase: React.FC = () => {
   const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [purchaseQty, setPurchaseQty] = useState(1);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(true);
@@ -152,9 +153,11 @@ const ProductShowcase: React.FC = () => {
       price: product.price, 
       type: 'product', 
       image: product.image,
+      quantity: purchaseQty,
       details: { mode: product.mode, category_id: product.category_id, tag: product.tag }
     });
     setSelectedProduct(null);
+    setPurchaseQty(1);
   };
 
   if (loading && products.length === 0) return null;
@@ -210,7 +213,7 @@ const ProductShowcase: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              onClick={() => setSelectedProduct(product)}
+              onClick={() => { setSelectedProduct(product); setPurchaseQty(1); }}
               className="group cursor-pointer"
             >
               <div className="relative aspect-[4/5] rounded-[32px] overflow-hidden bg-gray-50 mb-6 border border-gray-100 shadow-sm transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-1">
@@ -369,6 +372,26 @@ const ProductShowcase: React.FC = () => {
                 </div>
               </div>
 
+              {/* Quantity Selector */}
+              <div className="mb-4 px-6 flex items-center justify-between">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">選擇數量 QUANTITY</p>
+                <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
+                  <button 
+                    onClick={() => setPurchaseQty(prev => Math.max(1, prev - 1))}
+                    className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-primary transition-colors active:scale-95 text-lg leading-none"
+                  >
+                    -
+                  </button>
+                  <span className="font-black text-sm w-6 text-center">{purchaseQty}</span>
+                  <button 
+                    onClick={() => setPurchaseQty(prev => Math.min(selectedProduct.stock || 99, prev + 1))}
+                    className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-primary transition-colors active:scale-95 text-lg leading-none"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
               {/* Fixed Bottom Action Bar */}
               <div className="sticky bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-100 flex gap-3 z-[120] shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
                 <button 
@@ -394,7 +417,7 @@ const ProductShowcase: React.FC = () => {
                       price: selectedProduct.price, 
                       type: 'product', 
                       image: selectedProduct.image, 
-                      quantity: 1,
+                      quantity: purchaseQty,
                       details: { mode: selectedProduct.mode, category_id: selectedProduct.category_id, tag: selectedProduct.tag }
                     });
                     setIsCheckoutOpen(true);

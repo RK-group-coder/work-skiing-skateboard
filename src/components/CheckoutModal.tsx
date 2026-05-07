@@ -24,6 +24,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
   const [customerName, setCustomerName] = useState(user?.user_metadata?.full_name || '');
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [customerEmail, setCustomerEmail] = useState(user?.email || '');
+  const [notes, setNotes] = useState('');
   
   const hasPhysicalProducts = cart.some(item => item.type === 'product');
   const [deliveryMethod, setDeliveryMethod] = useState<'convenience_store' | 'pickup_location'>('convenience_store');
@@ -106,6 +107,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
           customer_name: customerName,
           customer_phone: customerPhone,
           customer_email: customerEmail,
+          notes: notes,
           delivery_method: hasPhysicalProducts ? deliveryMethod : null,
           delivery_info: hasPhysicalProducts ? (deliveryMethod === 'convenience_store' ? { store: convenienceStoreInfo } : { location_id: pickupLocationId }) : null
         }
@@ -620,6 +622,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                   value={customerEmail}
                   onChange={e => setCustomerEmail(e.target.value)}
                   className="w-full p-4 rounded-xl border border-gray-200 bg-white focus:border-primary outline-none transition-all text-sm font-medium text-gray-900 placeholder:text-gray-400"
+                />
+                <textarea
+                  placeholder="備註, 尺寸, 顏色"
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
+                  rows={3}
+                  className="w-full p-4 rounded-xl border border-gray-200 bg-white focus:border-primary outline-none transition-all text-sm font-medium text-gray-900 placeholder:text-gray-400 resize-none"
                 />
               </div>
             </div>

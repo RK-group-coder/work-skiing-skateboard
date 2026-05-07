@@ -133,10 +133,10 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
   }, [mode]);
 
   return (
-    <section id="courses" className="py-24 bg-secondary transition-colors duration-500 overflow-hidden">
+    <section id="features-section" className="py-24 bg-secondary transition-colors duration-500 overflow-hidden">
       <div className="container px-4">
         {/* Horizontal Coupon Slider */}
-        <div className="relative mb-20">
+        <div id="vouchers" className="relative mb-20 scroll-mt-24">
           <div className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar gap-6 px-4 py-8 -my-8">
             {availableVouchers.map((voucher, idx) => {
               const isClaimed = vouchers.some(v => v.id === voucher.id);
@@ -203,7 +203,7 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
           </div>
         </div>
 
-        <div className="text-center mb-16 px-4">
+        <div id="courses" className="text-center mb-16 px-4 scroll-mt-24">
           <span className="text-primary font-bold tracking-widest uppercase text-sm mb-4 block">熱門選擇</span>
           <h2 className={`text-4xl md:text-5xl font-black mb-6 ${mode === 'skiing' ? 'text-gray-900' : 'text-white'}`}>
             {header.title}

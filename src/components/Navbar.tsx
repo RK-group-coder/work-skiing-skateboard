@@ -640,7 +640,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
           </div>
 
           {/* Voucher Entry - Leads to Features section where they can claim */}
-          <a href="#courses" className="flex flex-col items-center justify-center w-10 py-1">
+          <a href="#vouchers" className="flex flex-col items-center justify-center w-10 py-1">
             <Ticket size={18} strokeWidth={3} />
             <span className="text-[9px] font-black mt-0.5">兌換券</span>
           </a>
