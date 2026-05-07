@@ -1679,9 +1679,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         <div className="flex flex-col">
                           <span className="text-xs font-black text-blue-800">想要無按鈕、零延遲的完美背景？</span>
                           <span className="text-[10px] font-bold text-blue-600/80 mt-0.5">請將 YT 影片轉成 MP4 後，直接點上方虛線框上傳檔案</span>
+                          <span className="text-[9px] font-bold text-red-500/80 mt-1">※ 轉檔網站為第三方服務，若遇廣告請直接關閉即可</span>
                         </div>
                         <a 
-                          href="https://cobalt.tools/" 
+                          href="https://ssyoutube.com/" 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-blue-700 transition-colors shadow-sm whitespace-nowrap active:scale-95"
