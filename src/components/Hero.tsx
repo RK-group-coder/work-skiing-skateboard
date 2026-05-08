@@ -197,8 +197,8 @@ const Hero: React.FC = () => {
       onTouchEnd={onTouchEnd}
     >
       
-      {/* Background Carousel Area (Constrained to stop above buttons) */}
-      <div className="absolute top-0 left-0 w-full h-[65vh] md:h-[75vh] z-0">
+      {/* Background Carousel Area (Constrained to 3:4 ratio on mobile) */}
+      <div className="absolute top-0 left-0 w-full aspect-[3/4] md:h-[75vh] md:aspect-auto z-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={mode + currentIndex + currentBg}
@@ -263,12 +263,13 @@ const Hero: React.FC = () => {
 
         {/* Carousel Indicators */}
         {bgImages.length > 1 && (
-          <div className="absolute bottom-[10%] left-1/2 -translate-x-1/2 flex items-center gap-3 z-50">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-50">
             {bgImages.map((_, i) => (
               <button 
                 key={i} 
-                onClick={() => setCurrentIndex(i)}
-                className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/80'}`} 
+                onClick={(e) => { e.stopPropagation(); setCurrentIndex(i); }}
+                className={`rounded-full transition-all duration-300 shadow-sm ${i === currentIndex ? 'w-6 h-2.5 bg-white' : 'w-2.5 h-2.5 border-2 border-white bg-transparent hover:bg-white/50'}`} 
+                aria-label={`Go to slide ${i + 1}`}
               />
             ))}
           </div>
