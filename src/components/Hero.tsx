@@ -78,9 +78,11 @@ const Hero: React.FC = () => {
   const bgImages = rawBgImage.replace('&sound=1', '').split(',').filter(Boolean);
   
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
   
   useEffect(() => {
     setCurrentIndex(0);
+    setDirection(1);
   }, [mode, rawBgImage]);
 
   const currentBg = bgImages[currentIndex] || defaultBg;
@@ -177,15 +179,25 @@ const Hero: React.FC = () => {
     setTouchEnd(e.targetTouches[0].clientX);
   };
 
+  const paginate = (newDirection: number) => {
+    setDirection(newDirection);
+    setCurrentIndex(prev => {
+      let next = prev + newDirection;
+      if (next >= bgImages.length) next = 0;
+      if (next < 0) next = bgImages.length - 1;
+      return next;
+    });
+  };
+
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     if (distance > minSwipeDistance) {
       // User swiped left -> go to previous (reversed per user request)
-      setCurrentIndex(prev => (prev === 0 ? bgImages.length - 1 : prev - 1));
+      paginate(-1);
     } else if (distance < -minSwipeDistance) {
       // User swiped right -> go to next
-      setCurrentIndex(prev => (prev === bgImages.length - 1 ? 0 : prev + 1));
+      paginate(1);
     }
   };
 
@@ -198,15 +210,16 @@ const Hero: React.FC = () => {
     >
       
       {/* Top Half: Background Carousel Area (Constrained to 3:4 ratio on mobile) */}
-      <div className="relative w-full aspect-[3/4] md:h-[75vh] md:aspect-auto shrink-0 z-0">
-        <AnimatePresence mode="wait">
+      <div className="relative w-full aspect-[3/4] md:h-[75vh] md:aspect-auto shrink-0 z-0 bg-black">
+        <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={mode + currentIndex + currentBg}
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -50 }}
-            transition={{ duration: 0.6, ease: "anticipate" }}
-            className="absolute inset-0 w-full h-full overflow-hidden"
+            custom={direction}
+            initial={(d: number) => ({ x: d > 0 ? '100%' : '-100%', zIndex: 0 })}
+            animate={{ x: 0, zIndex: 1 }}
+            exit={(d: number) => ({ x: d < 0 ? '100%' : '-100%', zIndex: 0 })}
+            transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+            className="absolute inset-0 w-full h-full overflow-hidden bg-black"
           >
             {isMp4 ? (
               <div className="absolute inset-0 w-full h-full bg-black">
@@ -267,7 +280,11 @@ const Hero: React.FC = () => {
             {bgImages.map((_, i) => (
               <button 
                 key={i} 
-                onClick={(e) => { e.stopPropagation(); setCurrentIndex(i); }}
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  setDirection(i > currentIndex ? 1 : -1);
+                  setCurrentIndex(i); 
+                }}
                 className={`rounded-full transition-all duration-300 shadow-[0_2px_4px_rgba(0,0,0,0.4)] ${i === currentIndex ? 'w-6 h-2.5 bg-white' : 'w-2.5 h-2.5 border-[1.5px] border-white bg-transparent hover:bg-white/50'}`} 
                 aria-label={`Go to slide ${i + 1}`}
               />
