@@ -191,14 +191,14 @@ const Hero: React.FC = () => {
 
   return (
     <section 
-      className={`relative h-screen w-full overflow-hidden flex items-center justify-center transition-colors duration-700 ${mode === 'skiing' ? 'bg-[#0f172a]' : 'bg-[#050505]'}`}
+      className={`relative min-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-700 ${mode === 'skiing' ? 'bg-[#0f172a]' : 'bg-[#050505]'}`}
       onTouchStart={onTouchStart} 
       onTouchMove={onTouchMove} 
       onTouchEnd={onTouchEnd}
     >
       
-      {/* Background Carousel Area (Constrained to 3:4 ratio on mobile) */}
-      <div className="absolute top-0 left-0 w-full aspect-[3/4] md:h-[75vh] md:aspect-auto z-0">
+      {/* Top Half: Background Carousel Area (Constrained to 3:4 ratio on mobile) */}
+      <div className="relative w-full aspect-[3/4] md:h-[75vh] md:aspect-auto shrink-0 z-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={mode + currentIndex + currentBg}
@@ -274,21 +274,21 @@ const Hero: React.FC = () => {
             ))}
           </div>
         )}
+
+        {/* Video Sound Toggle Button */}
+        {(ytInfo || isMp4) && (
+          <button 
+            onClick={toggleSound}
+            className="absolute bottom-16 right-4 md:right-8 z-50 w-10 h-10 bg-black/40 hover:bg-black/80 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all border border-white/20 active:scale-95 shadow-2xl"
+            title={isMuted ? "播放聲音" : "靜音"}
+          >
+            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+          </button>
+        )}
       </div>
 
-      {/* Video Sound Toggle Button */}
-      {(ytInfo || isMp4) && (
-        <button 
-          onClick={toggleSound}
-          className="absolute bottom-32 md:bottom-12 right-6 md:right-12 z-50 w-12 h-12 bg-black/40 hover:bg-black/80 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all border border-white/20 active:scale-95 shadow-2xl"
-          title={isMuted ? "播放聲音" : "靜音"}
-        >
-          {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-        </button>
-      )}
-
-      {/* Content (Only Buttons Left) */}
-      <div className="absolute bottom-[15vh] md:bottom-[20vh] left-0 w-full z-10 text-center px-4">
+      {/* Bottom Half: Content (Buttons) */}
+      <div className="flex-1 flex flex-col items-center justify-center w-full relative z-10 px-4 py-8 pb-20">
         <motion.div
           key={mode + "-btns"}
           initial={{ opacity: 0, y: 20 }}
@@ -310,10 +310,10 @@ const Hero: React.FC = () => {
       <motion.div 
         animate={{ y: [0, 10, 0] }}
         transition={{ repeat: Infinity, duration: 2 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50"
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50"
       >
         <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Scroll</span>
-        <div className="w-px h-8 bg-white/30" />
+        <div className="w-px h-6 bg-white/30" />
       </motion.div>
     </section>
   );
