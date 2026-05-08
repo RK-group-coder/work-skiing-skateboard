@@ -206,6 +206,8 @@ function App() {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
+  const ADMIN_EMAILS = ['pokai2952@gmail.com', 'managersk8@gmail.com'];
+  
   const toggleAdmin = (val: boolean) => {
     setShowAdmin(val);
     window.scrollTo(0, 0);
@@ -215,7 +217,7 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const u = session?.user ?? null;
       setUser(u);
-      if (u?.email?.toLowerCase() === 'pokai2952@gmail.com') {
+      if (u?.email && ADMIN_EMAILS.includes(u.email.toLowerCase())) {
         setShowAdmin(true);
       }
     });
@@ -223,7 +225,7 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null;
       setUser(u);
-      if (u?.email?.toLowerCase() === 'pokai2952@gmail.com') {
+      if (u?.email && ADMIN_EMAILS.includes(u.email.toLowerCase())) {
         setShowAdmin(true);
       } else {
         setShowAdmin(false);

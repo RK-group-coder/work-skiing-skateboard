@@ -26,6 +26,10 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
   const [isMyVouchersOpen, setIsMyVouchersOpen] = useState(false);
   const [targetNames, setTargetNames] = useState<Record<string, string>>({});
   const [isPinging, setIsPinging] = useState(false);
+  
+  const ADMIN_EMAILS = ['pokai2952@gmail.com', 'managersk8@gmail.com'];
+  const isAdmin = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
+
 
   useEffect(() => {
     if (totalItems > 0) {
@@ -93,11 +97,16 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
           </div>
           {user && (
             <div className="text-[8px] font-bold text-white/60 tracking-widest mt-1 uppercase">
-              ID: {user.email === 'managersk8@gmail.com' ? 'SK8管理者' : (user.user_metadata?.full_name || '使用者')}
+              ID: {isAdmin ? 'SK8管理者' : (user.user_metadata?.full_name || '使用者')}
             </div>
           )}
         </div>
         <div className="flex items-center gap-2">
+          {isAdmin && (
+            <button onClick={onAdminClick} className="text-white p-2">
+              <Settings2 size={24} />
+            </button>
+          )}
           <button id="header-cart-icon" onClick={() => setIsCartOpen(true)} className="text-white p-2 relative">
             <ShoppingCart size={24} />
             {totalItems > 0 && (
@@ -125,7 +134,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
             </div>
             {user && (
               <div className="text-[9px] font-bold text-gray-400 tracking-[0.2em] mt-1 uppercase">
-                ID: {user.email === 'managersk8@gmail.com' ? 'SK8管理者' : (user.user_metadata?.full_name || '使用者')}
+                ID: {isAdmin ? 'SK8管理者' : (user.user_metadata?.full_name || '使用者')}
               </div>
             )}
           </div>
@@ -164,7 +173,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
             </button>
             {user ? (
               <div className="flex items-center gap-2 ml-4">
-                {user.email === 'managersk8@gmail.com' && (
+                {isAdmin && (
                   <button 
                     onClick={onAdminClick} 
                     className="p-2 hover:bg-black/5 rounded-full text-gray-400 hover:text-black transition-colors"
@@ -526,7 +535,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                 </div>
                 {user && (
                   <div className="text-[10px] font-bold text-white/60 tracking-[0.2em] mt-1 uppercase">
-                    ID: {user.email === 'managersk8@gmail.com' ? 'SK8管理者' : (user.user_metadata?.full_name || '使用者')}
+                    ID: {isAdmin ? 'SK8管理者' : (user.user_metadata?.full_name || '使用者')}
                   </div>
                 )}
               </div>
@@ -557,7 +566,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                   </button>
                   <div className="h-[1px] w-full bg-white/20" />
                   
-                  {user.email === 'managersk8@gmail.com' && (
+                  {isAdmin && (
                     <>
                       <div className="p-4 w-full">
                         <button 
@@ -650,6 +659,14 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
             <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" strokeWidth="3" fill="none"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
             <span className="text-[9px] font-black mt-0.5">商城</span>
           </a>
+
+          {/* Admin Dashboard */}
+          {isAdmin && (
+            <button onClick={onAdminClick} className="flex flex-col items-center justify-center w-10 py-1" style={{ color: 'var(--primary)' }}>
+              <Settings2 size={18} strokeWidth={3} />
+              <span className="text-[9px] font-black mt-0.5">後台</span>
+            </button>
+          )}
         </div>
       </div>
     </>
