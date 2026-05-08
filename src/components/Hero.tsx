@@ -207,10 +207,6 @@ const Hero: React.FC = () => {
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.6, ease: "anticipate" }}
             className="absolute inset-0 w-full h-full overflow-hidden"
-            style={{ 
-              WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)', 
-              maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)' 
-            }}
           >
             {isMp4 ? (
               <div className="absolute inset-0 w-full h-full bg-black">
@@ -262,12 +258,6 @@ const Hero: React.FC = () => {
                 className="w-full h-full object-cover"
               />
             )}
-            
-            <div className={`absolute inset-0 bg-gradient-to-b ${
-              mode === 'skiing' 
-                ? 'from-sky-900/30 via-transparent to-transparent' 
-                : 'from-red-900/30 via-transparent to-transparent'
-            }`} />
           </motion.div>
         </AnimatePresence>
 
