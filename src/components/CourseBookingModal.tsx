@@ -141,37 +141,36 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
         Object.entries(dateSlots).forEach(([slotName, qty]) => {
           if (qty <= 0) return;
           
-          // Get session specific labels
-          let fPrice = (course as any).full_day_first_price || course.first_lesson_price || 0;
-          let aPrice = (course as any).full_day_add_price || course.additional_lesson_price || 0;
+          const baseFirst = course.first_lesson_price || course.price || 0;
+          const baseAdd = course.additional_lesson_price || (course as any).addPrice || 0;
 
-          // Note: In Step 2 UI we use getSkiingLabel(idx) which uses indices 0, 1, 2
-          // But here we rely on the slotName string which contains the time range.
-          // Since getAvailableTimes returns the raw time string (e.g. "09:00-12:00"), 
-          // we should match against the index or the time string if possible.
-          // However, in Step 2, slotName IS the time string.
-          // Let's use the index from getAvailableTimes if we can, or just check the time range.
-          
-          const availableForThisDate = getAvailableTimes(dateStr);
-          const idx = availableForThisDate.indexOf(slotName);
+          let unitFirst = 0;
+          let unitAdd = 0;
 
-          if (idx === 1) { // Half Day PM
-            fPrice = (course as any).half_day_pm_first_price || course.first_lesson_price || 0;
-            aPrice = (course as any).half_day_pm_add_price || course.additional_lesson_price || 0;
-          } else if (idx === 0) { // Half Day AM
-            fPrice = (course as any).half_day_am_first_price || course.first_lesson_price || 0;
-            aPrice = (course as any).half_day_am_add_price || course.additional_lesson_price || 0;
-          } else if (idx === 2) { // Full Day
-            fPrice = (course as any).full_day_first_price || course.first_lesson_price || 0;
-            aPrice = (course as any).full_day_add_price || course.additional_lesson_price || 0;
+          const available = getAvailableTimes(dateStr);
+          const idx = available.indexOf(slotName);
+
+          if (idx === 0) { // Half Day AM
+            unitFirst = (course as any).half_day_am_first_price ?? baseFirst;
+            unitAdd = (course as any).half_day_am_add_price ?? baseAdd;
+          } else if (idx === 1) { // Half Day PM
+            unitFirst = (course as any).half_day_pm_first_price ?? baseFirst;
+            unitAdd = (course as any).half_day_pm_add_price ?? baseAdd;
+          } else { // Full Day or other
+            unitFirst = (course as any).full_day_first_price ?? baseFirst;
+            unitAdd = (course as any).full_day_add_price ?? baseAdd;
           }
+
+          // If specialized prices are 0 but base prices exist, fallback to base
+          if (!unitFirst && baseFirst) unitFirst = baseFirst;
+          if (!unitAdd && baseAdd) unitAdd = baseAdd;
 
           for (let i = 0; i < qty; i++) {
             if (isFirstUnitGlobal && isFirstLesson) {
-              total += fPrice;
+              total += unitFirst;
               isFirstUnitGlobal = false;
             } else {
-              total += aPrice;
+              total += unitAdd;
             }
           }
         });

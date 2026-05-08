@@ -62,6 +62,7 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
 
   // Convert DB courses to UI plans
   const plans = dbCourses.map(c => ({
+    ...c,
     id: c.id,
     name: c.name,
     mode: c.mode,
