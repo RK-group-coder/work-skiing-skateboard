@@ -134,53 +134,83 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
       return acc + Object.values(dateSlots).reduce((sum, qty) => sum + qty, 0);
     }, 0);
     
-    if (totalPersonSlots === 0) return 0;
+    const isSkiingPreview = mode === 'skiing' && skiingSessionIdx !== null;
+    if (totalPersonSlots === 0 && !isSkiingPreview) return 0;
 
     let total = 0;
 
     if (mode === 'skiing') {
-      let isFirstUnitGlobal = true;
-      const sortedDates = Object.keys(selectedTimes).sort();
-      
-      sortedDates.forEach(dateStr => {
-        const dateSlots = selectedTimes[dateStr];
-        Object.entries(dateSlots).forEach(([slotName, qty]) => {
-          if (qty <= 0) return;
-          
-          const baseFirst = course.first_lesson_price || course.price || 0;
-          const baseAdd = course.additional_lesson_price || (course as any).addPrice || 0;
+      if (Object.keys(selectedTimes).length === 0 && skiingSessionIdx !== null) {
+        // Preview calculation before date/times are synced
+        const baseFirst = course.first_lesson_price || course.price || 0;
+        const baseAdd = course.additional_lesson_price || (course as any).addPrice || 0;
+        
+        let unitFirst = 0;
+        let unitAdd = 0;
+        
+        if (skiingSessionIdx === 0) {
+          unitFirst = (course as any).half_day_am_first_price ?? baseFirst;
+          unitAdd = (course as any).half_day_am_add_price ?? baseAdd;
+        } else if (skiingSessionIdx === 1) {
+          unitFirst = (course as any).half_day_pm_first_price ?? baseFirst;
+          unitAdd = (course as any).half_day_pm_add_price ?? baseAdd;
+        } else {
+          unitFirst = (course as any).full_day_first_price ?? baseFirst;
+          unitAdd = (course as any).full_day_add_price ?? baseAdd;
+        }
+        
+        if (!unitFirst && baseFirst) unitFirst = baseFirst;
+        if (!unitAdd && baseAdd) unitAdd = baseAdd;
+        
+        if (isFirstLesson) {
+          total = unitFirst + (skiingPersonCount - 1) * unitAdd;
+        } else {
+          total = skiingPersonCount * unitAdd;
+        }
+      } else {
+        let isFirstUnitGlobal = true;
+        const sortedDates = Object.keys(selectedTimes).sort();
+        
+        sortedDates.forEach(dateStr => {
+          const dateSlots = selectedTimes[dateStr];
+          Object.entries(dateSlots).forEach(([slotName, qty]) => {
+            if (qty <= 0) return;
+            
+            const baseFirst = course.first_lesson_price || course.price || 0;
+            const baseAdd = course.additional_lesson_price || (course as any).addPrice || 0;
 
-          let unitFirst = 0;
-          let unitAdd = 0;
+            let unitFirst = 0;
+            let unitAdd = 0;
 
-          const available = getAvailableTimes(dateStr);
-          const idx = available.indexOf(slotName);
+            const available = getAvailableTimes(dateStr);
+            const idx = available.indexOf(slotName);
 
-          if (idx === 0) { // Half Day AM
-            unitFirst = (course as any).half_day_am_first_price ?? baseFirst;
-            unitAdd = (course as any).half_day_am_add_price ?? baseAdd;
-          } else if (idx === 1) { // Half Day PM
-            unitFirst = (course as any).half_day_pm_first_price ?? baseFirst;
-            unitAdd = (course as any).half_day_pm_add_price ?? baseAdd;
-          } else { // Full Day or other
-            unitFirst = (course as any).full_day_first_price ?? baseFirst;
-            unitAdd = (course as any).full_day_add_price ?? baseAdd;
-          }
-
-          // If specialized prices are 0 but base prices exist, fallback to base
-          if (!unitFirst && baseFirst) unitFirst = baseFirst;
-          if (!unitAdd && baseAdd) unitAdd = baseAdd;
-
-          for (let i = 0; i < qty; i++) {
-            if (isFirstUnitGlobal && isFirstLesson) {
-              total += unitFirst;
-              isFirstUnitGlobal = false;
-            } else {
-              total += unitAdd;
+            if (idx === 0) { // Half Day AM
+              unitFirst = (course as any).half_day_am_first_price ?? baseFirst;
+              unitAdd = (course as any).half_day_am_add_price ?? baseAdd;
+            } else if (idx === 1) { // Half Day PM
+              unitFirst = (course as any).half_day_pm_first_price ?? baseFirst;
+              unitAdd = (course as any).half_day_pm_add_price ?? baseAdd;
+            } else { // Full Day or other
+              unitFirst = (course as any).full_day_first_price ?? baseFirst;
+              unitAdd = (course as any).full_day_add_price ?? baseAdd;
             }
-          }
+
+            // If specialized prices are 0 but base prices exist, fallback to base
+            if (!unitFirst && baseFirst) unitFirst = baseFirst;
+            if (!unitAdd && baseAdd) unitAdd = baseAdd;
+
+            for (let i = 0; i < qty; i++) {
+              if (isFirstUnitGlobal && isFirstLesson) {
+                total += unitFirst;
+                isFirstUnitGlobal = false;
+              } else {
+                total += unitAdd;
+              }
+            }
+          });
         });
-      });
+      }
     } else {
       const firstPrice = course.first_lesson_price || course.price || 0;
       const additionalPrice = course.additional_lesson_price || course.addPrice || firstPrice; 
