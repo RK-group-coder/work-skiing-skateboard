@@ -243,10 +243,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     }
 
                     bookingListHtml += `
-                      <div style="margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #eee; font-family: monospace; font-size: 15px;">
-                        <span style="color: #666;">${dateStr}</span> &nbsp;&nbsp; 
-                        <span style="font-weight: bold;">${displayTime}</span> &nbsp;&nbsp; 
-                        <span style="color: #444;">${pCount}人</span>
+                      <div style="margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 12px; border: 1px solid #eee; font-size: 14px; line-height: 1.6;">
+                        <div style="margin-bottom: 4px;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800;">${dateStr}</span></div>
+                        <div style="margin-bottom: 4px;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #333; font-weight: 800;">${displayTime}</span></div>
+                        <div><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800;">${pCount} 人</span></div>
                       </div>`;
                   });
                 });
@@ -255,7 +255,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 const fallbackDates = Array.isArray(details.dates) ? details.dates : [];
                 const fallbackPCount = details.totalPersonSlots || 1;
                 fallbackDates.forEach((d: string) => {
-                  bookingListHtml += `<div style="margin-bottom: 10px; border-bottom: 1px solid #eee;">${d} &nbsp;&nbsp; 時段未載入 &nbsp;&nbsp; ${fallbackPCount}人</div>`;
+                  bookingListHtml += `
+                    <div style="margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 12px; border: 1px solid #eee; font-size: 14px; line-height: 1.6;">
+                      <div style="margin-bottom: 4px;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800;">${d}</span></div>
+                      <div style="margin-bottom: 4px;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #ff0000; font-weight: 800;">資料處理中...</span></div>
+                      <div><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800;">${fallbackPCount} 人</span></div>
+                    </div>`;
                 });
               }
 
