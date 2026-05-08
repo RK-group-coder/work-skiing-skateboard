@@ -321,7 +321,7 @@ const Hero: React.FC = () => {
       </div>
 
       {/* Bottom Half: Content (Buttons) */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full relative z-10 px-4 py-8 pb-20">
+      <div className="flex-1 flex flex-col items-center justify-center w-full relative z-10 px-4 py-8 pb-32">
         <motion.div
           key={mode + "-btns"}
           initial={{ opacity: 0, y: 20 }}
@@ -338,16 +338,6 @@ const Hero: React.FC = () => {
           </a>
         </motion.div>
       </div>
-
-      {/* Scroll Indicator */}
-      <motion.div 
-        animate={{ y: [0, 10, 0] }}
-        transition={{ repeat: Infinity, duration: 2 }}
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50"
-      >
-        <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Scroll</span>
-        <div className="w-px h-6 bg-white/30" />
-      </motion.div>
     </section>
   );
 };
