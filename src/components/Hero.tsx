@@ -190,9 +190,9 @@ const Hero: React.FC = () => {
   return (
     <section className={`relative h-screen w-full overflow-hidden flex items-center justify-center transition-colors duration-700 ${mode === 'skiing' ? 'bg-[#0f172a]' : 'bg-[#050505]'}`}>
       
-      {/* Background Carousel Area (Constrained to top 80%) */}
+      {/* Background Carousel Area (Constrained to stop above buttons) */}
       <div 
-        className="absolute top-0 left-0 w-full h-[80vh] md:h-[85vh] z-0"
+        className="absolute top-0 left-0 w-full h-[65vh] md:h-[75vh] z-0"
         onTouchStart={onTouchStart} 
         onTouchMove={onTouchMove} 
         onTouchEnd={onTouchEnd}
@@ -206,8 +206,8 @@ const Hero: React.FC = () => {
             transition={{ duration: 0.6, ease: "anticipate" }}
             className="absolute inset-0 w-full h-full overflow-hidden"
             style={{ 
-              WebkitMaskImage: 'linear-gradient(to bottom, black 65%, transparent 100%)', 
-              maskImage: 'linear-gradient(to bottom, black 65%, transparent 100%)' 
+              WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)', 
+              maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)' 
             }}
           >
             {isMp4 ? (
@@ -271,7 +271,7 @@ const Hero: React.FC = () => {
 
         {/* Carousel Indicators */}
         {bgImages.length > 1 && (
-          <div className="absolute bottom-[5%] left-1/2 -translate-x-1/2 flex items-center gap-3 z-50">
+          <div className="absolute bottom-[10%] left-1/2 -translate-x-1/2 flex items-center gap-3 z-50">
             {bgImages.map((_, i) => (
               <button 
                 key={i} 
