@@ -345,6 +345,12 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     if (mode === 'skiing') {
       // In skiing mode, only one date can be selected
       setSelectedDates([dateStr]);
+      // Sync selectedTimes immediately
+      const available = getAvailableTimes(dateStr);
+      const slotTime = available[skiingSessionIdx!] || "";
+      if (slotTime) {
+        setSelectedTimes({ [dateStr]: { [slotTime]: skiingPersonCount } });
+      }
     } else {
       setSelectedDates(prev => 
         prev.includes(dateStr) ? prev.filter(d => d !== dateStr) : [...prev, dateStr].sort()
