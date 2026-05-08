@@ -193,11 +193,11 @@ const Hero: React.FC = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     if (distance > minSwipeDistance) {
-      // User swiped left -> go to previous (reversed per user request)
-      paginate(-1);
-    } else if (distance < -minSwipeDistance) {
-      // User swiped right -> go to next
+      // User swiped left -> go to next (slides in from right to left)
       paginate(1);
+    } else if (distance < -minSwipeDistance) {
+      // User swiped right -> go to previous (slides in from left to right)
+      paginate(-1);
     }
   };
 
