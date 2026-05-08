@@ -391,13 +391,13 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                 )}
 
                 {step === 2 && (
-                  <motion.div key="ski-s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10 text-center py-10">
-                    <div className="flex flex-col items-center gap-4">
+                  <motion.div key="ski-s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10 py-6">
+                    <div className="flex flex-col items-center gap-4 text-center">
                       <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-2"><Users size={32} /></div>
                       <h4 className="text-2xl font-black italic uppercase text-gray-900">選擇上課人數</h4>
                     </div>
                     
-                    <div className="flex items-center justify-center gap-8 bg-gray-50 p-10 rounded-[48px] border border-gray-100 max-w-sm mx-auto shadow-sm">
+                    <div className="flex items-center justify-center gap-8 bg-gray-50 p-10 rounded-[48px] border border-gray-100 max-w-sm mx-auto shadow-sm mb-10">
                       <button 
                         onClick={() => {
                           const newVal = Math.max(1, skiingPersonCount - 1);
@@ -424,7 +424,26 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all text-gray-900 border border-gray-100"
                       >+</button>
                     </div>
-                    <p className="text-gray-600 font-bold italic">目前已選擇 {skiingPersonCount} 人同行</p>
+
+                    {/* Dynamic Price Summary for Step 2 */}
+                    <div className="max-w-md mx-auto">
+                      <div className="bg-neutral-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden text-center">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
+                        <div className="relative">
+                          <div className="flex items-center justify-center gap-2 mb-4 cursor-pointer" onClick={() => setIsFirstLesson(!isFirstLesson)}>
+                            <div className={`w-10 h-6 rounded-full transition-colors relative ${isFirstLesson ? 'bg-primary' : 'bg-gray-700'}`}>
+                              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isFirstLesson ? 'left-5' : 'left-1'}`} />
+                            </div>
+                            <span className="text-[10px] font-black uppercase tracking-widest ml-2">這是我的第一堂課</span>
+                          </div>
+                          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">預估總價 ESTIMATED</div>
+                          <div className="text-5xl font-black italic tracking-tighter text-primary" style={{ color: activeColor }}>NT${totalTWD.toLocaleString()}</div>
+                          <div className="text-[10px] text-gray-500 font-bold mt-3">
+                            目前已選擇 {skiingPersonCount} 人同行
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
 
