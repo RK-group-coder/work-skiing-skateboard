@@ -107,15 +107,16 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                 
                 // Helper to expand slot into hours
                 const expand = (s: string) => {
-                  if (s.includes('-') || s.includes('~')) {
-                    const parts = s.split(/[~-]/);
+                  const timePart = s.split(' ').pop() || ""; 
+                  if (timePart.includes('-') || timePart.includes('~')) {
+                    const parts = timePart.split(/[~-]/);
                     const start = parseInt(parts[0]);
                     const end = parseInt(parts[1]);
                     let res = [];
                     for(let i=start; i<end; i++) res.push(i);
                     return res;
                   }
-                  return [parseInt(s)];
+                  return [parseInt(timePart)];
                 };
 
                 const myHours = mySlots.flatMap(expand);
@@ -189,7 +190,11 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     
     // Special handling for Skiing: return raw slots (keeping indices for AM/PM/Full)
     if (mode === 'skiing') {
-      return Array.isArray(raw) ? raw : (typeof raw === 'string' ? raw.split(',').map(s => s.trim()) : []);
+      const rawSlots = Array.isArray(raw) ? raw : (typeof raw === 'string' ? raw.split(',').map(s => s.trim()) : []);
+      return rawSlots.map((s, idx) => {
+        const label = idx === 0 ? "半天(上午)" : idx === 1 ? "半天(下午)" : "全天課程";
+        return `${label} ${s}`;
+      });
     }
     
     return parseSlots(raw);
