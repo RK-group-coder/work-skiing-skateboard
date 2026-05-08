@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, ChevronRight, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { User } from '@supabase/supabase-js';
@@ -239,6 +239,15 @@ const MultiMediaUploadField = ({ label, value, onChange, bucket }: { label: stri
     onChange([...urls, url.trim()].join(','));
   };
 
+  const moveUrl = (index: number, direction: 'left' | 'right') => {
+    if (direction === 'left' && index === 0) return;
+    if (direction === 'right' && index === urls.length - 1) return;
+    const newUrls = [...urls];
+    const targetIndex = direction === 'left' ? index - 1 : index + 1;
+    [newUrls[index], newUrls[targetIndex]] = [newUrls[targetIndex], newUrls[index]];
+    onChange(newUrls.join(','));
+  };
+
   const getYoutubeThumb = (url: string) => {
     const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([\w-]{11})/);
     return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : null;
@@ -261,6 +270,25 @@ const MultiMediaUploadField = ({ label, value, onChange, bucket }: { label: stri
                ) : (
                  <img src={u} alt="Preview" className="w-full h-full object-cover" />
                )}
+
+               {/* Ordering Controls */}
+               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between px-1 z-10">
+                 <button 
+                   type="button"
+                   onClick={() => moveUrl(i, 'left')}
+                   className={`p-1 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white ${i === 0 ? 'invisible' : ''}`}
+                 >
+                   <ChevronLeft size={16} strokeWidth={3} />
+                 </button>
+                 <button 
+                   type="button"
+                   onClick={() => moveUrl(i, 'right')}
+                   className={`p-1 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white ${i === urls.length - 1 ? 'invisible' : ''}`}
+                 >
+                   <ChevronRight size={16} strokeWidth={3} />
+                 </button>
+               </div>
+
                <button 
                  type="button"
                  onClick={() => removeUrl(i)}
