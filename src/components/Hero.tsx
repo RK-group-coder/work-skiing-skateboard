@@ -181,9 +181,11 @@ const Hero: React.FC = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
     if (distance > minSwipeDistance) {
-      setCurrentIndex(prev => (prev === bgImages.length - 1 ? 0 : prev + 1));
-    } else if (distance < -minSwipeDistance) {
+      // User swiped left -> go to previous (reversed per user request)
       setCurrentIndex(prev => (prev === 0 ? bgImages.length - 1 : prev - 1));
+    } else if (distance < -minSwipeDistance) {
+      // User swiped right -> go to next
+      setCurrentIndex(prev => (prev === bgImages.length - 1 ? 0 : prev + 1));
     }
   };
 
