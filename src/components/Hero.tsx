@@ -75,10 +75,17 @@ const Hero: React.FC = () => {
   
   const rawBgImage = currentSettings.hero_bg_image || '';
   const isSettingSoundOn = rawBgImage.includes('&sound=1');
-  const bgImage = rawBgImage.replace('&sound=1', '') || defaultBg;
+  const bgImages = rawBgImage.replace('&sound=1', '').split(',').filter(Boolean);
   
-  const isMp4 = bgImage.toLowerCase().includes('.mp4');
-  const ytInfo = !isMp4 ? getYoutubeInfo(bgImage) : null;
+  const [currentIndex, setCurrentIndex] = useState(0);
+  
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [mode, rawBgImage]);
+
+  const currentBg = bgImages[currentIndex] || defaultBg;
+  const isMp4 = currentBg.toLowerCase().includes('.mp4');
+  const ytInfo = !isMp4 ? getYoutubeInfo(currentBg) : null;
   
   const [isMuted, setIsMuted] = useState(!isSettingSoundOn);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
@@ -150,88 +157,137 @@ const Hero: React.FC = () => {
         playerRef.current.mute();
       } else {
         playerRef.current.unMute();
-        playerRef.current.playVideo(); // Force play in case OS blocked initial autoplay
+        playerRef.current.playVideo();
       }
     }
     setIsMuted(nextMute);
   };
 
+  // Carousel Swipe Logic
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    if (distance > minSwipeDistance) {
+      setCurrentIndex(prev => (prev === bgImages.length - 1 ? 0 : prev + 1));
+    } else if (distance < -minSwipeDistance) {
+      setCurrentIndex(prev => (prev === 0 ? bgImages.length - 1 : prev - 1));
+    }
+  };
+
   return (
-    <section className="relative h-screen w-full overflow-hidden flex items-center justify-center bg-black">
-      {/* Background Images with Crossfade */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={mode + bgImage}
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.8 }}
-          className="absolute inset-0 z-0 overflow-hidden"
-        >
-          {isMp4 ? (
-            <div className="absolute inset-0 w-full h-full bg-black">
-              <video 
-                ref={videoRef}
-                src={bgImage}
-                autoPlay 
-                loop 
-                muted={isMuted} 
-                playsInline 
+    <section className={`relative h-screen w-full overflow-hidden flex items-center justify-center transition-colors duration-700 ${mode === 'skiing' ? 'bg-[#0f172a]' : 'bg-[#050505]'}`}>
+      
+      {/* Background Carousel Area (Constrained to top 80%) */}
+      <div 
+        className="absolute top-0 left-0 w-full h-[80vh] md:h-[85vh] z-0"
+        onTouchStart={onTouchStart} 
+        onTouchMove={onTouchMove} 
+        onTouchEnd={onTouchEnd}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={mode + currentIndex + currentBg}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.6, ease: "anticipate" }}
+            className="absolute inset-0 w-full h-full overflow-hidden"
+            style={{ 
+              WebkitMaskImage: 'linear-gradient(to bottom, black 65%, transparent 100%)', 
+              maskImage: 'linear-gradient(to bottom, black 65%, transparent 100%)' 
+            }}
+          >
+            {isMp4 ? (
+              <div className="absolute inset-0 w-full h-full bg-black">
+                <video 
+                  ref={videoRef}
+                  src={currentBg}
+                  autoPlay 
+                  loop 
+                  muted={isMuted} 
+                  playsInline 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : ytInfo ? (
+              <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-black">
+                <img 
+                  src={`https://img.youtube.com/vi/${ytInfo.id}/maxresdefault.jpg`}
+                  onError={(e) => { e.currentTarget.src = `https://img.youtube.com/vi/${ytInfo.id}/hqdefault.jpg`; }}
+                  alt="Video Loading"
+                  className={`absolute top-1/2 left-1/2 object-cover transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-0' : 'opacity-100'}`}
+                  style={{ 
+                    width: '100vw', 
+                    height: '56.25vw', 
+                    minHeight: '100vh', 
+                    minWidth: '177.78vh',
+                    transform: 'translate(-50%, -50%) scale(1.15)'
+                  }}
+                />
+                <iframe
+                  id="youtube-bg-player"
+                  src={`https://www.youtube.com/embed/${ytInfo.id}?enablejsapi=1&autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytInfo.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+                  className={`absolute top-1/2 left-1/2 transition-opacity duration-700 pointer-events-none ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  style={{ 
+                    border: 'none',
+                    width: '100vw', 
+                    height: '56.25vw', 
+                    minHeight: '100vh', 
+                    minWidth: '177.78vh',
+                    transform: 'translate(-50%, -50%) scale(1.15)'
+                  }}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <img 
+                src={currentBg} 
+                alt="Hero Background"
                 className="w-full h-full object-cover"
               />
-            </div>
-          ) : ytInfo ? (
-            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-black">
-              {/* Thumbnail Preload - Provides instant visual feedback */}
-              <img 
-                src={`https://img.youtube.com/vi/${ytInfo.id}/maxresdefault.jpg`}
-                onError={(e) => { e.currentTarget.src = `https://img.youtube.com/vi/${ytInfo.id}/hqdefault.jpg`; }}
-                alt="Video Loading"
-                className={`absolute top-1/2 left-1/2 object-cover transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-0' : 'opacity-100'}`}
-                style={{ 
-                  width: '100vw', 
-                  height: '56.25vw', 
-                  minHeight: '100vh', 
-                  minWidth: '177.78vh',
-                  transform: 'translate(-50%, -50%) scale(1.15)'
-                }}
+            )}
+            
+            <div className={`absolute inset-0 bg-gradient-to-b ${
+              mode === 'skiing' 
+                ? 'from-sky-900/30 via-transparent to-transparent' 
+                : 'from-red-900/30 via-transparent to-transparent'
+            }`} />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Carousel Indicators */}
+        {bgImages.length > 1 && (
+          <div className="absolute bottom-[5%] left-1/2 -translate-x-1/2 flex items-center gap-3 z-50">
+            {bgImages.map((_, i) => (
+              <button 
+                key={i} 
+                onClick={() => setCurrentIndex(i)}
+                className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-6 bg-white' : 'w-1.5 bg-white/50 hover:bg-white/80'}`} 
               />
-              <iframe
-                id="youtube-bg-player"
-                src={`https://www.youtube.com/embed/${ytInfo.id}?enablejsapi=1&autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytInfo.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
-                className={`absolute top-1/2 left-1/2 transition-opacity duration-700 pointer-events-none ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
-                style={{ 
-                  border: 'none',
-                  width: '100vw', 
-                  height: '56.25vw', 
-                  minHeight: '100vh', 
-                  minWidth: '177.78vh',
-                  transform: 'translate(-50%, -50%) scale(1.15)'
-                }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          ) : (
-            <img 
-              src={bgImage} 
-              alt="Hero Background"
-              className="w-full h-full object-cover"
-            />
-          )}
-          <div className={`absolute inset-0 bg-gradient-to-b ${
-            mode === 'skiing' 
-              ? 'from-sky-900/40 via-transparent to-white' 
-              : 'from-red-900/40 via-transparent to-black'
-          }`} />
-        </motion.div>
-      </AnimatePresence>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Video Sound Toggle Button */}
       {(ytInfo || isMp4) && (
         <button 
           onClick={toggleSound}
-          className="absolute bottom-8 right-8 z-50 w-12 h-12 bg-black/30 hover:bg-black/60 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all border border-white/20 active:scale-95"
+          className="absolute bottom-32 md:bottom-12 right-6 md:right-12 z-50 w-12 h-12 bg-black/40 hover:bg-black/80 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all border border-white/20 active:scale-95 shadow-2xl"
           title={isMuted ? "播放聲音" : "靜音"}
         >
           {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
@@ -254,7 +310,7 @@ const Hero: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-5xl md:text-8xl font-black text-white mb-8 tracking-tighter leading-tight"
+          className="text-5xl md:text-8xl font-black mb-8 tracking-tighter leading-tight text-white drop-shadow-lg"
         >
           {currentSettings.hero_title}
         </motion.h1>
@@ -264,7 +320,7 @@ const Hero: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-lg md:text-xl text-white/90 mb-12 max-w-2xl mx-auto font-medium"
+          className="text-lg md:text-xl mb-12 max-w-2xl mx-auto font-medium text-white/90 drop-shadow-md"
         >
           {currentSettings.hero_subtitle}
         </motion.p>
@@ -290,10 +346,10 @@ const Hero: React.FC = () => {
       <motion.div 
         animate={{ y: [0, 10, 0] }}
         transition={{ repeat: Infinity, duration: 2 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white opacity-50 flex flex-col items-center gap-2"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50"
       >
-        <span className="text-xs uppercase tracking-widest">Scroll</span>
-        <div className="w-px h-12 bg-white" />
+        <span className="text-[10px] font-bold uppercase tracking-[0.3em]">Scroll</span>
+        <div className="w-px h-8 bg-white/30" />
       </motion.div>
     </section>
   );

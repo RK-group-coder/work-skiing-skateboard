@@ -210,6 +210,94 @@ const ImageUploadField = ({ label, value, onChange, bucket }: { label: string; v
   );
 };
 
+const MultiMediaUploadField = ({ label, value, onChange, bucket }: { label: string; value: string; onChange: (url: string) => void; bucket?: string }) => {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const urls = value ? value.split(',').filter(Boolean) : [];
+
+  const onFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setUploading(true);
+    const newUrls = [...urls];
+    for (let i = 0; i < e.target.files.length; i++) {
+      const url = await handleFileUpload(e.target.files[i], bucket);
+      if (url) newUrls.push(url);
+    }
+    onChange(newUrls.join(','));
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeUrl = (index: number) => {
+    const newUrls = [...urls];
+    newUrls.splice(index, 1);
+    onChange(newUrls.join(','));
+  };
+
+  const addUrl = (url: string) => {
+    if (!url.trim()) return;
+    onChange([...urls, url.trim()].join(','));
+  };
+
+  const getYoutubeThumb = (url: string) => {
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([\w-]{11})/);
+    return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : null;
+  };
+
+  return (
+    <div className="space-y-3">
+      <label className={labelCls}>{label}</label>
+      
+      <div className="flex flex-wrap gap-3">
+        {urls.map((u, i) => {
+           const isMp4 = u.toLowerCase().includes('.mp4');
+           const ytThumb = getYoutubeThumb(u);
+           return (
+             <div key={i} className="relative w-24 h-24 rounded-2xl border border-gray-200 overflow-hidden group bg-gray-100 flex-shrink-0">
+               {isMp4 ? (
+                 <video src={u} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+               ) : ytThumb ? (
+                 <img src={ytThumb} className="w-full h-full object-cover" alt="YT Preview" />
+               ) : (
+                 <img src={u} alt="Preview" className="w-full h-full object-cover" />
+               )}
+               <button 
+                 type="button"
+                 onClick={() => removeUrl(i)}
+                 style={{ backgroundColor: '#000000', color: '#ffffff' }}
+                 className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all active:scale-90 border border-white/40 z-20"
+               >
+                 <X size={14} strokeWidth={3} />
+               </button>
+             </div>
+           );
+        })}
+        
+        <div onClick={() => fileInputRef.current?.click()} className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
+          <Plus size={20} className="text-gray-400 mb-1" />
+          <span className="text-[10px] font-bold text-gray-400">{uploading ? '上傳中...' : '新增媒體'}</span>
+        </div>
+      </div>
+      
+      <div className="flex gap-2">
+        <input ref={fileInputRef} type="file" accept="image/*,video/mp4" multiple onChange={onFileSelect} className="hidden" />
+        <input 
+          type="text" 
+          placeholder="貼上網址後按 Enter 新增..." 
+          className={inputCls} 
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              addUrl(e.currentTarget.value);
+              e.currentTarget.value = '';
+            }
+          }} 
+        />
+      </div>
+    </div>
+  );
+};
+
 const ProductForm = ({ form, setForm, onSave, onCancel, categories, loading }: { form: Product; setForm: (v: Product) => void; onSave: () => void; onCancel: () => void; categories: Category[]; loading: boolean }) => (
   <div className="bg-white border border-gray-100 rounded-[28px] p-6 space-y-4">
     <div className="grid grid-cols-2 gap-4">
@@ -1664,9 +1752,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         </div>
                       );
                     })}
-                    <div className="space-y-2">
-                      <ImageUploadField 
-                        label="Background Image (背景圖 / MP4 / YT網址)" 
+                    <div className="space-y-4">
+                      <MultiMediaUploadField 
+                        label="Background Media Carousel (背景輪播 / 支援多個 MP4、YT網址、圖片)" 
                         value={settings.hero_bg_image.split('&sound=1')[0]} 
                         onChange={url => {
                           const hasSound = settings.hero_bg_image.includes('&sound=1');
