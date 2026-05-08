@@ -201,6 +201,21 @@ const Hero: React.FC = () => {
     }
   };
 
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? '100%' : '-100%',
+      zIndex: 0,
+    }),
+    center: {
+      x: 0,
+      zIndex: 1,
+    },
+    exit: (direction: number) => ({
+      x: direction < 0 ? '100%' : '-100%',
+      zIndex: 0,
+    })
+  };
+
   return (
     <section 
       className={`relative min-h-[100dvh] w-full overflow-hidden flex flex-col transition-colors duration-700 ${mode === 'skiing' ? 'bg-[#0f172a]' : 'bg-[#050505]'}`}
@@ -215,9 +230,10 @@ const Hero: React.FC = () => {
           <motion.div
             key={mode + currentIndex + currentBg}
             custom={direction}
-            initial={(d: number) => ({ x: d > 0 ? '100%' : '-100%', zIndex: 0 })}
-            animate={{ x: 0, zIndex: 1 }}
-            exit={(d: number) => ({ x: d < 0 ? '100%' : '-100%', zIndex: 0 })}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
             transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
             className="absolute inset-0 w-full h-full overflow-hidden bg-black"
           >
