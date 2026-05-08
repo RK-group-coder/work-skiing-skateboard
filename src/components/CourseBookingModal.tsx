@@ -113,6 +113,12 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     const date = new Date(dateStr);
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     const raw = isWeekend ? timeSettings.weekend_slots : timeSettings.weekday_slots;
+    
+    // Special handling for Skiing: return raw slots (keeping indices for AM/PM/Full)
+    if (mode === 'skiing') {
+      return Array.isArray(raw) ? raw : (typeof raw === 'string' ? raw.split(',').map(s => s.trim()) : []);
+    }
+    
     return parseSlots(raw);
   };
 
@@ -405,9 +411,18 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {available.map((t: string) => {
+                          {available.map((t: string, idx: number) => {
+                            if (!t || t.trim() === '') return null;
                             const qty = dateSlots[t] || 0;
                             const isSelected = qty > 0;
+                            
+                            // Session labels for Skiing
+                            const getSkiingLabel = (i: number) => {
+                              if (i === 0) return "半天 (上午)";
+                              if (i === 1) return "半天 (下午)";
+                              if (i === 2) return "全天課程";
+                              return "預約時段";
+                            };
                             
                             return (
                               <div 
@@ -419,14 +434,20 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                               >
                                 <div className="flex items-center gap-4">
                                   <div 
-                                    className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm transition-colors ${
+                                    className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-[10px] transition-colors flex-col leading-tight ${
                                       isSelected ? 'bg-primary text-white' : 'bg-white text-gray-400'
                                     }`}
                                     style={{ backgroundColor: isSelected ? activeColor : undefined }}
                                   >
-                                    {t}
+                                    {t.split('-')[0]}
+                                    <div className="text-[8px] opacity-60">{t.split('-')[1]}</div>
                                   </div>
-                                  <div className="font-bold text-gray-900">時段報名</div>
+                                  <div>
+                                    <div className="font-black text-sm text-gray-900">
+                                      {mode === 'skiing' ? getSkiingLabel(idx) : "時段報名"}
+                                    </div>
+                                    <div className="text-[10px] font-bold text-gray-400">{t}</div>
+                                  </div>
                                 </div>
 
                                 <div className="flex items-center gap-3 bg-gray-100/50 p-1 rounded-2xl">

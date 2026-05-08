@@ -1457,21 +1457,55 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         <h4 className="text-sm font-black uppercase tracking-widest text-primary">
                           {scheduleMode === 'skiing' ? '滑雪端' : '滑板端'} 時段設置
                         </h4>
-                        {['weekday', 'weekend'].map(type => (
-                          <div key={type} className="space-y-3">
-                            <label className={labelCls}>{type === 'weekday' ? '📅 平日預設時段' : '🎉 假日預設時段'}</label>
-                            <textarea
-                              rows={2}
-                              value={timeSettings[scheduleMode][`${type}_slots` as keyof CourseTimeSettings] as any}
-                              onChange={e => {
-                                const val = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
-                                setTimeSettings({ ...timeSettings, [scheduleMode]: { ...timeSettings[scheduleMode], [`${type}_slots`]: val } });
-                              }}
-                              className={`${inputCls} text-xs font-mono`}
-                              placeholder="例如: 09:00, 13:00, 15:00"
-                            />
+                        {scheduleMode === 'skiing' ? (
+                          <div className="space-y-4">
+                            {[
+                              { label: '⛅ 半天 (上午) 時段', index: 0, placeholder: '09:00-12:00' },
+                              { label: '🌤️ 半天 (下午) 時段', index: 1, placeholder: '13:00-16:00' },
+                              { label: '🏔️ 全天 時段', index: 2, placeholder: '09:00-15:00' },
+                            ].map(item => (
+                              <div key={item.index} className="space-y-1.5">
+                                <label className={labelCls}>{item.label}</label>
+                                <input 
+                                  type="text" 
+                                  value={(timeSettings[scheduleMode]?.weekday_slots || [])[item.index] || ''} 
+                                  onChange={e => {
+                                    const newSlots = [...(timeSettings[scheduleMode]?.weekday_slots || [])];
+                                    while(newSlots.length <= item.index) newSlots.push('');
+                                    newSlots[item.index] = e.target.value;
+                                    setTimeSettings({ 
+                                      ...timeSettings, 
+                                      [scheduleMode]: { 
+                                        ...timeSettings[scheduleMode], 
+                                        weekday_slots: newSlots,
+                                        weekend_slots: newSlots 
+                                      } 
+                                    });
+                                  }} 
+                                  className={inputCls}
+                                  placeholder={item.placeholder}
+                                />
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        ) : (
+                          ['weekday', 'weekend'].map(type => (
+                            <div key={type} className="space-y-3">
+                              <label className={labelCls}>{type === 'weekday' ? '📅 平日預設時段' : '🎉 假日預設時段'}</label>
+                              <textarea
+                                rows={2}
+                                value={timeSettings[scheduleMode][`${type}_slots` as keyof CourseTimeSettings] as any}
+                                onChange={e => {
+                                  const val = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+                                  setTimeSettings({ ...timeSettings, [scheduleMode]: { ...timeSettings[scheduleMode], [`${type}_slots`]: val } });
+                                }}
+                                className={`${inputCls} text-xs font-mono`}
+                                placeholder="例如: 09:00, 13:00, 15:00"
+                              />
+                            </div>
+                          ))
+                        )}
+
                         <button onClick={() => handleSaveTimeSlots(scheduleMode)} disabled={loading}
                           style={{ backgroundColor: '#111827', color: '#ffffff' }}
                           className="w-full py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-md">
