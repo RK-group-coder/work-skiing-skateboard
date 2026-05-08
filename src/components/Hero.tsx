@@ -190,15 +190,15 @@ const Hero: React.FC = () => {
   };
 
   return (
-    <section className={`relative h-screen w-full overflow-hidden flex items-center justify-center transition-colors duration-700 ${mode === 'skiing' ? 'bg-[#0f172a]' : 'bg-[#050505]'}`}>
+    <section 
+      className={`relative h-screen w-full overflow-hidden flex items-center justify-center transition-colors duration-700 ${mode === 'skiing' ? 'bg-[#0f172a]' : 'bg-[#050505]'}`}
+      onTouchStart={onTouchStart} 
+      onTouchMove={onTouchMove} 
+      onTouchEnd={onTouchEnd}
+    >
       
       {/* Background Carousel Area (Constrained to stop above buttons) */}
-      <div 
-        className="absolute top-0 left-0 w-full h-[65vh] md:h-[75vh] z-0"
-        onTouchStart={onTouchStart} 
-        onTouchMove={onTouchMove} 
-        onTouchEnd={onTouchEnd}
-      >
+      <div className="absolute top-0 left-0 w-full h-[65vh] md:h-[75vh] z-0">
         <AnimatePresence mode="wait">
           <motion.div
             key={mode + currentIndex + currentBg}
