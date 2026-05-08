@@ -61,19 +61,43 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
   }, [mode]);
 
   // Convert DB courses to UI plans
-  const plans = dbCourses.map(c => ({
-    ...c,
-    id: c.id,
-    name: c.name,
-    mode: c.mode,
-    price: Number(c.first_lesson_price || c.price || 0),
-    addPrice: Number(c.additional_lesson_price || 0),
-    period: '每堂 120min', 
-    description: c.description,
-    image_url: c.image_url,
-    features: c.description ? c.description.split('\n').filter((s: string) => s.trim()) : ['專業教練指導', '安全防護保證'],
-    popular: false 
-  }));
+  const plans = dbCourses.map(c => {
+    let priceDisplay = `NT$${(c.first_lesson_price || c.price || 0).toLocaleString()}`;
+    
+    if (c.mode === 'skiing') {
+      const prices = [
+        c.full_day_first_price,
+        c.half_day_am_first_price,
+        c.half_day_pm_first_price,
+        c.first_lesson_price || c.price
+      ].map(p => Number(p)).filter(p => p > 0);
+      
+      if (prices.length > 0) {
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        if (minPrice !== maxPrice) {
+          priceDisplay = `NT$${minPrice.toLocaleString()} ~ ${maxPrice.toLocaleString()}`;
+        } else {
+          priceDisplay = `NT$${minPrice.toLocaleString()}`;
+        }
+      }
+    }
+
+    return {
+      ...c,
+      id: c.id,
+      name: c.name,
+      mode: c.mode,
+      price: Number(c.first_lesson_price || c.price || 0),
+      priceDisplay,
+      addPrice: Number(c.additional_lesson_price || 0),
+      period: '每堂 120min', 
+      description: c.description,
+      image_url: c.image_url,
+      features: c.description ? c.description.split('\n').filter((s: string) => s.trim()) : ['專業教練指導', '安全防護保證'],
+      popular: false 
+    };
+  });
 
   const handleClaim = async (v: Voucher) => {
     try {
@@ -242,7 +266,7 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                   <h3 className="text-3xl font-black text-gray-900 tracking-tighter mb-4 leading-tight">{p.name}</h3>
                   <div className="space-y-4">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-black text-gray-900 tracking-tighter">NT${p.price.toLocaleString()}</span>
+                      <span className="text-2xl font-black text-gray-900 tracking-tighter">{p.priceDisplay}</span>
                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-0.5 rounded ml-1">初次體驗</span>
                     </div>
                     {p.addPrice > 0 && p.addPrice < p.price && (
