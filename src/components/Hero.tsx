@@ -296,43 +296,14 @@ const Hero: React.FC = () => {
         </button>
       )}
 
-      {/* Content */}
-      <div className="relative z-10 text-center px-4 max-w-4xl">
-        <motion.div
-          key={mode + "-badge"}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="inline-block px-6 py-2 rounded-full border border-white/30 backdrop-blur-md text-white font-bold mb-6 tracking-widest uppercase text-sm"
-        >
-          {currentSettings.hero_badge}
-        </motion.div>
-
-        <motion.h1 
-          key={mode + "-title"}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="text-5xl md:text-8xl font-black mb-8 tracking-tighter leading-tight text-white drop-shadow-lg"
-        >
-          {currentSettings.hero_title}
-        </motion.h1>
-
-        <motion.p
-          key={mode + "-desc"}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-lg md:text-xl mb-12 max-w-2xl mx-auto font-medium text-white/90 drop-shadow-md"
-        >
-          {currentSettings.hero_subtitle}
-        </motion.p>
-
+      {/* Content (Only Buttons Left) */}
+      <div className="absolute bottom-[15vh] md:bottom-[20vh] left-0 w-full z-10 text-center px-4">
         <motion.div
           key={mode + "-btns"}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="flex flex-col md:flex-row items-center justify-center gap-4 w-full px-6"
+          transition={{ delay: 0.1 }}
+          className="flex flex-col md:flex-row items-center justify-center gap-4 w-full max-w-4xl mx-auto px-6"
         >
           <a href="#courses" className="mobile-btn-primary md:w-auto md:px-12 md:py-4 flex items-center justify-center">
             查看課程 <span className="ml-2">→</span>

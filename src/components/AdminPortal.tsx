@@ -1735,23 +1735,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                     </h3>
                   </div>
                   <div className="space-y-6">
-                    {[
-                      { label: 'Hero Title (大標)', key: 'hero_title', type: 'input' },
-                      { label: 'Hero Badge (標記)', key: 'hero_badge', type: 'input' },
-                      { label: 'Hero Subtitle (內文)', key: 'hero_subtitle', type: 'textarea' },
-                    ].map(({ label, key, type }) => {
-                      const settings = homepageSettings[id];
-                      if (!settings) return null;
-                      return (
-                        <div key={key}>
-                          <label className={labelCls}>{label}</label>
-                          {type === 'textarea'
-                            ? <textarea rows={3} value={(settings as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, [key]: e.target.value } })} className={`${inputCls} resize-none`} />
-                            : <input type="text" value={(settings as any)[key]} onChange={e => setHomepageSettings({ ...homepageSettings, [id]: { ...settings, [key]: e.target.value } })} className={inputCls} />
-                          }
-                        </div>
-                      );
-                    })}
+                    {/* Hero Text fields removed per client request */}
                     <div className="space-y-4">
                       <MultiMediaUploadField 
                         label="Background Media Carousel (背景輪播 / 支援多個 MP4、YT網址、圖片)" 
