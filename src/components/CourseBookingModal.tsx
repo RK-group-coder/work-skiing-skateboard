@@ -53,6 +53,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   // Skiing Specific Flow State
   const [skiingSessionIdx, setSkiingSessionIdx] = useState<number | null>(null);
   const [skiingPersonCount, setSkiingPersonCount] = useState(1);
+  const [busyCoachIds, setBusyCoachIds] = useState<string[]>([]);
 
   // Constants
   const JPY_RATE = 4.75; 
@@ -67,8 +68,74 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
       setSelectedCoach('');
       setSkiingSessionIdx(null);
       setSkiingPersonCount(1);
+      setBusyCoachIds([]);
     }
   }, [isOpen, mode]);
+
+  useEffect(() => {
+    if (selectedDates.length > 0 && Object.keys(selectedTimes).length > 0) {
+      checkCoachAvailability();
+    }
+  }, [selectedDates, selectedTimes]);
+
+  const checkCoachAvailability = async () => {
+    try {
+      const { data: orders, error } = await supabase
+        .from('orders')
+        .select('items')
+        .eq('status', 'confirmed');
+        
+      if (error) throw error;
+      
+      const busyIds = new Set<string>();
+      
+      orders?.forEach(order => {
+        order.items?.forEach((item: any) => {
+          if (item.type === 'course_booking') {
+            const details = item.details;
+            const orderDates = details.dates || [];
+            const orderTimes = details.times || {};
+            const coachId = details.coachId;
+            
+            if (!coachId) return;
+            
+            // Check overlaps
+            selectedDates.forEach(date => {
+              if (orderDates.includes(date)) {
+                const mySlots = Object.keys(selectedTimes[date] || {});
+                const theirSlots = Object.keys(orderTimes[date] || {});
+                
+                // Helper to expand slot into hours
+                const expand = (s: string) => {
+                  if (s.includes('-') || s.includes('~')) {
+                    const parts = s.split(/[~-]/);
+                    const start = parseInt(parts[0]);
+                    const end = parseInt(parts[1]);
+                    let res = [];
+                    for(let i=start; i<end; i++) res.push(i);
+                    return res;
+                  }
+                  return [parseInt(s)];
+                };
+
+                const myHours = mySlots.flatMap(expand);
+                const theirHours = theirSlots.flatMap(expand);
+                
+                const hasOverlap = myHours.some(h => theirHours.includes(h));
+                if (hasOverlap) {
+                  busyIds.add(coachId);
+                }
+              }
+            });
+          }
+        });
+      });
+      
+      setBusyCoachIds(Array.from(busyIds));
+    } catch (err) {
+      console.error('Check coach availability failed:', err);
+    }
+  };
 
   const fetchBookingData = async () => {
     const targetMode = course.mode || mode;
@@ -551,11 +618,27 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         <div>
                           <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SELECT COACH</label>
                           <div className="grid grid-cols-2 gap-3">
-                            {coaches.map(c => (
-                              <button key={c.id} onClick={() => setSelectedCoach(c.id)} className={`p-3 rounded-xl border-2 flex items-center gap-3 transition-all ${selectedCoach === c.id ? 'bg-white shadow-md border-primary' : 'bg-gray-50 border-transparent opacity-60'}`} style={{ borderColor: selectedCoach === c.id ? activeColor : undefined }}>
-                                <span className="font-bold text-sm text-gray-900">{c.name}</span>
-                              </button>
-                            ))}
+                            {coaches.map(c => {
+                              const isBusy = busyCoachIds.includes(c.id);
+                              return (
+                                <button 
+                                  key={c.id} 
+                                  disabled={isBusy}
+                                  onClick={() => setSelectedCoach(c.id)} 
+                                  className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center gap-0.5 transition-all ${
+                                    selectedCoach === c.id 
+                                      ? 'bg-white shadow-md border-primary' 
+                                      : isBusy 
+                                        ? 'bg-gray-50 border-gray-100 opacity-80 cursor-not-allowed'
+                                        : 'bg-gray-50 border-transparent hover:border-gray-200'
+                                  }`} 
+                                  style={{ borderColor: selectedCoach === c.id ? activeColor : undefined }}
+                                >
+                                  <span className={`font-bold text-sm ${isBusy ? 'text-red-500' : 'text-gray-900'}`}>{c.name}</span>
+                                  {isBusy && <span className="text-[8px] font-black text-red-500 uppercase tracking-tighter">該時段已有課</span>}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                         <div>
@@ -833,11 +916,27 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         <div>
                           <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SELECT COACH</label>
                           <div className="grid grid-cols-2 gap-3">
-                            {coaches.map(c => (
-                              <button key={c.id} onClick={() => setSelectedCoach(c.id)} className={`p-3 rounded-xl border-2 flex items-center gap-3 transition-all ${selectedCoach === c.id ? 'bg-white shadow-md border-transparent' : 'bg-gray-50 opacity-60 border-transparent'}`}>
-                                <span className="font-bold text-sm text-gray-900">{c.name}</span>
-                              </button>
-                            ))}
+                            {coaches.map(c => {
+                              const isBusy = busyCoachIds.includes(c.id);
+                              return (
+                                <button 
+                                  key={c.id} 
+                                  disabled={isBusy}
+                                  onClick={() => setSelectedCoach(c.id)} 
+                                  className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center gap-0.5 transition-all ${
+                                    selectedCoach === c.id 
+                                      ? 'bg-white shadow-md border-primary' 
+                                      : isBusy 
+                                        ? 'bg-gray-50 border-gray-100 opacity-80 cursor-not-allowed'
+                                        : 'bg-gray-50 border-transparent hover:border-gray-200'
+                                  }`} 
+                                  style={{ borderColor: selectedCoach === c.id ? activeColor : undefined }}
+                                >
+                                  <span className={`font-bold text-sm ${isBusy ? 'text-red-500' : 'text-gray-900'}`}>{c.name}</span>
+                                  {isBusy && <span className="text-[8px] font-black text-red-500 uppercase tracking-tighter">該時段已有課</span>}
+                                </button>
+                              );
+                            })}
                           </div>
                         </div>
                         <div>
