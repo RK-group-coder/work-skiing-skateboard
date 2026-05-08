@@ -73,6 +73,17 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   }, [isOpen, mode]);
 
   useEffect(() => {
+    if (mode === 'skiing' && skiingSessionIdx !== null && selectedDates.length > 0) {
+      const date = selectedDates[0];
+      const available = getAvailableTimes(date);
+      const slotTime = available[skiingSessionIdx] || "";
+      if (slotTime) {
+        setSelectedTimes({ [date]: { [slotTime]: skiingPersonCount } });
+      }
+    }
+  }, [mode, skiingSessionIdx, skiingPersonCount, selectedDates]);
+
+  useEffect(() => {
     if (selectedDates.length > 0 && Object.keys(selectedTimes).length > 0) {
       checkCoachAvailability();
     }
@@ -350,12 +361,6 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     if (mode === 'skiing') {
       // In skiing mode, only one date can be selected
       setSelectedDates([dateStr]);
-      // Sync selectedTimes immediately
-      const available = getAvailableTimes(dateStr);
-      const slotTime = available[skiingSessionIdx!] || "";
-      if (slotTime) {
-        setSelectedTimes({ [dateStr]: { [slotTime]: skiingPersonCount } });
-      }
     } else {
       setSelectedDates(prev => 
         prev.includes(dateStr) ? prev.filter(d => d !== dateStr) : [...prev, dateStr].sort()
@@ -510,11 +515,6 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         onClick={() => {
                           const newVal = Math.max(1, skiingPersonCount - 1);
                           setSkiingPersonCount(newVal);
-                          // Sync
-                          const date = selectedDates[0];
-                          const available = getAvailableTimes(date || new Date().toISOString());
-                          const slotTime = available[skiingSessionIdx!] || "";
-                          if (date && slotTime) setSelectedTimes({ [date]: { [slotTime]: newVal } });
                         }}
                         className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all text-gray-900 border border-gray-100"
                       >-</button>
@@ -523,11 +523,6 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         onClick={() => {
                           const newVal = skiingPersonCount + 1;
                           setSkiingPersonCount(newVal);
-                          // Sync
-                          const date = selectedDates[0];
-                          const available = getAvailableTimes(date || new Date().toISOString());
-                          const slotTime = available[skiingSessionIdx!] || "";
-                          if (date && slotTime) setSelectedTimes({ [date]: { [slotTime]: newVal } });
                         }}
                         className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all text-gray-900 border border-gray-100"
                       >+</button>
