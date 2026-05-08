@@ -50,6 +50,10 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   // Local state for calendar navigation
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
+  // Skiing Specific Flow State
+  const [skiingSessionIdx, setSkiingSessionIdx] = useState<number | null>(null);
+  const [skiingPersonCount, setSkiingPersonCount] = useState(1);
+
   // Constants
   const JPY_RATE = 4.75; 
 
@@ -61,6 +65,8 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
       setSelectedTimes({});
       setSelectedLocation('');
       setSelectedCoach('');
+      setSkiingSessionIdx(null);
+      setSkiingPersonCount(1);
     }
   }, [isOpen, mode]);
 
@@ -238,9 +244,15 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
        alert('抱歉，該日期是公休日，無法預約。');
        return;
     }
-    setSelectedDates(prev => 
-      prev.includes(dateStr) ? prev.filter(d => d !== dateStr) : [...prev, dateStr].sort()
-    );
+
+    if (mode === 'skiing') {
+      // In skiing mode, only one date can be selected
+      setSelectedDates([dateStr]);
+    } else {
+      setSelectedDates(prev => 
+        prev.includes(dateStr) ? prev.filter(d => d !== dateStr) : [...prev, dateStr].sort()
+      );
+    }
   };
 
   const handleBooking = async () => {
@@ -284,7 +296,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   const totalTWD = calculateTotal();
   const totalJPY = Math.round(totalTWD * JPY_RATE);
   const activeColor = mode === 'skiing' ? '#3b82f6' : '#ef4444';
-  const totalSteps = 4;
+  const totalSteps = mode === 'skiing' ? 4 : 4; // Both are 4 steps now, but different logic
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-md">
@@ -313,369 +325,485 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 md:p-12">
           <AnimatePresence mode="wait">
-            {step === 1 && (
-              <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Calendar size={24} /></div>
-                  <h4 className="text-xl font-bold text-gray-900">選擇上課日期 <span className="text-gray-400 font-normal text-base">(可複選多個日期)</span></h4>
-                </div>
-
-                {/* Interactive Calendar */}
-                <div className="bg-gray-50 p-6 rounded-[32px] border border-gray-100">
-                  <div className="flex items-center justify-between mb-6 px-2">
-                    <h5 className="font-black text-lg italic uppercase tracking-tight text-gray-900">
-                      {currentMonth.getFullYear()}年 {currentMonth.getMonth() + 1}月
-                    </h5>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
-                        className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm hover:bg-gray-100 transition-all text-gray-900"
-                      >
-                        <ChevronLeft size={20} />
-                      </button>
-                      <button 
-                        onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
-                        className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm hover:bg-gray-100 transition-all text-gray-900"
-                      >
-                        <ChevronRight size={20} />
-                      </button>
+            {/* SKIING FLOW */}
+            {mode === 'skiing' && (
+              <>
+                {step === 1 && (
+                  <motion.div key="ski-s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Clock size={24} /></div>
+                      <h4 className="text-xl font-bold text-gray-900">選擇課程類型</h4>
                     </div>
-                  </div>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      {[0, 1, 2].map(idx => {
+                        const available = getAvailableTimes(new Date().toISOString()); // Just to get slots
+                        const slotTime = available[idx] || (idx === 0 ? "09:00-12:00" : idx === 1 ? "13:00-16:00" : "09:00-15:00");
+                        const label = idx === 0 ? "半天 (上午)" : idx === 1 ? "半天 (下午)" : "全天課程";
+                        const isSelected = skiingSessionIdx === idx;
+                        
+                        const baseFirst = course.first_lesson_price || course.price || 0;
+                        const baseAdd = course.additional_lesson_price || (course as any).addPrice || 0;
+                        
+                        let fPrice = idx === 0 ? (course as any).half_day_am_first_price : idx === 1 ? (course as any).half_day_pm_first_price : (course as any).full_day_first_price;
+                        let aPrice = idx === 0 ? (course as any).half_day_am_add_price : idx === 1 ? (course as any).half_day_pm_add_price : (course as any).full_day_add_price;
+                        
+                        if (!fPrice) fPrice = baseFirst;
+                        if (!aPrice) aPrice = baseAdd;
 
-                  <div className="grid grid-cols-7 gap-1 text-center mb-2">
-                    {['日', '一', '二', '三', '四', '五', '六'].map(d => (
-                      <div key={d} className="text-[10px] font-black text-gray-400 uppercase tracking-widest py-2">{d}</div>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-1">
-                    {(() => {
-                      const days: React.ReactElement[] = [];
-                      const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
-                      const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
-                      const today = new Date();
-                      today.setHours(0,0,0,0);
-
-                      // Padding for first week
-                      for (let i = 0; i < firstDay; i++) {
-                        days.push(<div key={`empty-${i}`} />);
-                      }
-
-                      for (let d = 1; d <= daysInMonth; d++) {
-                        const year = currentMonth.getFullYear();
-                        const month = currentMonth.getMonth() + 1;
-                        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                        const date = new Date(year, currentMonth.getMonth(), d);
-                        const isPast = date < today;
-                        const isSelected = selectedDates.includes(dateStr);
-                        const isBlocked = schedules.some(s => s.blocked_date === dateStr);
-
-                        days.push(
-                          <button
-                            key={d}
-                            disabled={isPast || isBlocked}
-                            onClick={() => toggleDateSelection(dateStr)}
-                            style={{ 
-                              backgroundColor: isSelected ? activeColor : undefined,
+                        return (
+                          <button 
+                            key={idx}
+                            onClick={() => {
+                              setSkiingSessionIdx(idx);
+                              // Sync to existing logic state
+                              const date = selectedDates[0];
+                              if (date) {
+                                setSelectedTimes({ [date]: { [slotTime]: skiingPersonCount } });
+                              }
                             }}
-                            className={`
-                              aspect-square rounded-xl flex flex-col items-center justify-center transition-all relative
-                              ${isSelected ? 'text-white shadow-lg scale-105 z-10' : 'bg-white hover:bg-gray-100 text-gray-700 shadow-sm'}
-                              ${(isPast || isBlocked) ? 'opacity-20 cursor-not-allowed bg-transparent shadow-none' : ''}
-                            `}
+                            className={`p-6 rounded-[32px] border-2 text-left transition-all flex items-center justify-between group ${
+                              isSelected ? 'bg-white shadow-xl ring-4 ring-primary/5 border-primary' : 'bg-gray-50 border-transparent opacity-60'
+                            }`}
+                            style={{ borderColor: isSelected ? activeColor : undefined }}
                           >
-                            <span className="text-sm font-bold">{d}</span>
-                            {isBlocked && !isPast && <div className="absolute bottom-1 w-1 h-1 bg-red-400 rounded-full" />}
+                            <div className="flex items-center gap-5">
+                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${isSelected ? 'bg-primary text-white' : 'bg-white text-gray-300'}`} style={{ backgroundColor: isSelected ? activeColor : undefined }}>
+                                {idx === 0 ? "上午" : idx === 1 ? "下午" : "全天"}
+                              </div>
+                              <div>
+                                <div className="font-black text-lg text-gray-900">{label}</div>
+                                <div className="text-xs font-bold text-gray-400">{slotTime}</div>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Price Start From</div>
+                              <div className="text-xl font-black italic text-primary" style={{ color: isSelected ? activeColor : undefined }}>
+                                NT${fPrice.toLocaleString()}
+                              </div>
+                              <div className="text-[9px] font-bold text-gray-400">續報價 NT${aPrice.toLocaleString()}</div>
+                            </div>
                           </button>
                         );
-                      }
-                      return days;
-                    })()}
-                  </div>
-                </div>
-
-                {/* Selected Summary */}
-                {selectedDates.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-2">
-                    {selectedDates.map(d => (
-                      <div 
-                        key={d} 
-                        style={{ 
-                          backgroundColor: `${activeColor}15`,
-                          color: activeColor 
-                        }}
-                        className="px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-2"
-                      >
-                        {d}
-                        <button onClick={() => toggleDateSelection(d)} className="hover:text-red-500"><X size={12}/></button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-400 italic text-center py-4">請在日曆上點擊選擇上課日期。</p>
+                      })}
+                    </div>
+                  </motion.div>
                 )}
-              </motion.div>
-            )}
 
-            {step === 2 && (
-              <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Clock size={24} /></div>
-                    <h4 className="text-xl font-bold text-gray-900">選擇上課時段 <span className="text-sm text-gray-400 font-normal">(請分別為每天選擇時段)</span></h4>
-                  </div>
-                  
-                  {/* Real-time Price Summary for Step 2 */}
-                  <div className="bg-neutral-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden min-w-[280px]">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -mr-12 -mt-12 blur-2xl opacity-50" />
-                    <div className="relative">
-                      <div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => setIsFirstLesson(!isFirstLesson)}>
-                        <div className={`w-8 h-4 rounded-full transition-colors relative ${isFirstLesson ? 'bg-primary' : 'bg-gray-700'}`}>
-                          <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${isFirstLesson ? 'left-4.5' : 'left-0.5'}`} />
-                        </div>
-                        <span className="text-[8px] font-black uppercase tracking-widest ml-1">第一堂課</span>
-                      </div>
-                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">預估總價 ESTIMATED</div>
-                      <div className="text-3xl font-black italic tracking-tighter text-primary">NT${totalTWD.toLocaleString()}</div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-12">
-                  {selectedDates.map(dateStr => {
-                    const available = getAvailableTimes(dateStr);
-                    const dateSlots = selectedTimes[dateStr] || {};
-                    
-                    return (
-                      <div key={dateStr} className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                        <div className="flex items-center gap-3">
-                          <div className="px-4 py-1.5 bg-neutral-900 text-white rounded-xl text-xs font-black italic">
-                            {dateStr}
-                          </div>
-                          <div className="h-[1px] flex-1 bg-gray-100" />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {available.map((t: string, idx: number) => {
-                            if (!t || t.trim() === '') return null;
-                            const qty = dateSlots[t] || 0;
-                            const isSelected = qty > 0;
-                            
-                            // Session labels for Skiing
-                            const getSkiingLabel = (i: number) => {
-                              if (i === 0) return "半天 (上午)";
-                              if (i === 1) return "半天 (下午)";
-                              if (i === 2) return "全天課程";
-                              return "預約時段";
-                            };
-                            
-                            return (
-                              <div 
-                                key={t}
-                                className={`p-4 rounded-3xl transition-all border-2 flex items-center justify-between gap-4 ${
-                                  isSelected ? 'bg-white shadow-lg ring-4 ring-primary/5' : 'bg-gray-50 border-transparent opacity-60'
-                                }`}
-                                style={{ borderColor: isSelected ? activeColor : 'transparent' }}
-                              >
-                                <div className="flex items-center gap-4">
-                                  <div 
-                                    className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-[10px] transition-colors flex-col leading-tight ${
-                                      isSelected ? 'bg-primary text-white' : 'bg-white text-gray-400'
-                                    }`}
-                                    style={{ backgroundColor: isSelected ? activeColor : undefined }}
-                                  >
-                                    {t.split('-')[0]}
-                                    <div className="text-[8px] opacity-60">{t.split('-')[1]}</div>
-                                  </div>
-                                  <div>
-                                    <div className="font-black text-sm text-gray-900">
-                                      {mode === 'skiing' ? getSkiingLabel(idx) : "時段報名"}
-                                    </div>
-                                    <div className="text-[10px] font-bold text-gray-400">{t}</div>
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center gap-3 bg-gray-100/50 p-1 rounded-2xl">
-                                  <button 
-                                    onClick={() => updateSlotQty(dateStr, t, -1)}
-                                    className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all text-gray-900"
-                                  >-</button>
-                                  <span className={`w-8 text-center font-black italic text-xl ${isSelected ? 'text-primary' : 'text-gray-400'}`} style={{ color: isSelected ? activeColor : undefined }}>
-                                    {qty}
-                                  </span>
-                                  <button 
-                                    onClick={() => updateSlotQty(dateStr, t, 1)}
-                                    className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all text-gray-900"
-                                  >+</button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-
-            {step === 3 && (
-              <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10 text-center">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-2"><MapPin size={32} /></div>
-                  <h4 className="text-2xl font-black italic uppercase text-gray-900">確認上課地點</h4>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-                  {locations.length > 0 ? locations.map(l => (
-                    <button key={l.id} onClick={() => setSelectedLocation(l.id)}
-                      style={{
-                        borderColor: selectedLocation === l.id ? activeColor : '#000000',
-                        borderStyle: 'solid'
-                      }}
-                      className={`p-6 rounded-3xl border-2 text-left transition-all ${
-                        selectedLocation === l.id 
-                          ? 'bg-white shadow-xl ring-4 ring-primary/5 scale-[1.02]' 
-                          : 'bg-white hover:border-primary/50'
-                      }`}>
-                      <div className="font-black text-lg mb-1 text-gray-900">{l.name}</div>
-                      <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{l.address || '地點詳細資訊'}</div>
-                    </button>
-                  )) : (
-                    <div className="col-span-2 py-20 px-8 bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-200">
-                      <div className="text-gray-400 font-bold italic mb-2">目前該模式尚無預設地點</div>
-                      <div className="text-[10px] text-gray-400 font-medium italic">您可以直接點擊「下一步」繼續預約</div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-
-            {step === 4 && (
-              <motion.div key="s4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Users size={24} /></div>
-                  <h4 className="text-xl font-bold text-gray-900">參與人員與教練</h4>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SELECT COACH</label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {coaches.length > 0 ? coaches.map(c => (
-                          <button key={c.id} onClick={() => setSelectedCoach(c.id)}
-                            className={`p-3 rounded-xl border-2 flex items-center gap-3 transition-all ${selectedCoach === c.id ? 'bg-white shadow-md border-transparent' : 'bg-gray-50 opacity-60 border-transparent'}`}>
-                            {/* Left checkbox */}
-                            <span
-                              className="w-5 h-5 rounded flex items-center justify-center shrink-0 border-2 transition-all"
-                              style={{
-                                backgroundColor: selectedCoach === c.id ? activeColor : 'white',
-                                borderColor: selectedCoach === c.id ? activeColor : '#d1d5db',
-                              }}
-                            >
-                              {selectedCoach === c.id && (
-                                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                                  <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              )}
-                            </span>
-                            {c.image_url ? (
-                              <img src={c.image_url} className="w-10 h-10 rounded-lg object-cover" alt="" />
-                            ) : (
-                              <span className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center overflow-hidden shrink-0">
-                                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
-                                  {/* Body / shoulders */}
-                                  <ellipse cx="20" cy="34" rx="13" ry="9" fill="#9ca3af"/>
-                                  {/* Head */}
-                                  <circle cx="20" cy="16" r="8" fill="#6b7280"/>
-                                </svg>
-                              </span>
-                            )}
-                            <span className="font-bold text-sm text-gray-900">{c.name}</span>
-                          </button>
-                        )) : (
-                          <div className="col-span-2 p-6 bg-gray-50 rounded-2xl text-center text-gray-400 font-bold italic text-xs">
-                            目前無可用教練
-                          </div>
-                        )}
-                      </div>
+                {step === 2 && (
+                  <motion.div key="ski-s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10 text-center py-10">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-2"><Users size={32} /></div>
+                      <h4 className="text-2xl font-black italic uppercase text-gray-900">選擇上課人數</h4>
                     </div>
                     
-                    {/* Skill Level - Moved from Step 5 */}
-                    <div>
-                      <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SKILL LEVEL / NOTES</label>
-                      <textarea 
-                        placeholder="請描述您的運動程度，以便教練準備..."
-                        value={skillLevel}
-                        onChange={(e) => setSkillLevel(e.target.value)}
-                        className="w-full p-6 bg-white rounded-2xl border border-gray-200 focus:ring-2 focus:ring-primary focus:border-transparent outline-none font-medium h-32 text-gray-900 placeholder:text-gray-400 shadow-sm"
-                      />
-                    </div>
-
-                    {/* Media Upload - Moved from Step 5 */}
-                    <div>
-                      <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">MEDIA UPLOAD (Optional)</label>
-                      <div className="grid grid-cols-1 gap-4">
-                        <label className="flex items-center gap-3 p-5 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-all border-2 border-dashed border-gray-200">
-                          <Camera size={20} className="text-gray-400" />
-                          <span className="text-sm font-bold text-gray-500">上傳程度照片/影片</span>
-                          <input type="file" onChange={handleFileUpload} className="hidden" accept="image/*,video/*" />
-                        </label>
-                        {mediaUrl && (
-                          <div className="p-5 bg-green-50 rounded-2xl border border-green-100 flex items-center gap-3 text-green-600 text-sm font-bold">
-                            <CheckCircle2 size={18} /> 檔案已準備就緒
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">OFFERS & VOUCHERS</label>
+                    <div className="flex items-center justify-center gap-8 bg-gray-50 p-10 rounded-[48px] border border-gray-100 max-w-sm mx-auto shadow-sm">
                       <button 
-                        onClick={() => setIsVoucherModalOpen(true)}
-                        className="w-full p-6 rounded-3xl bg-gray-50 border-2 border-dashed border-gray-200 flex items-center justify-between hover:bg-gray-100 transition-all group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${selectedVoucher ? 'bg-green-500 text-white' : 'bg-white text-gray-400 group-hover:text-primary'}`}>
-                            <CreditCard size={20} />
-                          </div>
-                          <div className="text-left">
-                            <div className="font-black text-sm uppercase tracking-tight">
-                              {selectedVoucher ? selectedVoucher.code : '選擇優惠券'}
-                            </div>
-                            <div className="text-[10px] font-bold text-gray-400">
-                              {selectedVoucher ? `已套用優惠券` : '查看目前可用的優惠'}
-                            </div>
-                          </div>
-                        </div>
-                        <ChevronRight size={20} className="text-gray-300" />
-                      </button>
+                        onClick={() => {
+                          const newVal = Math.max(1, skiingPersonCount - 1);
+                          setSkiingPersonCount(newVal);
+                          // Sync
+                          const date = selectedDates[0];
+                          const available = getAvailableTimes(date || new Date().toISOString());
+                          const slotTime = available[skiingSessionIdx!] || "";
+                          if (date && slotTime) setSelectedTimes({ [date]: { [slotTime]: newVal } });
+                        }}
+                        className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all"
+                      >-</button>
+                      <span className="text-5xl font-black italic text-primary" style={{ color: activeColor }}>{skiingPersonCount}</span>
+                      <button 
+                        onClick={() => {
+                          const newVal = skiingPersonCount + 1;
+                          setSkiingPersonCount(newVal);
+                          // Sync
+                          const date = selectedDates[0];
+                          const available = getAvailableTimes(date || new Date().toISOString());
+                          const slotTime = available[skiingSessionIdx!] || "";
+                          if (date && slotTime) setSelectedTimes({ [date]: { [slotTime]: newVal } });
+                        }}
+                        className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all"
+                      >+</button>
                     </div>
-                  </div>
-                  <div className="bg-neutral-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
-                    <div className="relative">
-                      <div className="flex items-center gap-2 mb-6 cursor-pointer" onClick={() => setIsFirstLesson(!isFirstLesson)}>
-                        <div className={`w-10 h-6 rounded-full transition-colors relative ${isFirstLesson ? 'bg-primary' : 'bg-gray-700'}`}>
-                          <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isFirstLesson ? 'left-5' : 'left-1'}`} />
+                    <p className="text-gray-400 font-bold italic">目前已選擇 {skiingPersonCount} 人同行</p>
+                  </motion.div>
+                )}
+
+                {step === 3 && (
+                  <motion.div key="ski-s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Calendar size={24} /></div>
+                      <h4 className="text-xl font-bold text-gray-900">選擇上課日期 <span className="text-gray-400 font-normal text-base">(滑雪課程限選一天)</span></h4>
+                    </div>
+
+                    <div className="bg-gray-50 p-6 rounded-[32px] border border-gray-100">
+                      <div className="flex items-center justify-between mb-6 px-2">
+                        <h5 className="font-black text-lg italic uppercase tracking-tight text-gray-900">
+                          {currentMonth.getFullYear()}年 {currentMonth.getMonth() + 1}月
+                        </h5>
+                        <div className="flex gap-2">
+                          <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))} className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm"><ChevronLeft size={20} /></button>
+                          <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))} className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm"><ChevronRight size={20} /></button>
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest ml-2">這是我的第一堂課</span>
+                      </div>
+                      <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                        {['日', '一', '二', '三', '四', '五', '六'].map(d => <div key={d} className="text-[10px] font-black text-gray-400 uppercase py-2">{d}</div>)}
+                      </div>
+                      <div className="grid grid-cols-7 gap-1">
+                        {(() => {
+                          const days: React.ReactElement[] = [];
+                          const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
+                          const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+                          const today = new Date(); today.setHours(0,0,0,0);
+                          for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} />);
+                          for (let d = 1; d <= daysInMonth; d++) {
+                            const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                            const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), d);
+                            const isPast = date < today;
+                            const isSelected = selectedDates.includes(dateStr);
+                            const isBlocked = schedules.some(s => s.blocked_date === dateStr);
+                            days.push(
+                              <button key={d} disabled={isPast || isBlocked} onClick={() => {
+                                toggleDateSelection(dateStr);
+                                // Sync times
+                                const available = getAvailableTimes(dateStr);
+                                const slotTime = available[skiingSessionIdx!] || "";
+                                if (slotTime) setSelectedTimes({ [dateStr]: { [slotTime]: skiingPersonCount } });
+                              }}
+                              className={`aspect-square rounded-xl flex items-center justify-center transition-all ${isSelected ? 'text-white shadow-lg scale-105 z-10' : 'bg-white text-gray-700 shadow-sm'} ${isPast || isBlocked ? 'opacity-20' : ''}`}
+                              style={{ backgroundColor: isSelected ? activeColor : undefined }}>
+                                <span className="text-sm font-bold">{d}</span>
+                              </button>
+                            );
+                          }
+                          return days;
+                        })()}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {step === 4 && (
+                  <motion.div key="ski-s4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                    {/* Reuse existing Step 4 content for coach/location */}
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Users size={24} /></div>
+                      <h4 className="text-xl font-bold text-gray-900">教練與地點確認</h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-6">
+                        <div>
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SELECT LOCATION</label>
+                          <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none font-bold text-gray-900">
+                            <option value="">選擇上課地點</option>
+                            {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SELECT COACH</label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {coaches.map(c => (
+                              <button key={c.id} onClick={() => setSelectedCoach(c.id)} className={`p-3 rounded-xl border-2 flex items-center gap-3 transition-all ${selectedCoach === c.id ? 'bg-white shadow-md border-primary' : 'bg-gray-50 border-transparent opacity-60'}`} style={{ borderColor: selectedCoach === c.id ? activeColor : undefined }}>
+                                <span className="font-bold text-sm text-gray-900">{c.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">ADDITIONAL INFO</label>
+                          <textarea placeholder="技能程度或特殊備註..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-gray-50 rounded-2xl h-24 outline-none font-medium text-gray-900" />
+                        </div>
                       </div>
                       
-                      <div className="space-y-1 mb-8">
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest">ESTIMATED TOTAL</div>
-                        <div className="text-4xl font-black italic tracking-tighter text-primary">NT${totalTWD.toLocaleString()}</div>
-                        <div className="text-xs font-black text-gray-500 mt-1 flex items-center gap-2">
-                          <span className="bg-white/5 py-1 px-2 rounded text-gray-400">約 ￥{totalJPY.toLocaleString()} JPY</span>
-                          <span className="opacity-40 italic text-gray-500">匯率參考：{JPY_RATE}</span>
+                      <div className="bg-neutral-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden">
+                        <div className="relative z-10">
+                          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Booking Summary</div>
+                          <div className="space-y-4 mb-8">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-400">時段類型</span>
+                              <span className="font-bold">{skiingSessionIdx === 0 ? "半天 (上午)" : skiingSessionIdx === 1 ? "半天 (下午)" : "全天課程"}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-400">日期</span>
+                              <span className="font-bold text-primary" style={{ color: activeColor }}>{selectedDates[0]}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-400">人數</span>
+                              <span className="font-bold">{skiingPersonCount} 人</span>
+                            </div>
+                          </div>
+                          <div className="h-[1px] bg-white/10 mb-6" />
+                          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">TOTAL ESTIMATED</div>
+                          <div className="text-4xl font-black italic tracking-tighter text-primary" style={{ color: activeColor }}>NT${totalTWD.toLocaleString()}</div>
                         </div>
                       </div>
-                      <div className="text-[10px] text-gray-500 font-bold">
-                        已選 {selectedDates.length} 天 × {Object.values(selectedTimes).reduce((acc, slots) => acc + Object.keys(slots).length, 0)} 時段
+                    </div>
+                  </motion.div>
+                )}
+              </>
+            )}
+
+            {/* SKATEBOARD FLOW (Original) */}
+            {mode === 'skateboard' && (
+              <>
+                {step === 1 && (
+                  <motion.div key="s1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Calendar size={24} /></div>
+                      <h4 className="text-xl font-bold text-gray-900">選擇上課日期 <span className="text-gray-400 font-normal text-base">(可複選多個日期)</span></h4>
+                    </div>
+
+                    {/* Interactive Calendar */}
+                    <div className="bg-gray-50 p-6 rounded-[32px] border border-gray-100">
+                      <div className="flex items-center justify-between mb-6 px-2">
+                        <h5 className="font-black text-lg italic uppercase tracking-tight text-gray-900">
+                          {currentMonth.getFullYear()}年 {currentMonth.getMonth() + 1}月
+                        </h5>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
+                            className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm hover:bg-gray-100 transition-all text-gray-900"
+                          >
+                            <ChevronLeft size={20} />
+                          </button>
+                          <button 
+                            onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
+                            className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm hover:bg-gray-100 transition-all text-gray-900"
+                          >
+                            <ChevronRight size={20} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                        {['日', '一', '二', '三', '四', '五', '六'].map(d => (
+                          <div key={d} className="text-[10px] font-black text-gray-400 uppercase tracking-widest py-2">{d}</div>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-1">
+                        {(() => {
+                          const days: React.ReactElement[] = [];
+                          const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
+                          const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+                          const today = new Date();
+                          today.setHours(0,0,0,0);
+
+                          // Padding for first week
+                          for (let i = 0; i < firstDay; i++) {
+                            days.push(<div key={`empty-${i}`} />);
+                          }
+
+                          for (let d = 1; d <= daysInMonth; d++) {
+                            const year = currentMonth.getFullYear();
+                            const month = currentMonth.getMonth() + 1;
+                            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                            const date = new Date(year, currentMonth.getMonth(), d);
+                            const isPast = date < today;
+                            const isSelected = selectedDates.includes(dateStr);
+                            const isBlocked = schedules.some(s => s.blocked_date === dateStr);
+
+                            days.push(
+                              <button
+                                key={d}
+                                disabled={isPast || isBlocked}
+                                onClick={() => toggleDateSelection(dateStr)}
+                                style={{ 
+                                  backgroundColor: isSelected ? activeColor : undefined,
+                                }}
+                                className={`
+                                  aspect-square rounded-xl flex flex-col items-center justify-center transition-all relative
+                                  ${isSelected ? 'text-white shadow-lg scale-105 z-10' : 'bg-white hover:bg-gray-100 text-gray-700 shadow-sm'}
+                                  ${(isPast || isBlocked) ? 'opacity-20 cursor-not-allowed bg-transparent shadow-none' : ''}
+                                `}
+                              >
+                                <span className="text-sm font-bold">{d}</span>
+                                {isBlocked && !isPast && <div className="absolute bottom-1 w-1 h-1 bg-red-400 rounded-full" />}
+                              </button>
+                            );
+                          }
+                          return days;
+                        })()}
                       </div>
                     </div>
-                  </div>
-                </div>
-              </motion.div>
+
+                    {/* Selected Summary */}
+                    {selectedDates.length > 0 ? (
+                      <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-2">
+                        {selectedDates.map(d => (
+                          <div 
+                            key={d} 
+                            style={{ 
+                              backgroundColor: `${activeColor}15`,
+                              color: activeColor 
+                            }}
+                            className="px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-2"
+                          >
+                            {d}
+                            <button onClick={() => toggleDateSelection(d)} className="hover:text-red-500"><X size={12}/></button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic text-center py-4">請在日曆上點擊選擇上課日期。</p>
+                    )}
+                  </motion.div>
+                )}
+
+                {step === 2 && (
+                  <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Clock size={24} /></div>
+                        <h4 className="text-xl font-bold text-gray-900">選擇上課時段 <span className="text-sm text-gray-400 font-normal">(請分別為每天選擇時段)</span></h4>
+                      </div>
+                      
+                      {/* Real-time Price Summary for Step 2 */}
+                      <div className="bg-neutral-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden min-w-[280px]">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -mr-12 -mt-12 blur-2xl opacity-50" />
+                        <div className="relative">
+                          <div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => setIsFirstLesson(!isFirstLesson)}>
+                            <div className={`w-8 h-4 rounded-full transition-colors relative ${isFirstLesson ? 'bg-primary' : 'bg-gray-700'}`}>
+                              <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${isFirstLesson ? 'left-4.5' : 'left-0.5'}`} />
+                            </div>
+                            <span className="text-[8px] font-black uppercase tracking-widest ml-1">第一堂課</span>
+                          </div>
+                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">預估總價 ESTIMATED</div>
+                          <div className="text-3xl font-black italic tracking-tighter text-primary">NT${totalTWD.toLocaleString()}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-12">
+                      {selectedDates.map(dateStr => {
+                        const available = getAvailableTimes(dateStr);
+                        const dateSlots = selectedTimes[dateStr] || {};
+                        
+                        return (
+                          <div key={dateStr} className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                            <div className="flex items-center gap-3">
+                              <div className="px-4 py-1.5 bg-neutral-900 text-white rounded-xl text-xs font-black italic">
+                                {dateStr}
+                              </div>
+                              <div className="h-[1px] flex-1 bg-gray-100" />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {available.map((t: string, idx: number) => {
+                                if (!t || t.trim() === '') return null;
+                                const qty = dateSlots[t] || 0;
+                                const isSelected = qty > 0;
+                                
+                                return (
+                                  <div 
+                                    key={t}
+                                    className={`p-4 rounded-3xl transition-all border-2 flex items-center justify-between gap-4 ${
+                                      isSelected ? 'bg-white shadow-lg ring-4 ring-primary/5' : 'bg-gray-50 border-transparent opacity-60'
+                                    }`}
+                                    style={{ borderColor: isSelected ? activeColor : 'transparent' }}
+                                  >
+                                    <div className="flex items-center gap-4">
+                                      <div 
+                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-[10px] transition-colors flex-col leading-tight ${
+                                          isSelected ? 'bg-primary text-white' : 'bg-white text-gray-400'
+                                        }`}
+                                        style={{ backgroundColor: isSelected ? activeColor : undefined }}
+                                      >
+                                        {t.split('-')[0]}
+                                        <div className="text-[8px] opacity-60">{t.split('-')[1]}</div>
+                                      </div>
+                                      <div>
+                                        <div className="font-black text-sm text-gray-900">時段報名</div>
+                                        <div className="text-[10px] font-bold text-gray-400">{t}</div>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 bg-gray-100/50 p-1 rounded-2xl">
+                                      <button 
+                                        onClick={() => updateSlotQty(dateStr, t, -1)}
+                                        className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all text-gray-900"
+                                      >-</button>
+                                      <span className={`w-8 text-center font-black italic text-xl ${isSelected ? 'text-primary' : 'text-gray-400'}`} style={{ color: isSelected ? activeColor : undefined }}>
+                                        {qty}
+                                      </span>
+                                      <button 
+                                        onClick={() => updateSlotQty(dateStr, t, 1)}
+                                        className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all text-gray-900"
+                                      >+</button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+
+                {step === 3 && (
+                  <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-10 text-center">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-2"><MapPin size={32} /></div>
+                      <h4 className="text-2xl font-black italic uppercase text-gray-900">確認上課地點</h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                      {locations.length > 0 ? locations.map(l => (
+                        <button key={l.id} onClick={() => setSelectedLocation(l.id)}
+                          style={{
+                            borderColor: selectedLocation === l.id ? activeColor : '#000000',
+                            borderStyle: 'solid'
+                          }}
+                          className={`p-6 rounded-3xl border-2 text-left transition-all ${
+                            selectedLocation === l.id 
+                              ? 'bg-white shadow-xl ring-4 ring-primary/5 scale-[1.02]' 
+                              : 'bg-white hover:border-primary/50'
+                          }`}>
+                          <div className="font-black text-lg mb-1 text-gray-900">{l.name}</div>
+                          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{l.address || '地點詳細資訊'}</div>
+                        </button>
+                      )) : (
+                        <div className="col-span-2 py-20 px-8 bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-200">
+                          <div className="text-gray-400 font-bold italic mb-2">目前該模式尚無預設地點</div>
+                          <div className="text-[10px] text-gray-400 font-medium italic">您可以直接點擊「下一步」繼續預約</div>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {step === 4 && (
+                  <motion.div key="s4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Users size={24} /></div>
+                      <h4 className="text-xl font-bold text-gray-900">參與人員與教練</h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-6">
+                        <div>
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SELECT COACH</label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {coaches.map(c => (
+                              <button key={c.id} onClick={() => setSelectedCoach(c.id)} className={`p-3 rounded-xl border-2 flex items-center gap-3 transition-all ${selectedCoach === c.id ? 'bg-white shadow-md border-transparent' : 'bg-gray-50 opacity-60 border-transparent'}`}>
+                                <span className="font-bold text-sm text-gray-900">{c.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SKILL LEVEL / NOTES</label>
+                          <textarea placeholder="請描述您的運動程度..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl border border-gray-200 h-32 outline-none" />
+                        </div>
+                      </div>
+                      <div className="bg-neutral-900 rounded-[32px] p-8 text-white">
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">ESTIMATED TOTAL</div>
+                        <div className="text-4xl font-black italic tracking-tighter text-primary">NT${totalTWD.toLocaleString()}</div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </>
             )}
 
 
@@ -694,11 +822,18 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
             </button>
             <button 
               onClick={() => {
-                if (step === 1 && selectedDates.length === 0) return;
-                if (step === 2 && Object.values(selectedTimes).every(slots => Object.keys(slots).length === 0)) return;
-                // step 3 location & step 4 coach are optional if no data exists
-                if (step === 3 && locations.length > 0 && !selectedLocation) return;
-                if (step === 4 && coaches.length > 0 && !selectedCoach) return;
+                if (mode === 'skiing') {
+                  if (step === 1 && skiingSessionIdx === null) return;
+                  if (step === 2 && skiingPersonCount === 0) return;
+                  if (step === 3 && selectedDates.length === 0) return;
+                  if (step === 4 && locations.length > 0 && !selectedLocation) return;
+                  if (step === 4 && coaches.length > 0 && !selectedCoach) return;
+                } else {
+                  if (step === 1 && selectedDates.length === 0) return;
+                  if (step === 2 && Object.values(selectedTimes).every(slots => Object.keys(slots).length === 0)) return;
+                  if (step === 3 && locations.length > 0 && !selectedLocation) return;
+                  if (step === 4 && coaches.length > 0 && !selectedCoach) return;
+                }
 
                 if (step === totalSteps) handleBooking();
                 else setStep(step + 1);
@@ -707,7 +842,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               className={`flex items-center gap-3 py-4 px-10 rounded-2xl font-black text-white shadow-xl hover:scale-105 active:scale-95 transition-all ${
                 loading ? 'opacity-50 grayscale' : ''
               }`}
-              style={{ background: 'var(--primary-gradient)' }}
+              style={{ background: mode === 'skiing' ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'var(--primary-gradient)' }}
             >
               {loading ? '處理中...' : step === totalSteps ? '確認預約' : '下一步'} {step < totalSteps && <ChevronRight size={20} />}
             </button>
