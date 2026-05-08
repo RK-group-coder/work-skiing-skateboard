@@ -313,8 +313,8 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                 STEP {step} / {totalSteps}
               </span>
             </div>
-            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-gray-900">
-              {course.name} <span className="text-gray-400 not-italic ml-2 font-medium tracking-normal text-lg">RESERVATION</span>
+            <h3 className="text-2xl font-black italic uppercase tracking-tighter text-gray-950">
+              {course.name} <span className="text-gray-500 not-italic ml-2 font-semibold tracking-normal text-lg">RESERVATION</span>
             </h3>
           </div>
           <button onClick={onClose} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl shadow-sm hover:scale-110 active:scale-95 transition-all text-gray-400 hover:text-black">
@@ -363,25 +363,25 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                               }
                             }}
                             className={`p-6 rounded-[32px] border-2 text-left transition-all flex items-center justify-between group ${
-                              isSelected ? 'bg-white shadow-xl ring-4 ring-primary/5 border-primary' : 'bg-gray-50 border-transparent opacity-60'
+                              isSelected ? 'bg-white shadow-xl ring-4 ring-primary/5 border-primary' : 'bg-gray-50 border-gray-100 hover:bg-gray-100/50'
                             }`}
                             style={{ borderColor: isSelected ? activeColor : undefined }}
                           >
                             <div className="flex items-center gap-5">
-                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${isSelected ? 'bg-primary text-white' : 'bg-white text-gray-300'}`} style={{ backgroundColor: isSelected ? activeColor : undefined }}>
+                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${isSelected ? 'bg-primary text-white' : 'bg-white text-gray-500'}`} style={{ backgroundColor: isSelected ? activeColor : undefined }}>
                                 {idx === 0 ? "上午" : idx === 1 ? "下午" : "全天"}
                               </div>
                               <div>
-                                <div className="font-black text-lg text-gray-900">{label}</div>
-                                <div className="text-xs font-bold text-gray-400">{slotTime}</div>
+                                <div className={`font-black text-lg ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>{label}</div>
+                                <div className={`text-xs font-bold ${isSelected ? 'text-gray-500' : 'text-gray-500'}`}>{slotTime}</div>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Price Start From</div>
-                              <div className="text-xl font-black italic text-primary" style={{ color: isSelected ? activeColor : undefined }}>
+                              <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-gray-500' : 'text-gray-600'}`}>Price Start From</div>
+                              <div className={`text-xl font-black italic ${isSelected ? 'text-primary' : 'text-gray-700'}`} style={{ color: isSelected ? activeColor : undefined }}>
                                 NT${fPrice.toLocaleString()}
                               </div>
-                              <div className="text-[9px] font-bold text-gray-400">續報價 NT${aPrice.toLocaleString()}</div>
+                              <div className={`text-[9px] font-bold ${isSelected ? 'text-gray-500' : 'text-gray-600'}`}>續報價 NT${aPrice.toLocaleString()}</div>
                             </div>
                           </button>
                         );
@@ -408,7 +408,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                           const slotTime = available[skiingSessionIdx!] || "";
                           if (date && slotTime) setSelectedTimes({ [date]: { [slotTime]: newVal } });
                         }}
-                        className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all"
+                        className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all text-gray-900 border border-gray-100"
                       >-</button>
                       <span className="text-5xl font-black italic text-primary" style={{ color: activeColor }}>{skiingPersonCount}</span>
                       <button 
@@ -421,10 +421,10 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                           const slotTime = available[skiingSessionIdx!] || "";
                           if (date && slotTime) setSelectedTimes({ [date]: { [slotTime]: newVal } });
                         }}
-                        className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all"
+                        className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all text-gray-900 border border-gray-100"
                       >+</button>
                     </div>
-                    <p className="text-gray-400 font-bold italic">目前已選擇 {skiingPersonCount} 人同行</p>
+                    <p className="text-gray-600 font-bold italic">目前已選擇 {skiingPersonCount} 人同行</p>
                   </motion.div>
                 )}
 
