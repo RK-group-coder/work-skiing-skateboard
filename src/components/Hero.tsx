@@ -224,8 +224,8 @@ const Hero: React.FC = () => {
       onTouchEnd={onTouchEnd}
     >
       
-      {/* Top Half: Background Carousel Area (Constrained to 3:4 ratio on mobile) */}
-      <div className="relative w-full aspect-[3/4] md:h-[75vh] md:aspect-auto shrink-0 z-0 bg-black">
+      {/* Top Half: Background Carousel Area (Constrained to 65vh height on mobile) */}
+      <div className="relative w-full h-[65vh] md:h-[75vh] shrink-0 z-0 bg-black">
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={mode + currentIndex + currentBg}
