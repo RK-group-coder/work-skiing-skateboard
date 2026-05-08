@@ -261,14 +261,14 @@ const Hero: React.FC = () => {
           </motion.div>
         </AnimatePresence>
 
-        {/* Carousel Indicators */}
-        {bgImages.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-50">
+        {/* Carousel Indicators (Always visible per user request to confirm placement) */}
+        {bgImages.length > 0 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-50 px-4 py-2 rounded-full">
             {bgImages.map((_, i) => (
               <button 
                 key={i} 
                 onClick={(e) => { e.stopPropagation(); setCurrentIndex(i); }}
-                className={`rounded-full transition-all duration-300 shadow-sm ${i === currentIndex ? 'w-6 h-2.5 bg-white' : 'w-2.5 h-2.5 border-2 border-white bg-transparent hover:bg-white/50'}`} 
+                className={`rounded-full transition-all duration-300 shadow-[0_2px_4px_rgba(0,0,0,0.4)] ${i === currentIndex ? 'w-6 h-2.5 bg-white' : 'w-2.5 h-2.5 border-[1.5px] border-white bg-transparent hover:bg-white/50'}`} 
                 aria-label={`Go to slide ${i + 1}`}
               />
             ))}
