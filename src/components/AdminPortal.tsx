@@ -56,6 +56,13 @@ interface Course {
   price: number | null;
   first_lesson_price: number | null;
   additional_lesson_price: number | null;
+  // Skiing specialized prices
+  full_day_first_price?: number | null;
+  full_day_add_price?: number | null;
+  half_day_am_first_price?: number | null;
+  half_day_am_add_price?: number | null;
+  half_day_pm_first_price?: number | null;
+  half_day_pm_add_price?: number | null;
   description: string;
   image_url: string;
   is_active: boolean;
@@ -473,20 +480,73 @@ const CourseForm = ({ form, setForm, onSave, onCancel, loading }: { form: Course
       </div>
     </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-      <div>
-        <label className={labelCls}>單堂原價 Base Price (NT$)</label>
-        <input type="number" value={form.price ?? ''} onChange={e => setForm({ ...form, price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+    {form.mode === 'skiing' ? (
+      <div className="space-y-6">
+        <div className="p-4 rounded-3xl bg-primary/5 border border-primary/10 space-y-4">
+          <h5 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+            🏔️ 全天課程價格設定 (9-15:00)
+          </h5>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className={labelCls}>初次體驗價 (NT$)</label>
+              <input type="number" value={form.full_day_first_price ?? ''} onChange={e => setForm({ ...form, full_day_first_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} placeholder="14000" />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>加購續報價 (NT$)</label>
+              <input type="number" value={form.full_day_add_price ?? ''} onChange={e => setForm({ ...form, full_day_add_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} placeholder="1000" />
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-3xl bg-blue-50/50 border border-blue-100 space-y-4">
+          <h5 className="text-xs font-black uppercase tracking-widest text-blue-600 flex items-center gap-2">
+            ⛅ 半天 (上午) 價格設定 (9-12:00)
+          </h5>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className={labelCls}>初次體驗價 (NT$)</label>
+              <input type="number" value={form.half_day_am_first_price ?? ''} onChange={e => setForm({ ...form, half_day_am_first_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} placeholder="8000" />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>加購續報價 (NT$)</label>
+              <input type="number" value={form.half_day_am_add_price ?? ''} onChange={e => setForm({ ...form, half_day_am_add_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} placeholder="1000" />
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-3xl bg-orange-50/50 border border-orange-100 space-y-4">
+          <h5 className="text-xs font-black uppercase tracking-widest text-orange-600 flex items-center gap-2">
+            🌤️ 半天 (下午) 價格設定 (13-16:00)
+          </h5>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className={labelCls}>初次體驗價 (NT$)</label>
+              <input type="number" value={form.half_day_pm_first_price ?? ''} onChange={e => setForm({ ...form, half_day_pm_first_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} placeholder="8000" />
+            </div>
+            <div className="space-y-1.5">
+              <label className={labelCls}>加購續報價 (NT$)</label>
+              <input type="number" value={form.half_day_pm_add_price ?? ''} onChange={e => setForm({ ...form, half_day_pm_add_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} placeholder="1000" />
+            </div>
+          </div>
+        </div>
       </div>
-      <div>
-        <label className={labelCls}>初次體驗價 First Price (NT$)</label>
-        <input type="number" value={form.first_lesson_price ?? ''} onChange={e => setForm({ ...form, first_lesson_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+    ) : (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div>
+          <label className={labelCls}>單堂原價 Base Price (NT$)</label>
+          <input type="number" value={form.price ?? ''} onChange={e => setForm({ ...form, price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>初次體驗價 First Price (NT$)</label>
+          <input type="number" value={form.first_lesson_price ?? ''} onChange={e => setForm({ ...form, first_lesson_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+        </div>
+        <div>
+          <label className={labelCls}>加購續報價 Add Price (NT$)</label>
+          <input type="number" value={form.additional_lesson_price ?? ''} onChange={e => setForm({ ...form, additional_lesson_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+        </div>
       </div>
-      <div>
-        <label className={labelCls}>加購續報價 Add Price (NT$)</label>
-        <input type="number" value={form.additional_lesson_price ?? ''} onChange={e => setForm({ ...form, additional_lesson_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
-      </div>
-    </div>
+    )}
+
 
     <div>
       <label className={labelCls}>課程描述 Description</label>
@@ -990,6 +1050,14 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       if (finalData.price === '' as any) finalData.price = 0;
       if (finalData.first_lesson_price === '' as any) finalData.first_lesson_price = 0;
       if (finalData.additional_lesson_price === '' as any) finalData.additional_lesson_price = 0;
+      
+      // Handle skiing specialized prices
+      if (finalData.full_day_first_price === '' as any) finalData.full_day_first_price = 0;
+      if (finalData.full_day_add_price === '' as any) finalData.full_day_add_price = 0;
+      if (finalData.half_day_am_first_price === '' as any) finalData.half_day_am_first_price = 0;
+      if (finalData.half_day_am_add_price === '' as any) finalData.half_day_am_add_price = 0;
+      if (finalData.half_day_pm_first_price === '' as any) finalData.half_day_pm_first_price = 0;
+      if (finalData.half_day_pm_add_price === '' as any) finalData.half_day_pm_add_price = 0;
 
       if (courseForm.id) {
         const { error } = await supabase.from('courses').update(finalData).eq('id', courseForm.id);
