@@ -371,9 +371,36 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   const handleBooking = async () => {
     setLoading(true);
     try {
-      const totalPersonSlots = Object.values(selectedTimes).reduce((acc, dateSlots) => {
+      let finalTimes = { ...selectedTimes };
+      
+      if (mode === 'skiing') {
+        const date = selectedDates[0];
+        if (!date) {
+          alert('請先選擇日期');
+          setStep(3);
+          setLoading(false);
+          return;
+        }
+        
+        // Force sync session info to finalTimes if missing or empty
+        const available = getAvailableTimes(date);
+        const fallbackSlot = skiingSessionIdx === 0 ? "半天(上午) 09:00-12:00" : skiingSessionIdx === 1 ? "半天(下午) 13:00-16:00" : "全天課程 09:00-15:00";
+        const slotTime = (skiingSessionIdx !== null && available[skiingSessionIdx]) || fallbackSlot;
+        
+        if (Object.keys(finalTimes).length === 0 || !finalTimes[date] || !finalTimes[date][slotTime]) {
+          finalTimes = { [date]: { [slotTime]: skiingPersonCount } };
+        }
+      }
+
+      const totalPersonSlots = Object.values(finalTimes).reduce((acc, dateSlots) => {
         return acc + Object.values(dateSlots).reduce((sum, qty) => sum + qty, 0);
       }, 0);
+
+      if (totalPersonSlots === 0 && mode === 'skateboard') {
+        alert('請至少選擇一個時段與人數');
+        setLoading(false);
+        return;
+      }
 
       // Prepare booking item for cart
       const bookingItem = {
@@ -384,7 +411,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
         details: {
           courseId: course.id,
           dates: selectedDates,
-          times: selectedTimes,
+          times: finalTimes,
           locationId: selectedLocation,
           coachId: selectedCoach,
           skillLevel,

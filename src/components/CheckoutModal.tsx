@@ -229,18 +229,19 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     const pCount = slotsForDate[timeStr] || 1;
                     totalParticipants += pCount;
 
-                    // 自動計算結束時間 (預設 +1 小時)
+                    // 自動計算結束時間 (如果還不是範圍的話)
                     let displayTime = timeStr;
-                    try {
-                      const [hour, min] = timeStr.split(':').map(Number);
-                      const endHour = hour + 1;
-                      const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(min || 0).padStart(2, '0')}`;
-                      displayTime = `${timeStr}~${endTimeStr}`;
-                    } catch (e) {
-                      displayTime = timeStr;
+                    if (!timeStr.includes('-') && !timeStr.includes('~')) {
+                      try {
+                        const [hour, min] = timeStr.split(':').map(Number);
+                        const endHour = hour + 1;
+                        const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(min || 0).padStart(2, '0')}`;
+                        displayTime = `${timeStr}~${endTimeStr}`;
+                      } catch (e) {
+                        displayTime = timeStr;
+                      }
                     }
 
-                    // 每一行一個時段，加上輕微底線區隔
                     bookingListHtml += `
                       <div style="margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid #eee; font-family: monospace; font-size: 15px;">
                         <span style="color: #666;">${dateStr}</span> &nbsp;&nbsp; 
@@ -250,11 +251,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                   });
                 });
               } else {
-                // 極端備案：如果 timesObj 為空，嘗試 dates/times 陣列
+                // 極端備案
                 const fallbackDates = Array.isArray(details.dates) ? details.dates : [];
-                const fallbackTimes = Array.isArray(details.times_list) ? details.times_list : [];
-                fallbackDates.forEach((d: string, idx: number) => {
-                  bookingListHtml += `<div style="margin-bottom: 10px; border-bottom: 1px solid #eee;">${d} &nbsp;&nbsp; ${fallbackTimes[idx] || '時段未載入'} &nbsp;&nbsp; 1人</div>`;
+                const fallbackPCount = details.totalPersonSlots || 1;
+                fallbackDates.forEach((d: string) => {
+                  bookingListHtml += `<div style="margin-bottom: 10px; border-bottom: 1px solid #eee;">${d} &nbsp;&nbsp; 時段未載入 &nbsp;&nbsp; ${fallbackPCount}人</div>`;
                 });
               }
 
