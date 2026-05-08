@@ -271,19 +271,19 @@ const MultiMediaUploadField = ({ label, value, onChange, bucket }: { label: stri
                  <img src={u} alt="Preview" className="w-full h-full object-cover" />
                )}
 
-               {/* Ordering Controls */}
-               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between px-1 z-10">
+               {/* Ordering Controls (Mobile Friendly - Always Visible) */}
+               <div className="absolute inset-0 flex items-center justify-between px-1 z-10 pointer-events-none">
                  <button 
                    type="button"
                    onClick={() => moveUrl(i, 'left')}
-                   className={`p-1 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white ${i === 0 ? 'invisible' : ''}`}
+                   className={`p-1 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white pointer-events-auto shadow-sm active:scale-95 transition-transform ${i === 0 ? 'invisible' : ''}`}
                  >
                    <ChevronLeft size={16} strokeWidth={3} />
                  </button>
                  <button 
                    type="button"
                    onClick={() => moveUrl(i, 'right')}
-                   className={`p-1 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-sm text-white ${i === urls.length - 1 ? 'invisible' : ''}`}
+                   className={`p-1 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white pointer-events-auto shadow-sm active:scale-95 transition-transform ${i === urls.length - 1 ? 'invisible' : ''}`}
                  >
                    <ChevronRight size={16} strokeWidth={3} />
                  </button>
