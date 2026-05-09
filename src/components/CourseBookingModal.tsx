@@ -45,7 +45,8 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [isFirstLesson, setIsFirstLesson] = useState(true);
   const [skillLevel, setSkillLevel] = useState('');
-  const [mediaUrl, setMediaUrl] = useState('');
+  // const [mediaUrl, setMediaUrl] = useState('');
+  const [mediaUrl] = useState('');
 
   // Local state for calendar navigation
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -56,7 +57,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   const [busyCoachIds, setBusyCoachIds] = useState<string[]>([]);
 
   // Constants
-  const JPY_RATE = 4.75; 
+  // const JPY_RATE = 4.75; 
 
   useEffect(() => {
     if (isOpen) {
