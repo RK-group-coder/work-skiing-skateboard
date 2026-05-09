@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Calendar, Clock, MapPin, Users, 
-  ChevronRight, ChevronLeft, CreditCard, 
-  CheckCircle2, Camera 
+  ChevronRight, ChevronLeft, 
+  CheckCircle2 
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTheme } from '../hooks/useTheme';
@@ -317,24 +317,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     return subtotal;
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLoading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `booking_refs/${fileName}`;
-      const { error: uploadError } = await supabase.storage.from('media').upload(filePath, file);
-      if (uploadError) throw uploadError;
-      const { data } = supabase.storage.from('media').getPublicUrl(filePath);
-      setMediaUrl(data.publicUrl);
-    } catch (err: any) {
-      alert('上傳失敗: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const updateSlotQty = (dateStr: string, t: string, delta: number) => {
     setSelectedTimes(prev => {
@@ -434,7 +417,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   if (!isOpen) return null;
 
   const totalTWD = calculateTotal();
-  const totalJPY = Math.round(totalTWD * JPY_RATE);
+  // const totalJPY = Math.round(totalTWD * JPY_RATE);
   const activeColor = mode === 'skiing' ? '#3b82f6' : '#ef4444';
   const totalSteps = mode === 'skiing' ? 4 : 4; // Both are 4 steps now, but different logic
 
@@ -854,7 +837,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {available.map((t: string, idx: number) => {
+                              {available.map((t: string, _idx: number) => {
                                 if (!t || t.trim() === '') return null;
                                 const qty = dateSlots[t] || 0;
                                 const isSelected = qty > 0;
