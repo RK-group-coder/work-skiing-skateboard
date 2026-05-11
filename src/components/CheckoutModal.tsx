@@ -19,6 +19,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [paymentMethod] = useState<'bank' | 'other'>('bank');
+  const [emailJsSettings, setEmailJsSettings] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [customerName, setCustomerName] = useState(user?.user_metadata?.full_name || '');
@@ -38,8 +40,26 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
       const { data } = await supabase.from('pickup_locations').select('*').eq('mode', mode);
       if (data) setPickupLocations(data);
     };
+    const fetchSystemSettings = async () => {
+      const { data } = await supabase.from('system_settings').select('*');
+      if (data) {
+        const settings: any = {};
+        data.forEach(item => {
+          settings[item.key] = item.value;
+        });
+        setEmailJsSettings({
+          service_id: settings.emailjs_service_id || '',
+          template_id: settings.emailjs_template_id || '',
+          template_id_course: settings.emailjs_template_id_course || '',
+          template_id_product: settings.emailjs_template_id_product || '',
+          public_key: settings.emailjs_public_key || '',
+          admin_email: settings.admin_email || ''
+        });
+      }
+    };
     if (isOpen) {
       fetchLocations();
+      fetchSystemSettings();
     }
   }, [mode, isOpen]);
 
@@ -92,67 +112,54 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
 
     setIsUploading(true);
     try {
-      // 這裡假設資料庫有一個 orders 表格
-      const { error } = await supabase.from('orders').insert([
-        {
+      // Create Order
+      const { data: _orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user?.id || null,
           items: cart,
           total_price: totalPrice,
-          bank_info: bankInfo,
-          screenshot_data: screenshot, // 儲存截圖內容
+          bank_info: {
+            bankName: bankInfo.bankName,
+            accountName: bankInfo.accountName,
+            accountNumber: bankInfo.accountNumber
+          },
+          screenshot_data: screenshot,
           status: 'pending_verification',
-          created_at: new Date().toISOString(),
           mode: mode,
-          user_id: user?.id,
-          user_email: user?.email,
           customer_name: customerName,
           customer_phone: customerPhone,
           customer_email: customerEmail,
-          notes: notes,
           delivery_method: hasPhysicalProducts ? deliveryMethod : null,
-          delivery_info: hasPhysicalProducts ? (deliveryMethod === 'convenience_store' ? { store: convenienceStoreInfo } : { location_id: pickupLocationId }) : null
-        }
-      ]);
+          delivery_info: hasPhysicalProducts ? (
+            deliveryMethod === 'convenience_store' 
+              ? { store: convenienceStoreInfo } 
+              : { location_id: pickupLocationId }
+          ) : null
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (orderError) throw orderError;
 
       // 🛒 自動扣除庫存 (Stock Reduction)
       try {
         const productItems = cart.filter(item => item.type === 'product');
         for (const item of productItems) {
-          // 獲取目前最新庫存
           const { data: pData } = await supabase.from('products').select('stock').eq('id', item.id).single();
           if (pData && typeof pData.stock === 'number') {
             const currentStock = pData.stock;
-            // 只有當庫存大於 0 時才扣除 (避免負數，雖然理論上前端會擋)
             if (currentStock > 0) {
               const newStock = Math.max(0, currentStock - (item.quantity || 1));
               await supabase.from('products').update({ stock: newStock }).eq('id', item.id);
-              console.log(`Product ${item.id} stock updated: ${currentStock} -> ${newStock}`);
             }
           }
         }
       } catch (stockErr) {
         console.error('Failed to update stock:', stockErr);
-        // 庫存更新失敗不影響訂單完成，但記錄錯誤
       }
 
       // 取得 EmailJS 系統設定
-      let emailJsSettings: { 
-        service_id?: string; 
-        template_id?: string; 
-        template_id_course?: string;
-        template_id_product?: string;
-        public_key?: string;
-        admin_email?: string;
-      } | null = null;
-      try {
-        const { data } = await supabase.from('system_settings').select('value').eq('key', 'emailjs').single();
-        if (data && data.value) emailJsSettings = data.value;
-        console.log('EmailJS Settings fetched:', emailJsSettings);
-      } catch (err) {
-        console.log('No EmailJS settings found or failed to fetch:', err);
-      }
-
       const isEmailConfigured = emailJsSettings?.service_id && emailJsSettings?.public_key && emailJsSettings.service_id !== 'YOUR_SERVICE_ID';
       console.log('Is Email Configured:', isEmailConfigured);
 
@@ -186,7 +193,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
 
                 return new Promise((resolve, reject) => {
                   // 檢查 SDK 是否已載入
-                  const useSDK = () => {
+                  const invokeSDK = () => {
                     const emailjs = (window as any).emailjs;
                     // 使用最嚴格的調用方式：直接在 send 傳入公鑰
                     emailjs.send(cleanedSid, cleanedTid, params.template_params, cleanedUid)
@@ -201,11 +208,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                   };
 
                   if ((window as any).emailjs) {
-                    useSDK();
+                    invokeSDK();
                   } else {
                     const script = document.createElement('script');
                     script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-                    script.onload = useSDK;
+                    script.onload = invokeSDK;
                     script.onerror = reject;
                     document.head.appendChild(script);
                   }
@@ -367,7 +374,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
             const cleanedSid = hardClean(emailJsSettings!.service_id || 'default_service');
 
             return new Promise((resolve, reject) => {
-            const useSDK = () => {
+            const invokeSDK = () => {
               const emailjs = (window as any).emailjs;
               emailjs.send(cleanedSid, cleanedTid, params.template_params, cleanedUid)
                 .then((res: any) => resolve(res))
@@ -375,11 +382,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
             };
 
               if ((window as any).emailjs) {
-                useSDK();
+                invokeSDK();
               } else {
                 const script = document.createElement('script');
                 script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-                script.onload = useSDK;
+                script.onload = invokeSDK;
                 script.onerror = reject;
                 document.head.appendChild(script);
               }
@@ -481,124 +488,126 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
               <div className="w-10 h-10 rounded-2xl bg-slate-500/10 flex items-center justify-center text-slate-500">
                 <Landmark size={24} />
               </div>
-              <h2 className="text-2xl font-black italic tracking-tighter uppercase opacity-80">銀行轉帳結帳</h2>
+              <h2 className="text-2xl font-black italic tracking-tighter uppercase opacity-80">核對付款資訊</h2>
             </div>
             <button onClick={onClose} className="p-2 hover:bg-current/10 rounded-full transition-colors"><X size={24} /></button>
           </div>
 
-          <div className="p-8 space-y-8 max-h-[75vh] overflow-y-auto no-scrollbar">
-            {/* Bank Info Card - Intense Black Metallic Style */}
-            <div 
-              className={`rounded-[32px] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.4)] border-2 transition-all duration-500 relative`}
-              style={{ 
-                background: blackMetallic,
-                borderColor: '#374151'
-              }}
-            >
-              <div className="p-8 space-y-6 relative z-10 text-white">
-                {/* Surface Shine Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none" />
-                
-                <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/10 pb-5 gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)] bg-white/5 text-slate-400 shrink-0">
-                      <Landmark size={26} />
+          <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto no-scrollbar">
+              <>
+                {/* Bank Info Card - Intense Black Metallic Style */}
+                <div 
+                  className={`rounded-[32px] overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.4)] border-2 transition-all duration-500 relative`}
+                  style={{ 
+                    background: blackMetallic,
+                    borderColor: '#374151'
+                  }}
+                >
+                  <div className="p-8 space-y-6 relative z-10 text-white">
+                    {/* Surface Shine Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-transparent pointer-events-none" />
+                    
+                    <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/10 pb-5 gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-[inset_0_2px_4px_rgba(255,255,255,0.1)] bg-white/5 text-slate-400 shrink-0">
+                          <Landmark size={26} />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="font-black text-xl tracking-tighter leading-none mb-1.5 text-white drop-shadow-md whitespace-nowrap">
+                            {bankInfo.bankName}
+                          </h3>
+                          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/70 whitespace-nowrap">
+                            {bankInfo.branch}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="md:text-right shrink-0">
+                        <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-1 text-white/60 leading-none">Total Amount</p>
+                        <p className="text-3xl font-black italic tracking-tighter text-white leading-none">NT${totalPrice.toLocaleString()}</p>
+                        <p className="text-[11px] font-bold text-white/40 mt-2 md:text-right">要使用優惠券 請至購物車</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="font-black text-xl tracking-tighter leading-none mb-1.5 text-white drop-shadow-md whitespace-nowrap">
-                        {bankInfo.bankName}
-                      </h3>
-                      <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/70 whitespace-nowrap">
-                        {bankInfo.branch}
-                      </p>
+
+                    <div className="grid grid-cols-2 gap-x-12 gap-y-6">
+                      <div className="flex flex-col border-l-2 border-white/30 pl-4">
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] mb-1 text-white/60">收款戶名</span>
+                        <span className="font-black text-base tracking-tight text-white">{bankInfo.accountName}</span>
+                      </div>
+                      <div className="flex flex-col border-l-2 border-white/30 pl-4">
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] mb-1 text-white/60">帳戶類別</span>
+                        <span className="font-black text-base tracking-tight text-white">{bankInfo.type}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="md:text-right shrink-0">
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-1 text-white/60 leading-none">Total Amount</p>
-                    <p className="text-3xl font-black italic tracking-tighter text-white leading-none">NT${totalPrice.toLocaleString()}</p>
-                    <p className="text-[11px] font-bold text-white/40 mt-2 md:text-right">要使用優惠券 請至購物車</p>
+
+                    <div className="relative pt-2">
+                      <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-4 text-center text-white/60">收款帳號 (點擊複製)</p>
+                      <button 
+                        onClick={handleCopy}
+                        className="w-full group relative flex items-center justify-center gap-4 p-5 md:p-6 rounded-2xl transition-all active:scale-[0.98] border border-white/10 bg-white/5 shadow-2xl"
+                      >
+                        <span className="text-xl md:text-3xl font-black tracking-[0.05em] font-mono text-white whitespace-nowrap">
+                          {bankInfo.accountNumber}
+                        </span>
+                        <div className={`p-2 md:p-2.5 rounded-xl transition-all shadow-md shrink-0 ${
+                          isCopied ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-400 group-hover:bg-white/20 group-hover:scale-110'
+                        }`}>
+                          {isCopied ? <Check size={20} /> : <Copy size={20} />}
+                        </div>
+                      </button>
+                      {isCopied && (
+                        <motion.p 
+                          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                          className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-emerald-400 uppercase tracking-widest"
+                        >
+                          Copied to clipboard
+                        </motion.p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-12 gap-y-6">
-                  <div className="flex flex-col border-l-2 border-white/30 pl-4">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] mb-1 text-white/60">收款戶名</span>
-                    <span className="font-black text-base tracking-tight text-white">{bankInfo.accountName}</span>
+                {/* Upload Section - Dark Accent */}
+                <div className="space-y-4 pt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1 h-5 rounded-full bg-slate-400" />
+                      <h3 className="font-black uppercase tracking-widest text-[11px] opacity-50">Step 2: Upload Screenshot</h3>
+                    </div>
                   </div>
-                  <div className="flex flex-col border-l-2 border-white/30 pl-4">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] mb-1 text-white/60">帳戶類別</span>
-                    <span className="font-black text-base tracking-tight text-white">{bankInfo.type}</span>
-                  </div>
-                </div>
-
-                <div className="relative pt-2">
-                  <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-4 text-center text-white/60">收款帳號 (點擊複製)</p>
-                  <button 
-                    onClick={handleCopy}
-                    className="w-full group relative flex items-center justify-center gap-4 p-5 md:p-6 rounded-2xl transition-all active:scale-[0.98] border border-white/10 bg-white/5 shadow-2xl"
+                  
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`group relative h-48 rounded-[32px] border-4 border-dashed cursor-pointer flex flex-col items-center justify-center transition-all ${
+                      screenshot 
+                      ? 'border-emerald-500/50 bg-emerald-500/5' 
+                      : 'border-current/10 hover:border-slate-400 hover:bg-slate-400/5'
+                    }`}
                   >
-                    <span className="text-xl md:text-3xl font-black tracking-[0.05em] font-mono text-white whitespace-nowrap">
-                      {bankInfo.accountNumber}
-                    </span>
-                    <div className={`p-2 md:p-2.5 rounded-xl transition-all shadow-md shrink-0 ${
-                      isCopied ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-400 group-hover:bg-white/20 group-hover:scale-110'
-                    }`}>
-                      {isCopied ? <Check size={20} /> : <Copy size={20} />}
-                    </div>
-                  </button>
-                  {isCopied && (
-                    <motion.p 
-                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                      className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-emerald-400 uppercase tracking-widest"
-                    >
-                      Copied to clipboard
-                    </motion.p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Upload Section - Dark Accent */}
-            <div className="space-y-4 pt-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 rounded-full bg-slate-400" />
-                  <h3 className="font-black uppercase tracking-widest text-[11px] opacity-50">Step 2: Upload Screenshot</h3>
-                </div>
-              </div>
-              
-              <div 
-                onClick={() => fileInputRef.current?.click()}
-                className={`group relative h-48 rounded-[32px] border-4 border-dashed cursor-pointer flex flex-col items-center justify-center transition-all ${
-                  screenshot 
-                  ? 'border-emerald-500/50 bg-emerald-500/5' 
-                  : 'border-current/10 hover:border-slate-400 hover:bg-slate-400/5'
-                }`}
-              >
-                {screenshot ? (
-                  <div className="absolute inset-4 rounded-2xl overflow-hidden shadow-lg">
-                    <img src={screenshot} alt="Screenshot" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-white font-black flex items-center gap-2 text-sm uppercase tracking-widest">更換照片 <Upload size={18} /></p>
-                    </div>
+                    {screenshot ? (
+                      <div className="absolute inset-4 rounded-2xl overflow-hidden shadow-lg">
+                        <img src={screenshot} alt="Screenshot" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <p className="text-white font-black flex items-center gap-2 text-sm uppercase tracking-widest">更換照片 <Upload size={18} /></p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-16 h-16 rounded-full bg-current/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                          <ImageIcon className="opacity-30" size={32} />
+                        </div>
+                        <p className="font-black text-sm opacity-40 uppercase tracking-widest">點擊上傳轉帳截圖</p>
+                      </>
+                    )}
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      onChange={handleFileChange} 
+                      accept="image/*" 
+                      className="hidden" 
+                    />
                   </div>
-                ) : (
-                  <>
-                    <div className="w-16 h-16 rounded-full bg-current/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                      <ImageIcon className="opacity-30" size={32} />
-                    </div>
-                    <p className="font-black text-sm opacity-40 uppercase tracking-widest">點擊上傳轉帳截圖</p>
-                  </>
-                )}
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  onChange={handleFileChange} 
-                  accept="image/*" 
-                  className="hidden" 
-                />
-              </div>
-            </div>
+                </div>
+              </>
 
             {/* Customer Info Section */}
             <div className="space-y-3 pt-3 border-t border-current/5 mt-3">
@@ -725,15 +734,15 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
 
           <div className="p-8 pt-4 border-t border-current/5">
             <button 
-              disabled={!screenshot || isUploading}
+              disabled={(paymentMethod === 'bank' && !screenshot) || isUploading}
               onClick={handleSubmit}
               className={`w-full py-5 rounded-[24px] font-black uppercase tracking-[0.3em] active:scale-95 transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
-                !screenshot || isUploading ? 'cursor-not-allowed border-2 border-white/10' : 'shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:scale-[1.02]'
+                (paymentMethod === 'bank' && !screenshot) || isUploading ? 'cursor-not-allowed border-2 border-white/10' : 'shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:scale-[1.02]'
               }`}
               style={{ 
-                background: !screenshot || isUploading ? 'rgba(255,255,255,0.05)' : '#ef4444',
-                color: !screenshot || isUploading ? 'rgba(255,255,255,0.3)' : '#ffffff',
-                border: !screenshot || isUploading ? '2px solid rgba(255,255,255,0.1)' : 'none'
+                background: (paymentMethod === 'bank' && !screenshot) || isUploading ? 'rgba(255,255,255,0.05)' : '#ef4444',
+                color: (paymentMethod === 'bank' && !screenshot) || isUploading ? 'rgba(255,255,255,0.3)' : '#ffffff',
+                border: (paymentMethod === 'bank' && !screenshot) || isUploading ? '2px solid rgba(255,255,255,0.1)' : 'none'
               }}
             >
               {/* Button Shine Animation */}
@@ -742,7 +751,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
               {isUploading ? (
                 <div className="w-6 h-6 border-2 border-slate-200 border-t-black rounded-full animate-spin" />
               ) : (
-                <span className="relative z-10 flex items-center gap-3 font-black">確認送出訂單 <Send size={20} /></span>
+                <span className="relative z-10 flex items-center gap-3 font-black">
+                  確認送出訂單 
+                  <Send size={20} />
+                </span>
               )}
             </button>
             <p className="text-center text-[10px] font-black opacity-30 mt-5 uppercase tracking-[0.25em]">

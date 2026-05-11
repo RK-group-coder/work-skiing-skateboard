@@ -642,17 +642,28 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                   key={c.id} 
                                   disabled={isBusy}
                                   onClick={() => setSelectedCoach(c.id)} 
-                                  className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center gap-0.5 transition-all ${
+                                  className={`p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
                                     selectedCoach === c.id 
-                                      ? 'bg-white shadow-md border-primary' 
+                                      ? 'bg-white shadow-lg border-primary scale-[1.05] z-10' 
                                       : isBusy 
-                                        ? 'bg-gray-50 border-gray-100 opacity-80 cursor-not-allowed'
+                                        ? 'bg-gray-50 border-gray-100 opacity-50 cursor-not-allowed grayscale'
                                         : 'bg-gray-50 border-transparent hover:border-gray-200'
                                   }`} 
                                   style={{ borderColor: selectedCoach === c.id ? activeColor : undefined }}
                                 >
-                                  <span className={`font-bold text-sm ${isBusy ? 'text-red-500' : 'text-gray-900'}`}>{c.name}</span>
-                                  {isBusy && <span className="text-[8px] font-black text-red-500 uppercase tracking-tighter">該時段已有課</span>}
+                                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-white shadow-inner border border-black/5">
+                                    {c.image_url ? (
+                                      <img src={c.image_url} alt={c.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                                        <Users size={24} />
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="text-center">
+                                    <span className={`font-black text-xs uppercase tracking-tight block ${isBusy ? 'text-red-500' : 'text-gray-900'}`}>{c.name}</span>
+                                    {isBusy && <span className="text-[7px] font-black text-red-500 uppercase tracking-widest mt-1">FULLY BOOKED</span>}
+                                  </div>
                                 </button>
                               );
                             })}
@@ -940,17 +951,28 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                   key={c.id} 
                                   disabled={isBusy}
                                   onClick={() => setSelectedCoach(c.id)} 
-                                  className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center gap-0.5 transition-all ${
+                                  className={`p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
                                     selectedCoach === c.id 
-                                      ? 'bg-white shadow-md border-primary' 
+                                      ? 'bg-white shadow-lg border-primary scale-[1.05] z-10' 
                                       : isBusy 
-                                        ? 'bg-gray-50 border-gray-100 opacity-80 cursor-not-allowed'
+                                        ? 'bg-gray-50 border-gray-100 opacity-50 cursor-not-allowed grayscale'
                                         : 'bg-gray-50 border-transparent hover:border-gray-200'
                                   }`} 
                                   style={{ borderColor: selectedCoach === c.id ? activeColor : undefined }}
                                 >
-                                  <span className={`font-bold text-sm ${isBusy ? 'text-red-500' : 'text-gray-900'}`}>{c.name}</span>
-                                  {isBusy && <span className="text-[8px] font-black text-red-500 uppercase tracking-tighter">該時段已有課</span>}
+                                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-white shadow-inner border border-black/5">
+                                    {c.image_url ? (
+                                      <img src={c.image_url} alt={c.name} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                                        <Users size={24} />
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="text-center">
+                                    <span className={`font-black text-xs uppercase tracking-tight block ${isBusy ? 'text-red-500' : 'text-gray-900'}`}>{c.name}</span>
+                                    {isBusy && <span className="text-[7px] font-black text-red-500 uppercase tracking-widest mt-1">FULLY BOOKED</span>}
+                                  </div>
                                 </button>
                               );
                             })}
