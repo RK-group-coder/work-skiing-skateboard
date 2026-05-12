@@ -410,6 +410,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
       onClose(); // Close the booking modal
     } catch (err) {
       console.error('Booking failed:', err);
+      alert('預約失敗，請稍後再試或聯繫客服。');
     } finally {
       setLoading(false);
     }
@@ -1010,16 +1011,16 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
             <button 
               onClick={() => {
                 if (mode === 'skiing') {
-                  if (step === 1 && skiingSessionIdx === null) return;
-                  if (step === 2 && skiingPersonCount === 0) return;
-                  if (step === 3 && selectedDates.length === 0) return;
-                  if (step === 4 && locations.length > 0 && !selectedLocation) return;
-                  if (step === 4 && coaches.length > 0 && !selectedCoach) return;
+                  if (step === 1 && skiingSessionIdx === null) { alert('請選擇課程類型'); return; }
+                  if (step === 2 && skiingPersonCount === 0) { alert('請選擇人數'); return; }
+                  if (step === 3 && selectedDates.length === 0) { alert('請選擇上課日期'); return; }
+                  if (step === 4 && locations.length > 0 && !selectedLocation) { alert('請選擇上課地點'); return; }
+                  if (step === 4 && coaches.length > 0 && !selectedCoach) { alert('請選擇教練'); return; }
                 } else {
-                  if (step === 1 && selectedDates.length === 0) return;
-                  if (step === 2 && Object.values(selectedTimes).every(slots => Object.keys(slots).length === 0)) return;
-                  if (step === 3 && locations.length > 0 && !selectedLocation) return;
-                  if (step === 4 && coaches.length > 0 && !selectedCoach) return;
+                  if (step === 1 && selectedDates.length === 0) { alert('請選擇上課日期'); return; }
+                  if (step === 2 && Object.values(selectedTimes).every(slots => Object.keys(slots).length === 0)) { alert('請選擇上課時段與人數'); return; }
+                  if (step === 3 && locations.length > 0 && !selectedLocation) { alert('請選擇上課地點'); return; }
+                  if (step === 4 && coaches.length > 0 && !selectedCoach) { alert('請選擇教練'); return; }
                 }
 
                 if (step === totalSteps) handleBooking();

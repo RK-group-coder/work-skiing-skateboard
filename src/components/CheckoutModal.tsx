@@ -740,9 +740,15 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 (paymentMethod === 'bank' && !screenshot) || isUploading ? 'cursor-not-allowed border-2 border-white/10' : 'shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:scale-[1.02]'
               }`}
               style={{ 
-                background: (paymentMethod === 'bank' && !screenshot) || isUploading ? 'rgba(255,255,255,0.05)' : '#ef4444',
-                color: (paymentMethod === 'bank' && !screenshot) || isUploading ? 'rgba(255,255,255,0.3)' : '#ffffff',
-                border: (paymentMethod === 'bank' && !screenshot) || isUploading ? '2px solid rgba(255,255,255,0.1)' : 'none'
+                background: (paymentMethod === 'bank' && !screenshot) || isUploading 
+                  ? (mode === 'skiing' ? '#f1f5f9' : 'rgba(255,255,255,0.05)') 
+                  : '#ef4444',
+                color: (paymentMethod === 'bank' && !screenshot) || isUploading 
+                  ? (mode === 'skiing' ? '#94a3b8' : 'rgba(255,255,255,0.3)') 
+                  : '#ffffff',
+                border: (paymentMethod === 'bank' && !screenshot) || isUploading 
+                  ? (mode === 'skiing' ? '2px solid #e2e8f0' : '2px solid rgba(255,255,255,0.1)') 
+                  : 'none'
               }}
             >
               {/* Button Shine Animation */}
@@ -752,7 +758,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 <div className="w-6 h-6 border-2 border-slate-200 border-t-black rounded-full animate-spin" />
               ) : (
                 <span className="relative z-10 flex items-center gap-3 font-black">
-                  確認送出訂單 
+                  {(paymentMethod === 'bank' && !screenshot) ? '請先上傳轉帳截圖' : '確認送出訂單'}
                   <Send size={20} />
                 </span>
               )}

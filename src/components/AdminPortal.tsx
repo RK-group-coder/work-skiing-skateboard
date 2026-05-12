@@ -339,8 +339,8 @@ const ProductForm = ({ form, setForm, onSave, onCancel, categories, loading }: {
       <div>
         <label className={labelCls}>分類 Mode</label>
         <select value={form.mode} onChange={e => setForm({ ...form, mode: e.target.value as any })} className={inputCls}>
-          <option value="skiing">滑雪 Skiing</option>
-          <option value="skateboard">滑板 Skateboard</option>
+          <option value="skiing">滑雪</option>
+          <option value="skateboard">滑板</option>
         </select>
       </div>
       <div>
@@ -470,8 +470,8 @@ const CourseForm = ({ form, setForm, onSave, onCancel, loading }: { form: Course
       <div>
         <label className={labelCls}>課程類別 Mode</label>
         <select value={form.mode} onChange={e => setForm({ ...form, mode: e.target.value as any })} className={inputCls}>
-          <option value="skiing">滑雪 Skiing</option>
-          <option value="skateboard">滑板 Skateboard</option>
+          <option value="skiing">滑雪</option>
+          <option value="skateboard">滑板</option>
         </select>
       </div>
       <div>
@@ -590,8 +590,8 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, categories, products, co
         <label className={labelCls}>適用對象 Target Type</label>
         <select value={form.target_type} onChange={e => setForm({ ...form, target_type: e.target.value as any, target_id: '' })} className={inputCls}>
           <option value="global">🌐 全站通用 Global</option>
-          <option value="skiing">⛷ 僅限滑雪商品 Skiing Products</option>
-          <option value="skateboard">🛹 僅限滑板商品 Skateboard Products</option>
+          <option value="skiing">⛷ 僅限滑雪商品</option>
+          <option value="skateboard">🛹 僅限滑板商品</option>
           <option value="all_courses">🎓 僅限所有課程 All Courses</option>
           <option value="category">📁 特定商品分類 Category</option>
           <option value="product">🛍 特定單一商品 Product</option>
@@ -1292,7 +1292,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 <input type="text" placeholder="據點地址" value={pickupLocationAddress} onChange={e => setPickupLocationAddress(e.target.value)} className="flex-[2] px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-medium text-gray-900 placeholder:text-gray-400 shadow-sm" />
                 <select value={pickupLocationMode} onChange={e => setPickupLocationMode(e.target.value as 'skiing' | 'skateboard')} className="px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-bold text-gray-900 shadow-sm">
                   <option value="skiing">⛷️ 滑雪區</option>
-                  <option value="skateboard"> skateboard 🛹 滑板區</option>
+                  <option value="skateboard">🛹 滑板區</option>
                 </select>
                 <button onClick={handleSavePickupLocation} disabled={isSavingPickupLocation} style={{ backgroundColor: '#000000', color: '#ffffff' }} className="px-8 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-[0_4px_15px_rgba(0,0,0,0.2)] disabled:opacity-50 min-w-[120px]">
                   <Plus size={18} /> 新增據點
@@ -1339,8 +1339,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                   <div className="w-full md:w-48">
                     <label className={labelCls}>所屬模式 Mode</label>
                     <select value={categoryForm.mode} onChange={e => setCategoryForm({ ...categoryForm, mode: e.target.value as any })} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-bold text-sm text-gray-900 shadow-sm">
-                      <option value="skiing">⛷ 滑雪 Skiing</option>
-                      <option value="skateboard"> skateboard 🛹 滑板 Skateboard</option>
+                      <option value="skiing">⛷ 滑雪</option>
+                      <option value="skateboard">🛹 滑板</option>
                     </select>
                   </div>
                 </div>
@@ -1436,7 +1436,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                             {c.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
                           </span>
                           <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-                            NT${(c.first_lesson_price || 0).toLocaleString()} / NT${(c.additional_lesson_price || 0).toLocaleString()}
+                            NT${(c.mode === 'skiing' ? (c.full_day_first_price || 0) : (c.first_lesson_price || 0)).toLocaleString()} / NT${(c.mode === 'skiing' ? (c.full_day_add_price || 0) : (c.additional_lesson_price || 0)).toLocaleString()}
                           </span>
                         </div>
                       </div>
@@ -1617,8 +1617,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         <div>
                           <label className={labelCls}>所屬標籤</label>
                           <select value={coachForm.mode} onChange={e => setCoachForm({ ...coachForm, mode: e.target.value as any })} className={inputCls}>
-                            <option value="skiing">滑雪 Skiing</option>
-                            <option value="skateboard">滑板 Skateboard</option>
+                            <option value="skiing">滑雪</option>
+                            <option value="skateboard">滑板</option>
                           </select>
                         </div>
                       </div>
@@ -1706,8 +1706,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         <div>
                           <label className={labelCls}>適用類型</label>
                           <select value={locationForm.mode} onChange={e => setLocationForm({ ...locationForm, mode: e.target.value as any })} className={inputCls}>
-                            <option value="skiing">滑雪 Skiing</option>
-                            <option value="skateboard">滑板 Skateboard</option>
+                            <option value="skiing">滑雪</option>
+                            <option value="skateboard">滑板</option>
                           </select>
                         </div>
                       </div>
@@ -1733,7 +1733,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         </div>
                         <div className="flex items-center gap-4 shrink-0 ml-4">
                           <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${l.mode === 'skiing' ? 'bg-sky-50 text-sky-600 border-sky-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
-                            {l.mode}
+                            {l.mode === 'skiing' ? '滑雪' : '滑板'}
                           </span>
                           <button onClick={() => l.id && handleDeleteLocation(l.id)} 
                             className="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-600 hover:text-white flex items-center justify-center transition-all shadow-sm border border-red-100">
@@ -2193,7 +2193,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                               <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] ${
                                 order.mode === 'skiing' ? 'bg-sky-50 text-sky-600' : 'bg-red-50 text-red-600'
                               }`}>
-                                {order.mode === 'skiing' ? '⛷ Skiing' : '🛹 Skateboard'}
+                                {order.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
                               </span>
                               <span className="text-xs font-black text-gray-300 uppercase tracking-widest">ID: {order.id.slice(0, 8)}</span>
                             </div>
