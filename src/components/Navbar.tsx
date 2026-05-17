@@ -276,7 +276,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                     {vouchers.length === 0 ? (
                       <p className="text-xs opacity-40 py-4 text-center border-2 border-dashed border-current/10 rounded-xl">尚未領取任何優惠券</p>
                     ) : (
-                      vouchers.map(v => {
+                      vouchers.map((v, index) => {
                         const isSelected = selectedVoucher?.id === v.id;
                         // 如果被選中且希望"使用後消失"的感覺，我們可以將其隱藏或顯示為使用中
                         if (isSelected) return null; // 點擊後從列表中隱藏，因為上方有「取消使用」按鈕
@@ -295,7 +295,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
 
                         return (
                           <button 
-                            key={v.id}
+                            key={`${v.id}-${index}`}
                             onClick={() => {
                               if (eligibility.isEligible) {
                                 selectVoucher(v.id);
@@ -444,7 +444,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                     <p className="font-bold">目前沒有可用的優惠券</p>
                   </div>
                 ) : (
-                  vouchers.map(v => {
+                  vouchers.map((v, index) => {
                     const isSelected = selectedVoucher?.id === v.id;
                     let targetLabel = v.target_type === 'global' ? '全站通用' : 
                                         v.target_type === 'skiing' ? '滑雪商品專用' : 
@@ -458,7 +458,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
 
                     return (
                       <div 
-                        key={v.id} 
+                        key={`${v.id}-${index}`} 
                         className={`w-full flex flex-col p-5 rounded-2xl border-2 transition-all shadow-lg ${isSelected ? 'opacity-100' : 'opacity-90 hover:opacity-100'}`}
                         style={isSelected 
                           ? { borderColor: 'var(--primary)', backgroundColor: 'var(--bg)', boxShadow: '0 0 20px rgba(0,0,0,0.1)' } 

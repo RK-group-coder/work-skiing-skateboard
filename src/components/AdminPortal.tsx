@@ -110,6 +110,7 @@ interface Voucher {
   target_id?: string;
   is_active: boolean;
   is_published: boolean;
+  grant_quantity?: number | null;
 }
 
 interface Order {
@@ -147,7 +148,7 @@ const EMPTY_PRODUCT: Product = {
 const EMPTY_COURSE: Course = { mode: 'skiing', name: '', price: '' as any, first_lesson_price: '' as any, additional_lesson_price: '' as any, description: '', image_url: '', is_active: true };
 const EMPTY_COACH: Coach = { name: '', email: '', mode: 'skiing', image_url: '', description: '' };
 const EMPTY_LOCATION: CourseLocation = { name: '', mode: 'skiing', address: '' };
-const EMPTY_VOUCHER: Voucher = { code: '', title: '', description: '', type: 'percent', value: '' as any, min_amount: '' as any, valid_until: '', target_type: 'global', target_id: '', is_active: true, is_published: true };
+const EMPTY_VOUCHER: Voucher = { code: '', title: '', description: '', type: 'percent', value: '' as any, min_amount: '' as any, valid_until: '', target_type: 'global', target_id: '', is_active: true, is_published: true, grant_quantity: 1 };
 
 // ── Shared UI Constants & Helpers ─────────────────────────────────────
 const inputCls = "w-full px-4 py-3 bg-neutral-50 rounded-xl border border-gray-100 focus:ring-2 focus:ring-primary outline-none transition-all font-semibold text-sm text-gray-900";
@@ -682,7 +683,7 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, products, courses, loadi
         <input type="number" value={form.value ?? ''} onChange={e => setForm({ ...form, value: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
       </div>
     </div>
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
         <label className={labelCls}>最低消費 Min (NT$)</label>
         <input type="number" value={form.min_amount ?? ''} onChange={e => setForm({ ...form, min_amount: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
@@ -690,6 +691,10 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, products, courses, loadi
       <div>
         <label className={labelCls}>有效期限 Valid Until (選填)</label>
         <input type="date" value={form.valid_until || ''} onChange={e => setForm({ ...form, valid_until: e.target.value })} className={inputCls} />
+      </div>
+      <div>
+        <label className={labelCls}>一次發放/領取張數 Grant Qty</label>
+        <input type="number" min="1" value={form.grant_quantity ?? 1} onChange={e => setForm({ ...form, grant_quantity: e.target.value === '' ? 1 : Math.max(1, Number(e.target.value)) })} className={inputCls} />
       </div>
     </div>
     <div className="flex flex-wrap items-center gap-6">

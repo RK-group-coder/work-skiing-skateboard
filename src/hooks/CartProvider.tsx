@@ -12,6 +12,7 @@ export interface Voucher {
   valid_until?: string;
   target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses' | 'specific';
   target_id?: string;
+  grant_quantity?: number | null;
 }
 
 interface CartItem {
@@ -30,7 +31,7 @@ export interface CartContextType {
   selectedVoucher: Voucher | null;
   addToCart: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
   removeFromCart: (id: string) => void;
-  claimVoucher: (voucher: Voucher) => void;
+  claimVoucher: (voucher: Voucher, count?: number) => void;
   selectVoucher: (voucherId: string | null) => void;
   clearCart: () => void;
   totalItems: number;
@@ -57,7 +58,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data, error } = await supabase
           .from('user_vouchers')
           .select('voucher_id, vouchers (*)')
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .eq('is_used', false);
         
         if (data && !error) {
           const userVouchers = data.map((d: any) => d.vouchers).filter(Boolean);
@@ -111,10 +113,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCart(prev => prev.filter(i => i.id !== id));
   };
 
-  const claimVoucher = (voucher: Voucher) => {
+  const claimVoucher = (voucher: Voucher, count: number = 1) => {
     setVouchers(prev => {
-      if (prev.find(v => v.id === voucher.id)) return prev;
-      return [...prev, voucher];
+      const newVouchers = [...prev];
+      for (let i = 0; i < count; i++) {
+        newVouchers.push(voucher);
+      }
+      return newVouchers;
     });
   };
 

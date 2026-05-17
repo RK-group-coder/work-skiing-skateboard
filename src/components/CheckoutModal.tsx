@@ -15,7 +15,7 @@ interface CheckoutModalProps {
 
 const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPrice, user }) => {
   const { mode } = useTheme();
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, selectedVoucher } = useCart();
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -157,6 +157,29 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
         }
       } catch (stockErr) {
         console.error('Failed to update stock:', stockErr);
+      }
+
+      // 🎟️ 消耗優惠券 (Consume Voucher)
+      if (selectedVoucher && user) {
+        try {
+          // 找到該會員該張優惠券中其中一張「未被使用」的紀錄
+          const { data: claims } = await supabase
+            .from('user_vouchers')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('voucher_id', selectedVoucher.id)
+            .eq('is_used', false)
+            .limit(1);
+          
+          if (claims && claims.length > 0) {
+            await supabase
+              .from('user_vouchers')
+              .update({ is_used: true, used_at: new Date().toISOString() })
+              .eq('id', claims[0].id);
+          }
+        } catch (voucherErr) {
+          console.error('Failed to consume voucher:', voucherErr);
+        }
       }
 
       // 取得 EmailJS 系統設定

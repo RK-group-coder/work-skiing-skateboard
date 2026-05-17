@@ -111,22 +111,28 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
         return;
       }
 
+      const grantCount = v.grant_quantity || 1;
+      const inserts = Array.from({ length: grantCount }).map(() => ({
+        user_id: session.user.id,
+        voucher_id: v.id
+      }));
+
       // Try to record the claim in user_vouchers
       const { error } = await supabase
         .from('user_vouchers')
-        .insert([{ user_id: session.user.id, voucher_id: v.id }]);
+        .insert(inserts);
 
       if (error) {
         if (error.code === '23505') {
           alert('您已經領取過這張優惠券囉！');
           // Still add to cart local state if they just forgot they had it
-          claimVoucher(v);
+          claimVoucher(v, grantCount);
         } else {
           throw error;
         }
       } else {
-        alert(`【${v.title}】領取成功！您可以在購物車中直接點選使用。`);
-        claimVoucher(v);
+        alert(`【${v.title}】領取成功，共 ${grantCount} 張！您可以在購物車中直接點選使用。`);
+        claimVoucher(v, grantCount);
       }
     } catch (err) {
       console.error('Voucher Claim Failed:', err);
