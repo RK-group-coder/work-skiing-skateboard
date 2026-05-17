@@ -273,10 +273,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     }
 
                     bookingListHtml += `
-                      <div style="margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 12px; border: 1px solid #eee; font-size: 14px; line-height: 1.6;">
-                        <div style="margin-bottom: 4px;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800;">${dateStr}</span></div>
-                        <div style="margin-bottom: 4px;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #333; font-weight: 800;">${displayTime}</span></div>
-                        <div><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800;">${pCount} 人</span></div>
+                      <div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${dateStr}</span></div>
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${displayTime}</span></div>
+                        <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${pCount} 人</span></div>
                       </div>`;
                   });
                 });
@@ -286,10 +286,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 const fallbackPCount = details.totalPersonSlots || 1;
                 fallbackDates.forEach((d: string) => {
                   bookingListHtml += `
-                    <div style="margin-bottom: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 12px; border: 1px solid #eee; font-size: 14px; line-height: 1.6;">
-                      <div style="margin-bottom: 4px;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800;">${d}</span></div>
-                      <div style="margin-bottom: 4px;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #ff0000; font-weight: 800;">資料處理中...</span></div>
-                      <div><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800;">${fallbackPCount} 人</span></div>
+                    <div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
+                      <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${d}</span></div>
+                      <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #ff0000; font-weight: 800; white-space: nowrap;">資料處理中...</span></div>
+                      <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${fallbackPCount} 人</span></div>
                     </div>`;
                 });
               }
