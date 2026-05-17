@@ -590,10 +590,16 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, products, courses, loadi
         <label className={labelCls}>適用對象 Target Type</label>
         <button 
           type="button" 
-          onClick={() => setForm({ ...form, target_type: 'global', target_id: '' })}
-          className={`text-xs font-black px-4 py-2 rounded-xl border transition-all ${form.target_type === 'global' ? 'bg-black text-white border-black shadow-md' : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'}`}
+          onClick={() => {
+            if (form.target_type === 'global') {
+              setForm({ ...form, target_type: 'specific', target_id: '' });
+            } else {
+              setForm({ ...form, target_type: 'global', target_id: '' });
+            }
+          }}
+          className={`text-xs font-black px-4 py-2.5 rounded-xl border-2 transition-all flex items-center justify-center min-w-[140px] ${form.target_type === 'global' ? 'bg-neutral-800 text-white border-neutral-800 shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-900'}`}
         >
-          {form.target_type === 'global' ? '✓ 已全選 (全站通用)' : '一鍵全選 (全站通用)'}
+          {form.target_type === 'global' ? '✓ 全站通用 (點擊取消)' : '＋ 指定特定商品/課程'}
         </button>
       </div>
       
