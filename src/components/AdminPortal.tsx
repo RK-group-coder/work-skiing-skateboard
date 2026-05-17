@@ -569,7 +569,7 @@ const CourseForm = ({ form, setForm, onSave, onCancel, loading }: { form: Course
   </div>
 );
 
-const VoucherForm = ({ form, setForm, onSave, onCancel, categories, products, courses, loading }: { form: Voucher; setForm: (v: Voucher) => void; onSave: () => void; onCancel: () => void; categories: Category[]; products: Product[]; courses: Course[]; loading: boolean }) => (
+const VoucherForm = ({ form, setForm, onSave, onCancel, products, courses, loading }: { form: Voucher; setForm: (v: Voucher) => void; onSave: () => void; onCancel: () => void; products: Product[]; courses: Course[]; loading: boolean }) => (
   <div className="bg-white border border-gray-100 rounded-[28px] p-6 space-y-4">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
@@ -1836,7 +1836,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
             {isAddingVoucher && (
               <VoucherForm form={voucherForm} setForm={setVoucherForm}
-                onSave={handleSaveVoucher} onCancel={() => setIsAddingVoucher(false)} categories={categories} products={products} courses={courses} loading={loading} />
+                onSave={handleSaveVoucher} onCancel={() => setIsAddingVoucher(false)} products={products} courses={courses} loading={loading} />
             )}
 
             <div className="space-y-3">
@@ -1847,7 +1847,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 <div key={v.id}>
                   {editingVoucher?.id === v.id ? (
                     <VoucherForm form={voucherForm} setForm={setVoucherForm}
-                      onSave={handleSaveVoucher} onCancel={() => setEditingVoucher(null)} categories={categories} products={products} courses={courses} loading={loading} />
+                      onSave={handleSaveVoucher} onCancel={() => setEditingVoucher(null)} products={products} courses={courses} loading={loading} />
                   ) : (
                     <div className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex flex-col md:flex-row items-start md:items-center gap-4 hover:shadow-sm transition-shadow">
                       <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 border border-gray-100">
