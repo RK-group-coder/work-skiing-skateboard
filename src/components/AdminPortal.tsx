@@ -106,7 +106,7 @@ interface Voucher {
   value: number | null;
   min_amount: number | null;
   valid_until?: string;
-  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses';
+  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses' | 'specific';
   target_id?: string;
   is_active: boolean;
   is_published: boolean;
@@ -585,31 +585,79 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, categories, products, co
       <label className={labelCls}>自訂內文 Description (選填)</label>
       <textarea rows={3} value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })} className={`${inputCls} resize-none`} placeholder="e.g. 適用於特定商品或課程&#10;安全第一優先" />
     </div>
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
         <label className={labelCls}>適用對象 Target Type</label>
-        <select value={form.target_type} onChange={e => setForm({ ...form, target_type: e.target.value as any, target_id: '' })} className={inputCls}>
-          <option value="global">🌐 全站通用 Global</option>
-          <option value="skiing">⛷ 僅限滑雪商品</option>
-          <option value="skateboard">🛹 僅限滑板商品</option>
-          <option value="all_courses">🎓 僅限所有課程 All Courses</option>
-          <option value="category">📁 特定商品分類 Category</option>
-          <option value="product">🛍 特定單一商品 Product</option>
-          <option value="course">🏫 特定單一課程 Course</option>
-        </select>
+        <button 
+          type="button" 
+          onClick={() => setForm({ ...form, target_type: 'global', target_id: '' })}
+          className={`text-xs font-black px-4 py-2 rounded-xl border transition-all ${form.target_type === 'global' ? 'bg-black text-white border-black shadow-md' : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'}`}
+        >
+          {form.target_type === 'global' ? '✓ 已全選 (全站通用)' : '一鍵全選 (全站通用)'}
+        </button>
       </div>
+      
+      {form.target_type !== 'global' && (
+        <div className="p-4 bg-gray-50 border border-gray-200 rounded-2xl max-h-[300px] overflow-y-auto space-y-4">
+          {/* Products List */}
+          {products.length > 0 && (
+            <div>
+              <div className="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">商品列表</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {products.map(p => {
+                  const isSelected = (form.target_id || '').split(',').includes(p.id!);
+                  return (
+                    <label key={p.id} className={`flex items-center gap-3 p-3 bg-white border rounded-xl cursor-pointer transition-all ${isSelected ? 'border-blue-500 bg-blue-50/30' : 'border-gray-100 hover:border-gray-300'}`}>
+                      <input 
+                        type="checkbox" 
+                        checked={isSelected}
+                        onChange={(e) => {
+                          let ids = (form.target_id || '').split(',').filter(Boolean);
+                          if (e.target.checked) ids.push(p.id!);
+                          else ids = ids.filter(id => id !== p.id);
+                          // If nothing selected, maybe keep it 'specific' or change to something else, 'specific' is fine.
+                          setForm({ ...form, target_id: ids.join(','), target_type: 'specific' });
+                        }}
+                        className="rounded text-blue-600 focus:ring-blue-500 w-5 h-5 border-gray-300"
+                      />
+                      <span className="text-sm font-bold text-gray-700 truncate flex-1">[{p.mode === 'skiing' ? '滑雪' : '滑板'}] {p.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
+          {/* Courses List */}
+          {courses.length > 0 && (
+            <div>
+              <div className="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest mt-4">課程列表</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {courses.map(c => {
+                  const isSelected = (form.target_id || '').split(',').includes(c.id!);
+                  return (
+                    <label key={c.id} className={`flex items-center gap-3 p-3 bg-white border rounded-xl cursor-pointer transition-all ${isSelected ? 'border-orange-500 bg-orange-50/30' : 'border-gray-100 hover:border-gray-300'}`}>
+                      <input 
+                        type="checkbox" 
+                        checked={isSelected}
+                        onChange={(e) => {
+                          let ids = (form.target_id || '').split(',').filter(Boolean);
+                          if (e.target.checked) ids.push(c.id!);
+                          else ids = ids.filter(id => id !== c.id);
+                          setForm({ ...form, target_id: ids.join(','), target_type: 'specific' });
+                        }}
+                        className="rounded text-orange-600 focus:ring-orange-500 w-5 h-5 border-gray-300"
+                      />
+                      <span className="text-sm font-bold text-gray-700 truncate flex-1">[{c.mode === 'skiing' ? '滑雪' : '滑板'}] {c.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
-    {['category', 'product', 'course'].includes(form.target_type) && (
-      <div className="animate-in slide-in-from-top-2 duration-300">
-        <label className={labelCls}>{form.target_type === 'category' ? '選擇分類 Select Category' : form.target_type === 'product' ? '選擇商品 Select Product' : '選擇課程 Select Course'}</label>
-        <select value={form.target_id} onChange={e => setForm({ ...form, target_id: e.target.value })} className={inputCls}>
-          <option value="">請選擇...</option>
-          {form.target_type === 'category' && categories.map(c => <option key={c.id} value={c.id}>[{c.mode === 'skiing' ? '滑雪' : '滑板'}] {c.name}</option>)}
-          {form.target_type === 'product' && products.map(p => <option key={p.id} value={p.id}>[{p.mode === 'skiing' ? '滑雪' : '滑板'}] {p.name}</option>)}
-          {form.target_type === 'course' && courses.map(course => <option key={course.id} value={course.id}>[{course.mode === 'skiing' ? '滑雪' : '滑板'}] {course.name}</option>)}
-        </select>
-      </div>
-    )}
     <div className="grid grid-cols-2 gap-4">
       <div>
         <label className={labelCls}>折扣類型 Type</label>

@@ -1055,12 +1055,14 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {vouchers.filter(v => {
                   if (v.target_type === 'global' || v.target_type === 'all_courses') return true;
+                  if (v.target_type === 'specific' && (v.target_id || '').split(',').includes(course.id)) return true;
                   if (v.target_type === 'course' && v.target_id === course.id) return true;
                   if (v.target_type === 'skiing' && mode === 'skiing') return true;
                   if (v.target_type === 'skateboard' && mode === 'skateboard') return true;
                   return false;
                 }).length > 0 ? vouchers.filter(v => {
                   if (v.target_type === 'global' || v.target_type === 'all_courses') return true;
+                  if (v.target_type === 'specific' && (v.target_id || '').split(',').includes(course.id)) return true;
                   if (v.target_type === 'course' && v.target_id === course.id) return true;
                   if (v.target_type === 'skiing' && mode === 'skiing') return true;
                   if (v.target_type === 'skateboard' && mode === 'skateboard') return true;

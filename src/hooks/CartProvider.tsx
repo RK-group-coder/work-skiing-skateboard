@@ -10,7 +10,7 @@ export interface Voucher {
   code: string;
   min_amount?: number; // Minimum spend requirement
   valid_until?: string;
-  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses';
+  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses' | 'specific';
   target_id?: string;
 }
 
@@ -146,6 +146,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const isItemEligible = (i: CartItem) => {
       if (voucher.target_type === 'global') return true;
+      if (voucher.target_type === 'specific') {
+        const ids = (voucher.target_id || '').split(',');
+        if (i.type === 'course_booking') return ids.includes(i.details?.courseId);
+        return ids.includes(i.id);
+      }
       if (voucher.target_type === 'all_courses') return i.type === 'course_booking';
       if (voucher.target_type === 'course') return i.type === 'course_booking' && i.details?.courseId === voucher.target_id;
       if (i.type !== 'product') return false; 
@@ -182,6 +187,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isEligible) {
       const isItemEligible = (i: CartItem) => {
         if (selectedVoucher.target_type === 'global') return true;
+        if (selectedVoucher.target_type === 'specific') {
+          const ids = (selectedVoucher.target_id || '').split(',');
+          if (i.type === 'course_booking') return ids.includes(i.details?.courseId);
+          return ids.includes(i.id);
+        }
         if (selectedVoucher.target_type === 'all_courses') return i.type === 'course_booking';
         if (selectedVoucher.target_type === 'course') return i.type === 'course_booking' && i.details?.courseId === selectedVoucher.target_id;
         if (i.type !== 'product') return false; 

@@ -40,6 +40,12 @@ const DashboardView: React.FC<DashboardViewProps> = ({ products, courses, vouche
       const category = categories?.find(c => c.id === v.target_id);
       if (category && category.mode === dataMode) return true;
     }
+    if (v.target_type === 'specific' && v.target_id) {
+      const ids = v.target_id.split(',');
+      const hasMatchingProduct = products.some(p => ids.includes(p.id) && p.mode === dataMode);
+      const hasMatchingCourse = courses.some(c => ids.includes(c.id) && c.mode === dataMode);
+      if (hasMatchingProduct || hasMatchingCourse) return true;
+    }
     
     return false;
   }).length;
