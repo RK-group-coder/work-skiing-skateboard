@@ -597,7 +597,12 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, products, courses, loadi
               setForm({ ...form, target_type: 'global', target_id: '' });
             }
           }}
-          className={`text-xs font-black px-4 py-2.5 rounded-xl border-2 transition-all flex items-center justify-center min-w-[140px] ${form.target_type === 'global' ? 'bg-neutral-800 text-white border-neutral-800 shadow-md' : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-gray-900'}`}
+          className="text-xs font-black px-4 py-2.5 rounded-xl border-2 transition-all flex items-center justify-center min-w-[140px] shadow-sm cursor-pointer"
+          style={{ 
+            backgroundColor: form.target_type === 'global' ? '#1f2937' : '#ffffff', 
+            color: form.target_type === 'global' ? '#ffffff' : '#4b5563',
+            borderColor: form.target_type === 'global' ? '#1f2937' : '#e5e7eb'
+          }}
         >
           {form.target_type === 'global' ? '✓ 全站通用 (點擊取消)' : '＋ 指定特定商品/課程'}
         </button>
