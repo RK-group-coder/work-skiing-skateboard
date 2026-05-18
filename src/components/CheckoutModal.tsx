@@ -451,6 +451,26 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
             : `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #4a5568; font-size: 13px; font-weight: bold; line-height: 1.6;">付款方式：LINE Pay (無需填寫末五碼)</div>`;
           const fullFooter = `${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`;
 
+          // 為了防止客戶「商品範本與課程範本共用同一個 EmailJS ID」導致商品信件欄位空白，
+          // 我們在此特別做智慧相容：如果該範本有課程標籤，會自動對應填入。
+          const compatibilityParams = {
+            status_html: '<span style="color: #10b981; font-weight: bold; font-size: 1.2em;">成功購買商品</span>',
+            course_name: productItems.map(p => `${p.name} (x${p.quantity})`).join(', '),
+            coach_name: `無 (商品出貨：${deliveryMethodLabel})`,
+            course_table: `
+              <div style="padding: 12px; background-color: #f0fdf4; border-radius: 10px; border: 1px solid #bbf7d0; font-size: 13px; line-height: 1.5; color: #166534; margin-bottom: 12px;">
+                <strong style="font-size: 14px;">📦 商品明細：</strong><br/>
+                ${productItems.map(p => `• ${p.name} x ${p.quantity} (NT$ ${(p.price * p.quantity).toLocaleString()})`).join('<br/>')}
+                <br/><br/>
+                <strong style="font-size: 14px;">🚚 配送資訊：</strong><br/>
+                • 配送方式：${deliveryMethodLabel}<br/>
+                • ${deliveryDetailLabel}：${deliveryDetailValue}
+              </div>`,
+            total_amount: `NT$ ${totalPrice.toLocaleString()}`,
+            skill_level: '商品購買 (免填)',
+            video_link: '商品購買 (免填)'
+          };
+
           // (A) 寄給 客戶
           try {
             await sendWithSDK({
@@ -467,7 +487,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 order_time: currentTime,
                 last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
                 payment_method: paymentMethodName,
-                system_footer: fullFooter
+                system_footer: fullFooter,
+                ...compatibilityParams
               }
             });
           } catch (e) {
@@ -491,7 +512,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                   order_time: currentTime,
                   last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
                   payment_method: paymentMethodName,
-                  system_footer: fullFooter
+                  system_footer: fullFooter,
+                  ...compatibilityParams
                 }
               });
             } catch (e) {
