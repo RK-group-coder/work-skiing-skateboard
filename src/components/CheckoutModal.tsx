@@ -27,6 +27,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [customerEmail, setCustomerEmail] = useState(user?.email || '');
   const [notes, setNotes] = useState('');
+  const [lastFiveDigits, setLastFiveDigits] = useState('');
   
   const hasPhysicalProducts = cart.some(item => item.type === 'product');
   const [deliveryMethod, setDeliveryMethod] = useState<'convenience_store' | 'pickup_location'>('convenience_store');
@@ -94,6 +95,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
       return;
     }
 
+    if (paymentMethod === 'bank' && (!lastFiveDigits || lastFiveDigits.length !== 5)) {
+      alert('請填寫正確的付款帳號末五碼（共 5 碼數字）以供對帳');
+      return;
+    }
+
     if (!customerName || !customerPhone || !customerEmail) {
       alert('請填寫完整的聯絡資訊（姓名、電話、Email）');
       return;
@@ -122,9 +128,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
           bank_info: {
             bankName: bankInfo.bankName,
             accountName: bankInfo.accountName,
-            accountNumber: bankInfo.accountNumber
+            accountNumber: bankInfo.accountNumber,
+            lastFiveDigits: lastFiveDigits
           },
           screenshot_data: screenshot,
+          last_five_digits: lastFiveDigits,
           status: 'pending_verification',
           mode: mode,
           customer_name: customerName,
@@ -629,6 +637,29 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                       className="hidden" 
                     />
                   </div>
+
+                  {/* Last Five Digits Section */}
+                  <div className="space-y-3 pt-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-5 rounded-full bg-slate-400" />
+                        <h3 className="font-black uppercase tracking-widest text-[11px] opacity-50">Step 3: Enter Last 5 Digits of Payment Account</h3>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        maxLength={5}
+                        value={lastFiveDigits}
+                        onChange={(e) => setLastFiveDigits(e.target.value.replace(/\D/g, ''))}
+                        placeholder="請輸入付款帳號末五碼對帳 Last 5 Digits"
+                        className="w-full px-5 py-4 bg-neutral-800 rounded-3xl border-2 border-white/5 outline-none font-bold text-sm text-white placeholder-white/20 focus:border-slate-400 focus:bg-neutral-800/80 transition-all text-center tracking-[0.25em] font-mono"
+                      />
+                    </div>
+                    <p className="text-[10px] font-black text-slate-400 tracking-wider leading-relaxed">
+                      ⚠️ 對帳用；若末五碼不匹配或未接收到匯款，視同訂單不成立。
+                    </p>
+                  </div>
                 </div>
               </>
 
@@ -757,19 +788,19 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
 
           <div className="p-8 pt-4 border-t border-current/5">
             <button 
-              disabled={(paymentMethod === 'bank' && !screenshot) || isUploading}
+              disabled={(paymentMethod === 'bank' && (!screenshot || lastFiveDigits.length !== 5)) || isUploading}
               onClick={handleSubmit}
               className={`w-full py-5 rounded-[24px] font-black uppercase tracking-[0.3em] active:scale-95 transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
-                (paymentMethod === 'bank' && !screenshot) || isUploading ? 'cursor-not-allowed border-2 border-white/10' : 'shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:scale-[1.02]'
+                (paymentMethod === 'bank' && (!screenshot || lastFiveDigits.length !== 5)) || isUploading ? 'cursor-not-allowed border-2 border-white/10' : 'shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:scale-[1.02]'
               }`}
               style={{ 
-                background: (paymentMethod === 'bank' && !screenshot) || isUploading 
+                background: (paymentMethod === 'bank' && (!screenshot || lastFiveDigits.length !== 5)) || isUploading 
                   ? (mode === 'skiing' ? '#f1f5f9' : 'rgba(255,255,255,0.05)') 
                   : '#ef4444',
-                color: (paymentMethod === 'bank' && !screenshot) || isUploading 
+                color: (paymentMethod === 'bank' && (!screenshot || lastFiveDigits.length !== 5)) || isUploading 
                   ? (mode === 'skiing' ? '#94a3b8' : 'rgba(255,255,255,0.3)') 
                   : '#ffffff',
-                border: (paymentMethod === 'bank' && !screenshot) || isUploading 
+                border: (paymentMethod === 'bank' && (!screenshot || lastFiveDigits.length !== 5)) || isUploading 
                   ? (mode === 'skiing' ? '2px solid #e2e8f0' : '2px solid rgba(255,255,255,0.1)') 
                   : 'none'
               }}
@@ -781,7 +812,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 <div className="w-6 h-6 border-2 border-slate-200 border-t-black rounded-full animate-spin" />
               ) : (
                 <span className="relative z-10 flex items-center gap-3 font-black">
-                  {(paymentMethod === 'bank' && !screenshot) ? '請先上傳轉帳截圖' : '確認送出訂單'}
+                  {paymentMethod === 'bank' && !screenshot 
+                    ? '請先上傳轉帳截圖' 
+                    : paymentMethod === 'bank' && lastFiveDigits.length !== 5 
+                    ? '請填寫末五碼對帳' 
+                    : '確認送出訂單'}
                   <Send size={20} />
                 </span>
               )}

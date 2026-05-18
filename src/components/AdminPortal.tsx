@@ -127,6 +127,7 @@ interface Order {
   customer_email?: string;
   delivery_method?: string;
   delivery_info?: any;
+  last_five_digits?: string;
 }
 
 const EMPTY_PRODUCT: Product = { 
@@ -2373,17 +2374,27 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                           </div>
 
                           {/* Bank Info */}
-                          <div className="p-5 bg-neutral-50 rounded-3xl border border-gray-100 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400"><Landmark size={20} /></div>
-                              <div>
-                                <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest">轉帳帳戶</div>
-                                <div className="text-sm font-bold text-gray-900">{order.bank_info?.bankName} - {order.bank_info?.accountName}</div>
+                          <div className="p-5 bg-neutral-50 rounded-3xl border border-gray-100 flex flex-col gap-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-400"><Landmark size={20} /></div>
+                                <div>
+                                  <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest">轉帳收件帳戶 (商家)</div>
+                                  <div className="text-sm font-bold text-gray-900">{order.bank_info?.bankName} - {order.bank_info?.accountName}</div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest">商家收件帳號</div>
+                                <div className="text-sm font-black font-mono text-gray-900">{order.bank_info?.accountNumber}</div>
                               </div>
                             </div>
-                            <div className="text-right">
-                              <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest">末五碼/帳號</div>
-                              <div className="text-sm font-black font-mono text-gray-900">{order.bank_info?.accountNumber}</div>
+                            
+                            {/* 客戶付款帳號末五碼 */}
+                            <div className="pt-3 border-t border-gray-200 flex justify-between items-center">
+                              <div className="text-xs font-bold text-gray-500">客戶付款帳號末五碼 (對帳用)</div>
+                              <div className="px-3 py-1.5 bg-red-50 text-red-600 rounded-xl text-xs font-black font-mono tracking-widest border border-red-100">
+                                {order.last_five_digits || order.bank_info?.lastFiveDigits || '未填寫'}
+                              </div>
                             </div>
                           </div>
                         </div>
