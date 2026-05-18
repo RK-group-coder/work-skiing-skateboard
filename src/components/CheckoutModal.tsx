@@ -304,6 +304,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
 
               const statusRedHtml = '<span style="color: #ff0000; font-weight: bold; font-size: 1.2em;">成功預約</span>';
               const finalPrice = item.price || 0; // 直接使用計算好的總價
+              const paymentMethodName = paymentMethod === 'bank' ? '銀行轉帳' : 'LINE Pay';
+              const lastFiveHtml = paymentMethod === 'bank' 
+                ? `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #fff5f5; border-radius: 8px; border: 1px solid #feb2b2; color: #c53030; font-size: 13px; font-weight: bold; line-height: 1.6;">付款方式：銀行轉帳<br/>匯款末五碼對帳：<span style="font-family: monospace; font-size: 15px; font-weight: 900; letter-spacing: 1px; color: #e53e3e;">${lastFiveDigits || '未填寫'}</span></div>`
+                : `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #4a5568; font-size: 13px; font-weight: bold; line-height: 1.6;">付款方式：LINE Pay (無需填寫末五碼)</div>`;
 
               // (A) 寄給 教練
               try {
@@ -322,7 +326,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     skill_level: (item as any).skillLevel || (item as any).details?.skillLevel || '未填寫',
                     video_link: ((item as any).videoUrl || (item as any).details?.mediaUrl) ? `<a href="${(item as any).videoUrl || (item as any).details?.mediaUrl}">${(item as any).videoUrl || (item as any).details?.mediaUrl}</a>` : '無影片連結',
                     order_time: currentTime,
-                    system_footer: '<br/><br/>--- SK8滑雪&電動滑板nocap ---'
+                    last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
+                    payment_method: paymentMethodName,
+                    system_footer: `${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
                   }
                 });
               } catch (e) {
@@ -346,7 +352,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     skill_level: (item as any).skillLevel || (item as any).details?.skillLevel || '未填寫',
                     video_link: ((item as any).videoUrl || (item as any).details?.mediaUrl) ? `<a href="${(item as any).videoUrl || (item as any).details?.mediaUrl}">${(item as any).videoUrl || (item as any).details?.mediaUrl}</a>` : '無影片連結',
                     order_time: currentTime,
-                    system_footer: '<br/><br/>--- SK8滑雪&電動滑板nocap ---'
+                    last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
+                    payment_method: paymentMethodName,
+                    system_footer: `${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
                   }
                 });
               } catch (e) {
@@ -371,7 +379,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                       skill_level: (item as any).skillLevel || (item as any).details?.skillLevel || '未填寫',
                       video_link: ((item as any).videoUrl || (item as any).details?.mediaUrl) ? `<a href="${(item as any).videoUrl || (item as any).details?.mediaUrl}">${(item as any).videoUrl || (item as any).details?.mediaUrl}</a>` : '無影片連結',
                       order_time: currentTime,
-                      system_footer: '<br/><br/>--- SK8滑雪&電動滑板nocap ---'
+                      last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
+                      payment_method: paymentMethodName,
+                      system_footer: `${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
                     }
                   });
                 } catch (e) {
@@ -435,7 +445,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
             deliveryDetailValue = loc ? `${loc.name}${loc.address ? ` (${loc.address})` : ''}` : '未指定據點';
           }
 
-          const fullFooter = '--- SK8滑雪&電動滑板nocap ---';
+          const paymentMethodName = paymentMethod === 'bank' ? '銀行轉帳' : 'LINE Pay';
+          const lastFiveHtml = paymentMethod === 'bank' 
+            ? `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #fff5f5; border-radius: 8px; border: 1px solid #feb2b2; color: #c53030; font-size: 13px; font-weight: bold; line-height: 1.6;">付款方式：銀行轉帳<br/>匯款末五碼對帳：<span style="font-family: monospace; font-size: 15px; font-weight: 900; letter-spacing: 1px; color: #e53e3e;">${lastFiveDigits || '未填寫'}</span></div>`
+            : `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #4a5568; font-size: 13px; font-weight: bold; line-height: 1.6;">付款方式：LINE Pay (無需填寫末五碼)</div>`;
+          const fullFooter = `${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`;
 
           // (A) 寄給 客戶
           try {
@@ -451,6 +465,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 delivery_info: `${deliveryDetailLabel}：${deliveryDetailValue}`,
                 contact_phone: customerPhone,
                 order_time: currentTime,
+                last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
+                payment_method: paymentMethodName,
                 system_footer: fullFooter
               }
             });
@@ -473,6 +489,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                   delivery_info: `${deliveryDetailLabel}：${deliveryDetailValue}`,
                   contact_phone: customerPhone,
                   order_time: currentTime,
+                  last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
+                  payment_method: paymentMethodName,
                   system_footer: fullFooter
                 }
               });
