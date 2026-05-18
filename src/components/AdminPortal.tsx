@@ -695,7 +695,7 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, products, courses, loadi
       </div>
       <div>
         <label className={labelCls}>一次發放/領取張數 Grant Qty</label>
-        <input type="number" min="1" value={form.grant_quantity ?? 1} onChange={e => setForm({ ...form, grant_quantity: e.target.value === '' ? 1 : Math.max(1, Number(e.target.value)) })} className={inputCls} />
+        <input type="number" min="1" value={form.grant_quantity ?? ''} onChange={e => setForm({ ...form, grant_quantity: e.target.value === '' ? '' as any : Number(e.target.value) })} className={inputCls} />
       </div>
     </div>
     <div className="flex flex-wrap items-center gap-6">
@@ -1152,6 +1152,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       const finalData = { ...voucherForm };
       if (finalData.value === '' as any) finalData.value = 0;
       if (finalData.min_amount === '' as any) finalData.min_amount = 0;
+      if (!finalData.grant_quantity || Number(finalData.grant_quantity) < 1) {
+        finalData.grant_quantity = 1;
+      }
 
       if (voucherForm.id) {
         const { error } = await supabase.from('vouchers').update(finalData).eq('id', voucherForm.id);
