@@ -593,7 +593,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                         </div>
                       </div>
                       <div className="md:text-right shrink-0">
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-1 text-white/60 leading-none">Total Amount</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.3em] mb-1 text-white/60 leading-none">總計金額</p>
                         <p className="text-3xl font-black italic tracking-tighter text-white leading-none">NT${totalPrice.toLocaleString()}</p>
                         <p className="text-[11px] font-bold text-white/40 mt-2 md:text-right">要使用優惠券 請至購物車</p>
                       </div>
@@ -630,7 +630,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                           className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-emerald-400 uppercase tracking-widest"
                         >
-                          Copied to clipboard
+                          已複製到剪貼簿
                         </motion.p>
                       )}
                     </div>
@@ -677,13 +677,22 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                       className="hidden" 
                     />
                   </div>
+                  
+                  {screenshot && (
+                    <button 
+                      onClick={() => { setScreenshot(''); if(fileInputRef.current) fileInputRef.current.value = ''; }}
+                      className="w-full py-4 rounded-[20px] border-2 border-red-500/20 bg-red-50 text-red-500 font-black text-sm uppercase tracking-widest hover:bg-red-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    >
+                      <X size={18} strokeWidth={3} /> 刪除截圖
+                    </button>
+                  )}
 
                   {/* Last Five Digits Section */}
                   <div className="space-y-3 pt-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-5 rounded-full bg-slate-400" />
-                        <h3 className="font-black uppercase tracking-widest text-[11px] opacity-50">Step 3: Enter Last 5 Digits of Payment Account</h3>
+                        <h3 className="font-black uppercase tracking-widest text-[11px] opacity-50">第三步: 輸入付款帳號末五碼</h3>
                       </div>
                     </div>
                     <div className="relative">
@@ -692,7 +701,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                         maxLength={5}
                         value={lastFiveDigits}
                         onChange={(e) => setLastFiveDigits(e.target.value.replace(/\D/g, ''))}
-                        placeholder="請輸入付款帳號末五碼對帳 Last 5 Digits"
+                        placeholder="請輸入付款帳號末五碼對帳"
                         className="w-full px-5 py-4 bg-neutral-800 rounded-3xl border-2 border-white/5 outline-none font-bold text-sm text-white placeholder-white/20 focus:border-slate-400 focus:bg-neutral-800/80 transition-all text-center tracking-[0.25em] font-mono"
                       />
                     </div>
@@ -713,21 +722,21 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
               <div className="space-y-3">
                 <input
                   type="text"
-                  placeholder="收件人姓名 Name"
+                  placeholder="收件人姓名"
                   value={customerName}
                   onChange={e => setCustomerName(e.target.value)}
                   className="w-full p-4 rounded-xl border border-gray-200 bg-white focus:border-primary outline-none transition-all text-sm font-medium text-gray-900 placeholder:text-gray-400"
                 />
                 <input
                   type="tel"
-                  placeholder="聯絡電話 Phone Number"
+                  placeholder="聯絡電話"
                   value={customerPhone}
                   onChange={e => setCustomerPhone(e.target.value)}
                   className="w-full p-4 rounded-xl border border-gray-200 bg-white focus:border-primary outline-none transition-all text-sm font-medium text-gray-900 placeholder:text-gray-400"
                 />
                 <input
                   type="email"
-                  placeholder="電子信箱 Email"
+                  placeholder="電子信箱"
                   value={customerEmail}
                   onChange={e => setCustomerEmail(e.target.value)}
                   className="w-full p-4 rounded-xl border border-gray-200 bg-white focus:border-primary outline-none transition-all text-sm font-medium text-gray-900 placeholder:text-gray-400"
@@ -747,7 +756,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
               <div className="space-y-2 pt-2 border-t border-current/5 mt-2">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-1 h-4 rounded-full bg-primary" />
-                  <h3 className="font-black uppercase tracking-widest text-[10px] opacity-80">取貨方式 Delivery</h3>
+                  <h3 className="font-black uppercase tracking-widest text-[10px] opacity-80">取貨方式</h3>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-2 mb-3">

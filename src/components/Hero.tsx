@@ -39,14 +39,14 @@ const Hero: React.FC = () => {
       hero_title: '征服雪山，突破極限', 
       hero_subtitle: '專業滑雪課程，從初學到進階，帶你探索雪地的無限可能', 
       hero_bg_image: '', 
-      hero_badge: "Let's Go Skiing" 
+      hero_badge: "一起去滑雪" 
     },
     skateboard: { 
       id: 'skateboard', 
       hero_title: '極速前行，電動新世代', 
       hero_subtitle: '專業電動滑板課程與裝備，體驗最先進的電動滑行技術', 
       hero_bg_image: '', 
-      hero_badge: 'Ride the Urban Wave' 
+      hero_badge: '城市衝浪' 
     }
   });
 
@@ -86,8 +86,8 @@ const Hero: React.FC = () => {
   }, [mode, rawBgImage]);
 
   const currentBg = bgImages[currentIndex] || defaultBg;
-  const isMp4 = currentBg.toLowerCase().includes('.mp4');
-  const ytInfo = !isMp4 ? getYoutubeInfo(currentBg) : null;
+  const isVideo = currentBg.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/i) !== null;
+  const ytInfo = !isVideo ? getYoutubeInfo(currentBg) : null;
   
   const [isMuted, setIsMuted] = useState(!isSettingSoundOn);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
@@ -147,7 +147,7 @@ const Hero: React.FC = () => {
 
   const toggleSound = () => {
     const nextMute = !isMuted;
-    if (isMp4) {
+    if (isVideo) {
       if (videoRef.current) {
         videoRef.current.muted = nextMute;
         if (!nextMute) {
@@ -237,7 +237,7 @@ const Hero: React.FC = () => {
             transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
             className="absolute inset-0 w-full h-full overflow-hidden bg-black"
           >
-            {isMp4 ? (
+            {isVideo ? (
               <div className="absolute inset-0 w-full h-full bg-black">
                 <video 
                   ref={videoRef}
@@ -266,7 +266,7 @@ const Hero: React.FC = () => {
                 />
                 <iframe
                   id="youtube-bg-player"
-                  src={`https://www.youtube.com/embed/${ytInfo.id}?enablejsapi=1&autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${ytInfo.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+                  src={`https://www.youtube.com/embed/${ytInfo.id}?enablejsapi=1&autoplay=1&mute=1&loop=1&playlist=${ytInfo.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
                   className={`absolute top-1/2 left-1/2 transition-opacity duration-700 pointer-events-none ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
                   style={{ 
                     border: 'none',
@@ -309,7 +309,7 @@ const Hero: React.FC = () => {
         )}
 
         {/* Video Sound Toggle Button */}
-        {(ytInfo || isMp4) && (
+        {(ytInfo || isVideo) && (
           <button 
             onClick={toggleSound}
             className="absolute bottom-16 right-4 md:right-8 z-50 w-10 h-10 bg-black/40 hover:bg-black/80 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-all border border-white/20 active:scale-95 shadow-2xl"

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, ChevronRight, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink } from 'lucide-react';
+import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, ChevronRight, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink, Bot } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { User } from '@supabase/supabase-js';
 import DashboardView from './DashboardView';
+import AITeam from './AITeam';
 
 interface AdminPortalProps { 
   onBack: () => void; 
@@ -724,7 +725,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'categories' | 'courses' | 'vouchers' | 'homepage' | 'orders' | 'users'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'categories' | 'courses' | 'vouchers' | 'homepage' | 'orders' | 'users' | 'ai_team'>('dashboard');
   const [orderType, setOrderType] = useState<'product' | 'course'>('product');
   const [orderFilter, setOrderFilter] = useState<'all' | 'skiing' | 'skateboard'>('all');
   const [searchPhone, setSearchPhone] = useState('');
@@ -809,6 +810,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrderImage, setSelectedOrderImage] = useState<string | null>(null);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [hasFetchedOrders, setHasFetchedOrders] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   const [pickupLocations, setPickupLocations] = useState<any[]>([]);
@@ -835,13 +837,15 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   useEffect(() => {
     if (isLoggedIn) {
       scrollContainerRef.current?.scrollTo(0, 0);
-      fetchHomepageSettings();
-      fetchProducts();
-      fetchCategories();
-      fetchCourses();
-      fetchVouchers();
-      fetchCourseData();
+      
+      // 同時發送所有請求以最大化利用瀏覽器 HTTP/2 多工能力
       fetchOrders();
+      fetchProducts();
+      fetchCourses();
+      fetchCourseData();
+      fetchVouchers();
+      fetchCategories();
+      fetchHomepageSettings();
       fetchPickupLocations();
       fetchSystemSettings();
       fetchUsers();
@@ -954,6 +958,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
     } catch (err: any) { 
       console.error('Error fetching orders:', err);
       setOrdersError(err.message);
+    } finally {
+      setHasFetchedOrders(true);
     }
   };
 
@@ -2063,29 +2069,29 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest block mb-2 text-gray-500">Service ID</label>
-                  <input type="text" value={emailJsSettings.service_id} onChange={e => setEmailJsSettings({ ...emailJsSettings, service_id: e.target.value })} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-bold" placeholder="service_xxxxxxxx" />
+                  <input type="text" value={emailJsSettings.service_id} onChange={e => setEmailJsSettings({ ...emailJsSettings, service_id: e.target.value })} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-bold text-black" placeholder="service_xxxxxxxx" />
                 </div>
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest block mb-2 text-gray-500">Public Key (Account)</label>
-                  <input type="text" value={emailJsSettings.public_key} onChange={e => setEmailJsSettings({ ...emailJsSettings, public_key: e.target.value })} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-bold" placeholder="xxxx_xxxxxxxxx_xxxx" />
+                  <input type="text" value={emailJsSettings.public_key} onChange={e => setEmailJsSettings({ ...emailJsSettings, public_key: e.target.value })} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-purple-500 outline-none font-bold text-black" placeholder="xxxx_xxxxxxxxx_xxxx" />
                 </div>
                 <div className="md:col-span-1 lg:col-span-1">
                   <label className="text-[10px] font-black uppercase tracking-widest block mb-2 text-blue-500">教練預約模板 ID (Course)</label>
-                  <input type="text" value={emailJsSettings.template_id_course || emailJsSettings.template_id} onChange={e => setEmailJsSettings({ ...emailJsSettings, template_id_course: e.target.value })} className="w-full px-5 py-4 bg-blue-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold" placeholder="template_course_xxx" />
+                  <input type="text" value={emailJsSettings.template_id_course || emailJsSettings.template_id} onChange={e => setEmailJsSettings({ ...emailJsSettings, template_id_course: e.target.value })} className="w-full px-5 py-4 bg-blue-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none font-bold text-black" placeholder="template_course_xxx" />
                   <p className="text-[10px] text-gray-400 mt-1 font-bold">用於寄信給教練的內容版型</p>
                 </div>
                 <div className="md:col-span-1 lg:col-span-1">
                   <label className="text-[10px] font-black uppercase tracking-widest block mb-2 text-emerald-500">商品訂單模板 ID (Product)</label>
-                  <input type="text" value={emailJsSettings.template_id_product || emailJsSettings.template_id} onChange={e => setEmailJsSettings({ ...emailJsSettings, template_id_product: e.target.value })} className="w-full px-5 py-4 bg-emerald-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold" placeholder="template_product_xxx" />
+                  <input type="text" value={emailJsSettings.template_id_product || emailJsSettings.template_id} onChange={e => setEmailJsSettings({ ...emailJsSettings, template_id_product: e.target.value })} className="w-full px-5 py-4 bg-emerald-50 border-none rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-black" placeholder="template_product_xxx" />
                   <p className="text-[10px] text-gray-400 mt-1 font-bold">用於寄給管理員或客戶的商品清單</p>
                 </div>
                 <div className="md:col-span-1 lg:col-span-1">
                   <label className="text-[10px] font-black uppercase tracking-widest block mb-2 text-gray-400">備用模板 ID (General)</label>
-                  <input type="text" value={emailJsSettings.template_id} onChange={e => setEmailJsSettings({ ...emailJsSettings, template_id: e.target.value })} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-500 outline-none font-bold" placeholder="template_xxxxxxxx" />
+                  <input type="text" value={emailJsSettings.template_id} onChange={e => setEmailJsSettings({ ...emailJsSettings, template_id: e.target.value })} className="w-full px-5 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-gray-500 outline-none font-bold text-black" placeholder="template_xxxxxxxx" />
                 </div>
                 <div className="md:col-span-2 lg:col-span-3">
                   <label className="text-[10px] font-black uppercase tracking-widest block mb-2 text-orange-500">老闆/管理員通知信箱 (Admin Email)</label>
-                  <input type="email" value={emailJsSettings.admin_email} onChange={e => setEmailJsSettings({ ...emailJsSettings, admin_email: e.target.value })} className="w-full px-5 py-4 bg-orange-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none font-bold" placeholder="admin@example.com" />
+                  <input type="email" value={emailJsSettings.admin_email} onChange={e => setEmailJsSettings({ ...emailJsSettings, admin_email: e.target.value })} className="w-full px-5 py-4 bg-orange-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 outline-none font-bold text-black" placeholder="admin@example.com" />
                   <p className="text-[10px] text-gray-400 mt-1 font-bold">所有訂單（商品與課程）都會同步發送一份副本到此信箱供老闆核對</p>
                 </div>
               </div>
@@ -2116,7 +2122,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
           : filteredByType.filter(o => o.mode === orderFilter);
 
         const finalFiltered = searchPhone.trim() 
-          ? filtered.filter(o => o.customer_phone?.includes(searchPhone.trim()))
+          ? filtered.filter(o => 
+              o.customer_phone?.includes(searchPhone.trim()) || 
+              o.customer_name?.includes(searchPhone.trim())
+            )
           : filtered;
 
         return (
@@ -2167,7 +2176,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                   type="text" 
                   value={searchPhone}
                   onChange={e => setSearchPhone(e.target.value)}
-                  placeholder="輸入電話號碼搜尋..." 
+                  placeholder="輸入電話號碼或名字搜尋..." 
                   className="w-full px-4 py-3 pl-11 bg-white rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none text-sm font-bold transition-all shadow-sm"
                 />
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -2179,7 +2188,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
             <div className="flex justify-between items-center px-2">
               <h3 className="font-black text-xl italic uppercase tracking-tighter text-gray-900">
                 {orderType === 'product' ? 'Product Orders' : 'Course Bookings'} 
-                <span className="text-gray-400 ml-2 font-bold">[{finalFiltered.length}]</span>
+                {hasFetchedOrders && <span className="text-gray-400 ml-2 font-bold">[{finalFiltered.length}]</span>}
               </h3>
             </div>
 
@@ -2193,7 +2202,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 </div>
               )}
 
-              {!ordersError && finalFiltered.length === 0 && (
+              {!ordersError && finalFiltered.length === 0 && hasFetchedOrders && (
                 <div className="text-center py-32 bg-white rounded-[40px] border border-gray-100 shadow-sm">
                   <Database size={48} className="mx-auto mb-4 text-gray-100" />
                   <p className="text-gray-300 font-black uppercase tracking-widest">目前沒有符合條件的訂單</p>
@@ -2212,23 +2221,24 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                   });
                 };
                 const itemNames = order.items.map(i => i.name).join(', ');
+                const shortItemNames = itemNames.length > 5 ? itemNames.slice(0, 5) + '...' : itemNames;
 
                 return (
                 <div key={order.id} className="bg-white border-2 border-black rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all">
                   {/* Collapsed Summary Row */}
                   <div 
                     onClick={toggleExpand}
-                    className="flex items-center gap-4 p-5 md:p-6 cursor-pointer select-none hover:bg-neutral-50 transition-colors"
+                    className="flex items-center gap-2 md:gap-4 p-5 md:p-6 cursor-pointer select-none hover:bg-neutral-50 transition-colors"
                   >
-                    <div className="font-black text-sm text-gray-900 truncate min-w-0 shrink-0 w-24 md:w-32">
+                    <div className="font-black text-sm text-gray-900 truncate min-w-0 shrink-0 w-16 md:w-32">
                       {order.customer_name || '未具名'}
                     </div>
 
-                    <div className="flex-1 text-xs font-bold text-gray-500 truncate min-w-0 hidden md:block">
-                      {itemNames}
+                    <div className="flex-1 text-xs font-bold text-gray-500 truncate min-w-0">
+                      {shortItemNames}
                     </div>
 
-                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 shrink-0">
+                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 shrink-0 ml-auto text-right">
                       <div className="font-black text-sm text-gray-900 tabular-nums">
                         NT${order.total_price.toLocaleString()}
                       </div>
@@ -2237,10 +2247,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <div className="flex items-center gap-2 shrink-0 ml-4">
                       <button 
                         onClick={(e) => { e.stopPropagation(); toggleExpand(e); }}
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-sm border ${isExpanded ? 'bg-blue-600 text-white border-blue-600' : 'bg-blue-50 text-blue-600 border-blue-100 hover:bg-blue-600 hover:text-white'}`}
+                        className="w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-sm border border-transparent hover:opacity-80"
+                        style={{ backgroundColor: isExpanded ? '#1f2937' : '#9ca3af', color: 'white' }}
                         title="查看詳情"
                       >
                         <Search size={16} />
@@ -2552,6 +2563,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
         );
       }
 
+      // ── AI 工作團隊 ──────────────────────────────────────────────
+      case 'ai_team':
+        return <AITeam products={products} courses={courses} orders={orders} vouchers={vouchers} coaches={coaches} categories={categories} />;
+
       // ── Dashboard ──────────────────────────────────────────────
       default:
         return (
@@ -2568,10 +2583,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   };
 
   const tabLabel: Record<string, string> = {
-    dashboard: 'Dashboard', products: '商品管理', categories: '分類管理', courses: '課程設置', vouchers: '優惠券設置', homepage: '首頁設定', orders: '訂單管理', users: '使用者管理'
+    dashboard: 'Dashboard', products: '商品管理', categories: '分類管理', courses: '課程設置', vouchers: '優惠券設置', homepage: '首頁設定', orders: '訂單管理', users: '使用者管理', ai_team: 'AI 工作團隊'
   };
   const tabDesc: Record<string, string> = {
-    dashboard: '歡迎回來，管理員。', products: '新增、編輯或下架商品。', categories: '管理商品分類標籤。', courses: '管理課程項目、教練、場地與預約時間表。', vouchers: '設定折扣碼與優惠券。', homepage: '設定網站首頁的大標、內文與背景圖。', orders: '核對銀行轉帳截圖並管理訂單狀態。', users: '檢視所有註冊會員的詳細資訊。'
+    dashboard: '歡迎回來，管理員。', products: '新增、編輯或下架商品。', categories: '管理商品分類標籤。', courses: '管理課程項目、教練、場地與預約時間表。', vouchers: '設定折扣碼與優惠券。', homepage: '設定網站首頁的大標、內文與背景圖。', orders: '核對銀行轉帳截圖並管理訂單狀態。', users: '檢視所有註冊會員的詳細資訊。', ai_team: '管理與配置 AI 團隊相關設定。'
   };
 
   // ── Login screen ─────────────────────────────────────────────────
@@ -2651,6 +2666,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
         <nav className="flex-1 space-y-1">
           {[
             { id: 'dashboard', label: '儀表板總覽', icon: <LayoutDashboard size={20} /> },
+            { id: 'ai_team', label: 'AI 工作團隊', icon: <Bot size={20} /> },
             { id: 'products', label: '商品管理', icon: <Package size={20} /> },
             { id: 'categories', label: '分類管理', icon: <Tag size={20} /> },
             { id: 'courses', label: '課程設置', icon: <BookOpen size={20} /> },
@@ -2676,23 +2692,25 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       {/* Main content */}
       <div ref={scrollContainerRef} className="flex-1 w-full overflow-y-auto">
         <main className="p-6 md:p-12">
-          <header className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-12 gap-4">
-            <div className="flex-1">
-              <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 italic tracking-tight uppercase">{tabLabel[activeTab]}</h2>
-              <p className="text-gray-400 font-medium text-sm md:text-base">{tabDesc[activeTab]}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={onBack}
-                className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-primary text-gray-900 rounded-2xl font-black text-sm hover:bg-primary/5 transition-all active:scale-95 shadow-sm"
-              >
-                <Search size={18} className="text-primary" /> 預覽網站成果
-              </button>
-              <div className="bg-white px-6 py-3 rounded-2xl border border-gray-100 font-bold text-sm shadow-sm text-gray-900">
-                🕒 系統時間: {new Date().toLocaleDateString()}
+          {activeTab !== 'ai_team' && (
+            <header className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-12 gap-4">
+              <div className="flex-1">
+                <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 italic tracking-tight uppercase">{tabLabel[activeTab]}</h2>
+                <p className="text-gray-400 font-medium text-sm md:text-base">{tabDesc[activeTab]}</p>
               </div>
-            </div>
-          </header>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={onBack}
+                  className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-primary text-gray-900 rounded-2xl font-black text-sm hover:bg-primary/5 transition-all active:scale-95 shadow-sm"
+                >
+                  <Search size={18} className="text-primary" /> 預覽網站成果
+                </button>
+                <div className="bg-white px-6 py-3 rounded-2xl border border-gray-100 font-bold text-sm shadow-sm text-gray-900">
+                  🕒 系統時間: {new Date().toLocaleDateString()}
+                </div>
+              </div>
+            </header>
+          )}
           {renderContent()}
         </main>
       </div>

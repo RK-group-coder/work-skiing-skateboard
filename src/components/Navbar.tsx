@@ -219,7 +219,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center gap-2">
                   <ShoppingCart size={24} className="text-primary" />
-                  <h2 className="text-2xl font-black uppercase italic tracking-tighter">My Cart</h2>
+                  <h2 className="text-2xl font-black uppercase italic tracking-tighter">我的購物車</h2>
                 </div>
                 <button onClick={() => setIsCartOpen(false)} className="p-2 hover:bg-black/10 rounded-full transition-colors">
                   <X size={24} />
@@ -325,7 +325,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                               {targetLabel}
                             </div>
                             <p className="text-xs opacity-60 font-medium">
-                              {v.type === 'percent' ? `${v.value}% OFF` : `折抵 NT$${v.value}`}
+                              {v.type === 'percent' ? `折扣 ${v.value}%` : `折抵 NT$${v.value}`}
                               {(v.min_amount ?? 0) > 0 && ` · 滿 NT$${v.min_amount} 可用`}
                             </p>
                           </button>
@@ -358,7 +358,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                              {selectedTargetLabel}
                            </div>
                            <p className="text-xs font-bold" style={{ color: 'var(--primary)' }}>
-                             {selectedVoucher.type === 'percent' ? `${selectedVoucher.value}% OFF` : `折抵 NT$${selectedVoucher.value}`}
+                             {selectedVoucher.type === 'percent' ? `折扣 ${selectedVoucher.value}%` : `折抵 NT$${selectedVoucher.value}`}
                              {(selectedVoucher.min_amount ?? 0) > 0 && ` · 滿 NT$${selectedVoucher.min_amount} 可用`}
                            </p>
                         </div>
@@ -373,18 +373,18 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                 <div className="mt-auto pt-6 border-t border-current/10">
                   <div className="space-y-2 mb-6">
                     <div className="flex justify-between items-center text-xs opacity-60 font-medium">
-                      <span>Subtotal</span>
+                      <span>小計</span>
                       <span>NT${totalPrice.toLocaleString()}</span>
                     </div>
                     {selectedVoucher && (
                       <div className="flex justify-between items-center text-xs text-green-500 font-bold">
-                        <span>Discount Applied</span>
+                        <span>已套用折扣</span>
                         <span>- NT${(totalPrice - discountedPrice).toLocaleString()}</span>
                       </div>
                     )}
                     <Divider />
                     <div className="flex justify-between items-end">
-                      <span className="text-sm font-black uppercase tracking-widest">Total cost</span>
+                      <span className="text-sm font-black uppercase tracking-widest">總計金額</span>
                       <span className="text-4xl font-black italic tracking-tighter text-primary">
                         NT${discountedPrice.toLocaleString()}
                       </span>
@@ -403,7 +403,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                     className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-gray-900 shadow-xl active:scale-95 transition-all text-center"
                     style={{ background: silverGradient }}
                   >
-                    結帳 Checkout
+                    結帳
                   </button>
                 </div>
               )}
@@ -500,7 +500,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                           className="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest text-white shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all mt-4"
                           style={isSelected ? { backgroundColor: '#ef4444' } : { background: 'var(--primary-gradient)' }}
                         >
-                          {isSelected ? '取消使用 CANCEL' : '立即使用 USE NOW'}
+                          {isSelected ? '取消使用' : '立即使用'}
                         </button>
                       </div>
                     );
@@ -559,7 +559,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                     onClick={() => { setIsMenuOpen(false); setIsMyVouchersOpen(true); }}
                     className="py-4 w-full text-center hover:bg-white/5 transition-all flex flex-col items-center justify-center cursor-pointer"
                   >
-                    <span className="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">My Vouchers</span>
+                    <span className="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">我的優惠券</span>
                     <span className="text-lg font-bold">
                       現有優惠卷: {vouchers.length} 張
                     </span>

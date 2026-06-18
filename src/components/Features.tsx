@@ -201,7 +201,7 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                     <div className="flex-1 text-center md:text-left">
                       <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
                         <span className="text-[10px] font-black uppercase tracking-widest bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                          {voucher.type === 'percent' ? 'OFFER' : 'CASH'}
+                          {voucher.type === 'percent' ? '折扣' : '現金'}
                         </span>
                       </div>
                       <h3 className="text-xl font-black italic tracking-tighter mb-1 leading-tight">
@@ -280,7 +280,7 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                         mode === 'skiing' ? 'bg-[#38bdf8] text-white' : 'bg-[#ef4444] text-white'
                       }`}>
                         <div className="flex items-center gap-2">
-                          <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-black animate-pulse">PROMOTION</span>
+                          <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] font-black animate-pulse">促銷活動</span>
                           <span className="text-[10px] font-bold opacity-80 uppercase tracking-widest">買越多越划算</span>
                         </div>
                         <div className="text-xl font-black italic">加購續報：NT${p.addPrice.toLocaleString()} / 堂</div>

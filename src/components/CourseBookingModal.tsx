@@ -43,7 +43,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   const [selectedCoach, setSelectedCoach] = useState('');
   const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
-  const [isFirstLesson, setIsFirstLesson] = useState(true);
+  const [isFirstLesson] = useState(true);
   const [skillLevel, setSkillLevel] = useState('');
   // const [mediaUrl, setMediaUrl] = useState('');
   const [mediaUrl] = useState('');
@@ -439,7 +439,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               </span>
             </div>
             <h3 className="text-2xl font-black italic uppercase tracking-tighter text-gray-950">
-              {course.name} <span className="text-gray-500 not-italic ml-2 font-semibold tracking-normal text-lg">RESERVATION</span>
+              {course.name} <span className="text-gray-500 not-italic ml-2 font-semibold tracking-normal text-lg">預約</span>
             </h3>
           </div>
           <button onClick={onClose} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl shadow-sm hover:scale-110 active:scale-95 transition-all text-gray-400 hover:text-black">
@@ -502,7 +502,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-gray-500' : 'text-gray-600'}`}>Price Start From</div>
+                              <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-gray-500' : 'text-gray-600'}`}>起價</div>
                               <div className={`text-xl font-black italic ${isSelected ? 'text-primary' : 'text-gray-700'}`} style={{ color: isSelected ? activeColor : undefined }}>
                                 NT${fPrice.toLocaleString()}
                               </div>
@@ -545,13 +545,8 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                       <div className="bg-neutral-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden text-center">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
                         <div className="relative">
-                          <div className="flex items-center justify-center gap-2 mb-4 cursor-pointer" onClick={() => setIsFirstLesson(!isFirstLesson)}>
-                            <div className={`w-10 h-6 rounded-full transition-colors relative ${isFirstLesson ? 'bg-primary' : 'bg-gray-700'}`}>
-                              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${isFirstLesson ? 'left-5' : 'left-1'}`} />
-                            </div>
-                            <span className="text-[10px] font-black uppercase tracking-widest ml-2">這是我的第一堂課</span>
-                          </div>
-                          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">預估總價 ESTIMATED</div>
+
+                          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">預估總價</div>
                           <div className="text-5xl font-black italic tracking-tighter text-primary" style={{ color: activeColor }}>NT${totalTWD.toLocaleString()}</div>
                           <div className="text-[10px] text-gray-500 font-bold mt-3">
                             目前已選擇 {skiingPersonCount} 人同行
@@ -627,14 +622,14 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-6">
                         <div>
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SELECT LOCATION</label>
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">選擇地點</label>
                           <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none font-bold text-gray-900">
                             <option value="">選擇上課地點</option>
                             {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                           </select>
                         </div>
                         <div>
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SELECT COACH</label>
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">選擇教練</label>
                           <div className="grid grid-cols-2 gap-3">
                             {coaches.map(c => {
                               const isBusy = busyCoachIds.includes(c.id);
@@ -663,7 +658,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                   </div>
                                   <div className="text-center">
                                     <span className={`font-black text-xs uppercase tracking-tight block ${isBusy ? 'text-red-500' : 'text-gray-900'}`}>{c.name}</span>
-                                    {isBusy && <span className="text-[7px] font-black text-red-500 uppercase tracking-widest mt-1">FULLY BOOKED</span>}
+                                    {isBusy && <span className="text-[7px] font-black text-red-500 uppercase tracking-widest mt-1">已額滿</span>}
                                   </div>
                                 </button>
                               );
@@ -671,14 +666,14 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                           </div>
                         </div>
                         <div>
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">ADDITIONAL INFO</label>
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">附加資訊</label>
                           <textarea placeholder="技能程度或特殊備註..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-gray-50 rounded-2xl h-24 outline-none font-medium text-gray-900" />
                         </div>
                       </div>
                       
                       <div className="bg-neutral-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden">
                         <div className="relative z-10">
-                          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">Booking Summary</div>
+                          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">預約摘要</div>
                           <div className="space-y-4 mb-8">
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-gray-400">時段類型</span>
@@ -694,7 +689,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                             </div>
                           </div>
                           <div className="h-[1px] bg-white/10 mb-6" />
-                          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">TOTAL ESTIMATED</div>
+                          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">預估總計</div>
                           <div className="text-4xl font-black italic tracking-tighter text-primary" style={{ color: activeColor }}>NT${totalTWD.toLocaleString()}</div>
                         </div>
                       </div>
@@ -823,13 +818,8 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                       <div className="bg-neutral-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden min-w-[280px]">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -mr-12 -mt-12 blur-2xl opacity-50" />
                         <div className="relative">
-                          <div className="flex items-center gap-2 mb-3 cursor-pointer" onClick={() => setIsFirstLesson(!isFirstLesson)}>
-                            <div className={`w-8 h-4 rounded-full transition-colors relative ${isFirstLesson ? 'bg-primary' : 'bg-gray-700'}`}>
-                              <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${isFirstLesson ? 'left-4.5' : 'left-0.5'}`} />
-                            </div>
-                            <span className="text-[8px] font-black uppercase tracking-widest ml-1">第一堂課</span>
-                          </div>
-                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">預估總價 ESTIMATED</div>
+
+                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">預估總價</div>
                           <div className="text-3xl font-black italic tracking-tighter text-primary">NT${totalTWD.toLocaleString()}</div>
                         </div>
                       </div>
@@ -943,7 +933,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-6">
                         <div>
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SELECT COACH</label>
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">選擇教練</label>
                           <div className="grid grid-cols-2 gap-3">
                             {coaches.map(c => {
                               const isBusy = busyCoachIds.includes(c.id);
@@ -972,7 +962,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                   </div>
                                   <div className="text-center">
                                     <span className={`font-black text-xs uppercase tracking-tight block ${isBusy ? 'text-red-500' : 'text-gray-900'}`}>{c.name}</span>
-                                    {isBusy && <span className="text-[7px] font-black text-red-500 uppercase tracking-widest mt-1">FULLY BOOKED</span>}
+                                    {isBusy && <span className="text-[7px] font-black text-red-500 uppercase tracking-widest mt-1">已額滿</span>}
                                   </div>
                                 </button>
                               );
@@ -980,12 +970,12 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                           </div>
                         </div>
                         <div>
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">SKILL LEVEL / NOTES</label>
-                          <textarea placeholder="請描述您的運動程度..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl border border-gray-200 h-32 outline-none" />
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">程度與備註</label>
+                          <textarea placeholder="請描述您的運動程度..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl border border-gray-200 h-32 outline-none text-gray-900" />
                         </div>
                       </div>
                       <div className="bg-neutral-900 rounded-[32px] p-8 text-white">
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">ESTIMATED TOTAL</div>
+                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">預估總計</div>
                         <div className="text-4xl font-black italic tracking-tighter text-primary">NT${totalTWD.toLocaleString()}</div>
                       </div>
                     </div>
@@ -1049,7 +1039,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               className="bg-white w-full max-w-lg rounded-[40px] overflow-hidden shadow-2xl flex flex-col max-h-[80vh]"
             >
               <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h4 className="text-xl font-black italic uppercase tracking-tighter">Available Vouchers</h4>
+                <h4 className="text-xl font-black italic uppercase tracking-tighter">可用優惠券</h4>
                 <button onClick={() => setIsVoucherModalOpen(false)} className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm"><X size={20}/></button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
@@ -1101,7 +1091,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                 )}
               </div>
               <div className="p-6 bg-gray-50 border-t border-gray-100">
-                <button onClick={() => setIsVoucherModalOpen(false)} className="w-full py-4 bg-black text-white rounded-2xl font-black text-sm uppercase tracking-widest">Done</button>
+                <button onClick={() => setIsVoucherModalOpen(false)} className="w-full py-4 bg-black text-white rounded-2xl font-black text-sm uppercase tracking-widest">完成</button>
               </div>
             </motion.div>
           </div>

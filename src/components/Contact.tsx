@@ -7,7 +7,7 @@ import { supabase } from '../lib/supabase';
 const Contact: React.FC = () => {
   const { mode } = useTheme();
   const [header, setHeader] = React.useState({
-    title: 'CONNECT WITH SK8',
+    title: '聯絡 SK8',
     desc: '有任何課程疑問或商業合作建議？歡迎透過以下管道與我們保持聯繫。'
   });
   const [links, setLinks] = React.useState({
@@ -28,7 +28,7 @@ const Contact: React.FC = () => {
         if (error) throw error;
         if (data) {
           setHeader({
-            title: data.contact_title || 'CONNECT WITH SK8',
+            title: data.contact_title || '聯絡 SK8',
             desc: data.contact_desc || '有任何課程疑問或商業合作建議？歡迎透過以下管道與我們保持聯繫。'
           });
           setLinks({

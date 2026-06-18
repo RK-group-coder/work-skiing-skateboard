@@ -82,9 +82,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, mode 
           <div className="flex justify-between items-start mb-8">
             <div>
               <h2 className="text-3xl font-black italic tracking-tighter uppercase leading-none">
-                {isRegister ? 'Join ' : 'Welcome '}
+                {isRegister ? '加入 ' : '歡迎 '}
                 <span style={{ color: isSkiing ? '#00c6ff' : '#ff416c' }}>
-                  {isRegister ? 'SK8' : 'Back'}
+                  {isRegister ? 'SK8' : '回來'}
                 </span>
               </h2>
               <p className="text-xs font-bold opacity-40 mt-2 uppercase tracking-widest">
@@ -110,7 +110,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, mode 
             {isRegister && (
               <div>
                 <label className="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 ml-1">
-                  使用者名稱 Username
+                  使用者名稱
                 </label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30" size={18} />
@@ -128,7 +128,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, mode 
 
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 ml-1">
-                電子郵件 Email
+                電子郵件
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30" size={18} />
@@ -145,7 +145,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, mode 
 
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 ml-1">
-                密碼 Password
+                密碼
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30" size={18} />

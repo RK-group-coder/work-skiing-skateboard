@@ -34,11 +34,14 @@ const ProductShowcase: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
     const fetchContent = async () => {
       setLoading(true);
       setActiveCategory('all'); // Reset filter when switching modes
+      setCurrentPage(1);
       try {
         // Fetch Title & Description
         const { data: settings } = await supabase
@@ -160,6 +163,10 @@ const ProductShowcase: React.FC = () => {
     setPurchaseQty(1);
   };
 
+  const filteredProducts = products.filter(p => activeCategory === 'all' || p.category_id === activeCategory || (p.tag || "").split(',').includes(activeCategory));
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const currentProducts = filteredProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   if (loading && products.length === 0) return null;
 
   return (
@@ -187,16 +194,16 @@ const ProductShowcase: React.FC = () => {
 
         <div className="flex flex-wrap justify-center gap-3 mb-12">
           <button 
-            onClick={() => setActiveCategory('all')}
+            onClick={() => { setActiveCategory('all'); setCurrentPage(1); }}
             style={activeCategory === 'all' ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#f9fafb', color: '#6b7280' }}
             className="px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all shadow-sm border border-gray-100"
           >
-            全部 ALL
+            全部
           </button>
           {categories.map(cat => (
             <button 
               key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
+              onClick={() => { setActiveCategory(cat.id); setCurrentPage(1); }}
               style={activeCategory === cat.id ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#f9fafb', color: '#6b7280' }}
               className="px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all shadow-sm border border-gray-100"
             >
@@ -206,7 +213,7 @@ const ProductShowcase: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-          {products.filter(p => activeCategory === 'all' || p.category_id === activeCategory || (p.tag || "").split(',').includes(activeCategory)).map((product, index) => (
+          {currentProducts.map((product, index) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 20 }}
@@ -216,16 +223,16 @@ const ProductShowcase: React.FC = () => {
               onClick={() => { setSelectedProduct(product); setPurchaseQty(1); }}
               className="group cursor-pointer"
             >
-              <div className="relative aspect-[4/5] rounded-[32px] overflow-hidden bg-gray-50 mb-6 border border-gray-100 shadow-sm transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-1">
+              <div className="relative aspect-[4/5] rounded-[32px] overflow-hidden bg-white mb-6 border border-gray-100 shadow-sm transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-1">
                 <img 
                   src={product.image} 
                   alt={product.name}
-                  className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${product.stock !== null && product.stock <= 0 ? 'grayscale opacity-60' : ''}`}
+                  className={`w-full h-full object-contain p-4 transition-transform duration-700 group-hover:scale-110 ${product.stock !== null && product.stock <= 0 ? 'grayscale opacity-60' : ''}`}
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
                 {product.stock !== null && product.stock <= 0 && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
-                    <span className="px-4 py-2 bg-black text-white text-xs font-black italic uppercase tracking-tighter rounded-xl shadow-xl ring-1 ring-white/20">SOLD OUT / 完售</span>
+                    <span className="px-4 py-2 bg-black text-white text-xs font-black italic uppercase tracking-tighter rounded-xl shadow-xl ring-1 ring-white/20">已售完</span>
                   </div>
                 )}
               </div>
@@ -242,7 +249,7 @@ const ProductShowcase: React.FC = () => {
                        return otherTag || 'New Arrival';
                      })()}
                    </span>
-                   <span className="text-[10px] font-bold text-gray-400 shrink-0">STOCK: {product.stock}</span>
+                   <span className="text-[10px] font-bold text-gray-400 shrink-0">庫存: {product.stock}</span>
                 </div>
                 <h3 className="text-lg font-black italic tracking-tighter text-gray-900 mb-2 truncate group-hover:text-primary transition-colors">
                   {product.name}
@@ -270,6 +277,29 @@ const ProductShowcase: React.FC = () => {
             </motion.div>
           ))}
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-12">
+            {Array.from({ length: totalPages }).map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setCurrentPage(idx + 1);
+                  document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className={`w-10 h-10 rounded-full font-black text-sm transition-all shadow-sm ${
+                  currentPage === idx + 1 ? '' : 'hover:bg-gray-200'
+                }`}
+                style={{
+                  backgroundColor: currentPage === idx + 1 ? (mode === 'skiing' ? '#2563eb' : '#dc2626') : '#f3f4f6',
+                  color: currentPage === idx + 1 ? '#ffffff' : '#6b7280'
+                }}
+              >
+                {idx + 1}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Product Details Modal */}
@@ -302,13 +332,13 @@ const ProductShowcase: React.FC = () => {
                   {/* Images Section */}
                   <div className="md:w-1/2 p-6 md:p-10 h-fit">
                     <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-4 md:flex-col md:overflow-visible">
-                      <div className="flex-shrink-0 w-full snap-center rounded-[32px] overflow-hidden bg-gray-50 border border-gray-100 aspect-[4/5] shadow-sm relative">
-                        <img src={selectedProduct.image} className="w-full h-full object-cover" alt={selectedProduct.name} />
+                      <div className="flex-shrink-0 w-full snap-center rounded-[32px] overflow-hidden bg-white border border-gray-100 aspect-[4/5] shadow-sm relative">
+                        <img src={selectedProduct.image} className="w-full h-full object-contain p-4" alt={selectedProduct.name} />
                       </div>
                       
                       {(selectedProduct.size_chart_url || "").split(',').filter(Boolean).map((url: string, idx: number) => (
-                        <div key={idx} className="flex-shrink-0 w-full snap-center rounded-[32px] overflow-hidden bg-gray-50 border border-gray-100 aspect-[4/5] shadow-sm relative">
-                          <img src={url} className="w-full h-full object-cover" alt={`Sub ${idx + 1}`} />
+                        <div key={idx} className="flex-shrink-0 w-full snap-center rounded-[32px] overflow-hidden bg-white border border-gray-100 aspect-[4/5] shadow-sm relative">
+                          <img src={url} className="w-full h-full object-contain p-4" alt={`Sub ${idx + 1}`} />
                         </div>
                       ))}
                     </div>
@@ -374,7 +404,7 @@ const ProductShowcase: React.FC = () => {
 
               {/* Quantity Selector */}
               <div className="mb-4 px-6 flex items-center justify-between">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">選擇數量 QUANTITY</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">選擇數量</p>
                 <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
                   <button 
                     onClick={() => setPurchaseQty(prev => Math.max(1, prev - 1))}
@@ -382,7 +412,7 @@ const ProductShowcase: React.FC = () => {
                   >
                     -
                   </button>
-                  <span className="font-black text-sm w-6 text-center">{purchaseQty}</span>
+                  <span className="font-black text-sm w-6 text-center text-gray-900">{purchaseQty}</span>
                   <button 
                     onClick={() => setPurchaseQty(prev => Math.min(selectedProduct.stock || 99, prev + 1))}
                     className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-primary transition-colors active:scale-95 text-lg leading-none"
@@ -427,7 +457,7 @@ const ProductShowcase: React.FC = () => {
                   style={{ backgroundColor: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#e5e7eb' : (mode === 'skiing' ? '#2563eb' : '#dc2626'), color: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#9ca3af' : '#ffffff' }}
                   className="flex-[2] py-4 rounded-2xl font-black italic shadow-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all uppercase disabled:cursor-not-allowed disabled:shadow-none"
                 >
-                  {(selectedProduct.stock !== null && selectedProduct.stock <= 0) ? 'SOLD OUT / 已完售' : '立刻直接購買'}
+                  {(selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '已售完' : '立刻直接購買'}
                 </button>
               </div>
             </motion.div>
