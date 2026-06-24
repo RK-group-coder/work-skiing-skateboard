@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, ChevronRight, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink, Bot } from 'lucide-react';
+import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, ChevronRight, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink, Bot, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { User } from '@supabase/supabase-js';
 import DashboardView from './DashboardView';
 import AITeam from './AITeam';
+import AdminSupport from './AdminSupport';
 
 interface AdminPortalProps { 
   onBack: () => void; 
@@ -725,7 +726,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'categories' | 'courses' | 'vouchers' | 'homepage' | 'orders' | 'users' | 'ai_team'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'categories' | 'courses' | 'vouchers' | 'homepage' | 'orders' | 'users' | 'ai_team' | 'support'>('dashboard');
   const [orderType, setOrderType] = useState<'product' | 'course'>('product');
   const [orderFilter, setOrderFilter] = useState<'all' | 'skiing' | 'skateboard'>('all');
   const [searchPhone, setSearchPhone] = useState('');
@@ -809,6 +810,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   // Orders
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrderImage, setSelectedOrderImage] = useState<string | null>(null);
+  const [showPromotionModal, setShowPromotionModal] = useState<Order | null>(null);
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const [hasFetchedOrders, setHasFetchedOrders] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
@@ -2140,6 +2142,80 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               </div>
             )}
 
+            {/* Promotion Screenshot Modal */}
+            {showPromotionModal && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setShowPromotionModal(null)}>
+                <div 
+                  className="relative w-[360px] max-w-full bg-[#f8f9fa] rounded-[40px] overflow-hidden shadow-2xl flex flex-col transform transition-all duration-300 animate-in zoom-in-95"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div className="px-8 py-10 flex-1 flex flex-col items-center relative z-10">
+                    <div className="bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-6 border border-blue-100 shadow-sm">
+                      {showPromotionModal.mode === 'skiing' ? '⛷ 滑雪預約/購買' : '🛹 滑板預約/購買'}
+                    </div>
+                    <h3 className="text-xl font-black text-gray-900 mb-2 tracking-tight">交易完成，訂單已確認</h3>
+                    <div className="text-4xl font-black italic tracking-tighter text-blue-600 mb-2 drop-shadow-sm">
+                      NT$ {showPromotionModal.total_price.toLocaleString()}
+                    </div>
+                    <div className="text-xs font-bold text-gray-400 mb-8 tracking-widest">
+                      {new Date(showPromotionModal.created_at).toLocaleString('zh-TW')}
+                    </div>
+                    
+                    <div className="w-full flex gap-4 mb-8">
+                      <div className="flex-1 bg-emerald-50/80 text-emerald-600 text-center py-3 rounded-2xl text-sm font-black tracking-widest border border-emerald-100/50 shadow-sm">
+                        付款成功
+                      </div>
+                      <div className="flex-1 bg-emerald-50/80 text-emerald-600 text-center py-3 rounded-2xl text-sm font-black tracking-widest border border-emerald-100/50 shadow-sm">
+                        已入帳
+                      </div>
+                    </div>
+                    
+                    <div className="w-full space-y-4 mb-10 bg-white p-5 rounded-[24px] shadow-sm border border-gray-100">
+                      <div className="flex justify-between items-center text-sm font-bold border-b border-gray-100 pb-3">
+                        <span className="text-gray-400 tracking-widest">下單人姓名</span>
+                        <span className="text-gray-900 truncate max-w-[50%]">{showPromotionModal.customer_name || '未提供'}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm font-bold border-b border-gray-100 pb-3">
+                        <span className="text-gray-400 tracking-widest">訂單編號</span>
+                        <span className="text-gray-900 font-mono">SK8-{showPromotionModal.id.slice(0, 8).toUpperCase()}</span>
+                      </div>
+                      <div className="flex justify-between items-start text-sm font-bold pt-1">
+                        <span className="text-gray-400 tracking-widest shrink-0 mt-0.5">購買項目</span>
+                        <div className="text-right flex flex-col items-end w-full pl-4 overflow-hidden">
+                          {showPromotionModal.items.map((item, idx) => (
+                            <span key={idx} className="text-gray-900 text-right w-full leading-snug mb-1 last:mb-0 break-words">
+                              {item.name} <span className="text-gray-400 font-medium whitespace-nowrap ml-1">x{item.quantity}</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-auto pt-6 flex items-end justify-between w-full">
+                      <div className="text-[9px] text-gray-400 font-black tracking-widest uppercase pb-1 opacity-60">
+                        Official Receipt
+                      </div>
+                      <div className="flex items-center text-[28px] font-black tracking-tighter text-[#0f172a] leading-none mb-0.5">
+                        Sk<span className="text-[#3b82f6] mx-1">∞</span>nocap
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Decorative Elements */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-500/5 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none" />
+                  
+                  {/* close button */}
+                  <button 
+                    onClick={() => setShowPromotionModal(null)}
+                    className="absolute top-4 right-4 w-8 h-8 bg-black/5 rounded-full flex items-center justify-center text-black/40 hover:bg-black/10 hover:text-black transition-colors z-20"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Type Selector, Mode Filter & Search */}
             <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
               <div className="flex flex-col md:flex-row gap-6 w-full xl:w-auto">
@@ -2276,9 +2352,18 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                               </span>
                               <span className="text-xs font-black text-gray-300 uppercase tracking-widest">ID: {order.id.slice(0, 8)}</span>
                             </div>
-                            <div className="flex items-center gap-2 text-gray-400">
-                              <Calendar size={14} />
-                              <span className="text-xs font-bold">{new Date(order.created_at).toLocaleString('zh-TW')}</span>
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2 text-gray-400">
+                                <Calendar size={14} />
+                                <span className="text-xs font-bold">{new Date(order.created_at).toLocaleString('zh-TW')}</span>
+                              </div>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); setShowPromotionModal(order); }}
+                                style={{ backgroundColor: '#4b5563', color: '#ffffff' }}
+                                className="px-5 py-2 rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-2 hover:opacity-90"
+                              >
+                                訂單展示
+                              </button>
                             </div>
                           </div>
 
@@ -2567,6 +2652,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       case 'ai_team':
         return <AITeam products={products} courses={courses} orders={orders} vouchers={vouchers} coaches={coaches} categories={categories} />;
 
+      // ── 客服訊息 ──────────────────────────────────────────────
+      case 'support':
+        return <AdminSupport />;
+
       // ── Dashboard ──────────────────────────────────────────────
       default:
         return (
@@ -2583,10 +2672,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   };
 
   const tabLabel: Record<string, string> = {
-    dashboard: 'Dashboard', products: '商品管理', categories: '分類管理', courses: '課程設置', vouchers: '優惠券設置', homepage: '首頁設定', orders: '訂單管理', users: '使用者管理', ai_team: 'AI 工作團隊'
+    dashboard: 'Dashboard', products: '商品管理', categories: '分類管理', courses: '課程設置', vouchers: '優惠券設置', homepage: '首頁設定', orders: '訂單管理', users: '使用者管理', ai_team: 'AI 工作團隊', support: '客服訊息'
   };
   const tabDesc: Record<string, string> = {
-    dashboard: '歡迎回來，管理員。', products: '新增、編輯或下架商品。', categories: '管理商品分類標籤。', courses: '管理課程項目、教練、場地與預約時間表。', vouchers: '設定折扣碼與優惠券。', homepage: '設定網站首頁的大標、內文與背景圖。', orders: '核對銀行轉帳截圖並管理訂單狀態。', users: '檢視所有註冊會員的詳細資訊。', ai_team: '管理與配置 AI 團隊相關設定。'
+    dashboard: '歡迎回來，管理員。', products: '新增、編輯或下架商品。', categories: '管理商品分類標籤。', courses: '管理課程項目、教練、場地與預約時間表。', vouchers: '設定折扣碼與優惠券。', homepage: '設定網站首頁的大標、內文與背景圖。', orders: '核對銀行轉帳截圖並管理訂單狀態。', users: '檢視所有註冊會員的詳細資訊。', ai_team: '管理與配置 AI 團隊相關設定。', support: '回覆來自使用者的客服訊息。'
   };
 
   // ── Login screen ─────────────────────────────────────────────────
@@ -2672,6 +2761,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
             { id: 'courses', label: '課程設置', icon: <BookOpen size={20} /> },
             { id: 'vouchers', label: '優惠券設置', icon: <Tag size={20} /> },
             { id: 'orders', label: '訂單管理', icon: <Package size={20} /> },
+            { id: 'support', label: '客服訊息', icon: <MessageSquare size={20} /> },
             { id: 'users', label: '使用者管理', icon: <Users size={20} /> },
             { id: 'homepage', label: '首頁內容設定', icon: <Settings2 size={20} /> },
           ].map(({ id, label, icon }) => (
@@ -2698,17 +2788,19 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 italic tracking-tight uppercase">{tabLabel[activeTab]}</h2>
                 <p className="text-gray-400 font-medium text-sm md:text-base">{tabDesc[activeTab]}</p>
               </div>
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={onBack}
-                  className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-primary text-gray-900 rounded-2xl font-black text-sm hover:bg-primary/5 transition-all active:scale-95 shadow-sm"
-                >
-                  <Search size={18} className="text-primary" /> 預覽網站成果
-                </button>
-                <div className="bg-white px-6 py-3 rounded-2xl border border-gray-100 font-bold text-sm shadow-sm text-gray-900">
-                  🕒 系統時間: {new Date().toLocaleDateString()}
+              {activeTab !== 'support' && (
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={onBack}
+                    className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-primary text-gray-900 rounded-2xl font-black text-sm hover:bg-primary/5 transition-all active:scale-95 shadow-sm"
+                  >
+                    <Search size={18} className="text-primary" /> 預覽網站成果
+                  </button>
+                  <div className="bg-white px-6 py-3 rounded-2xl border border-gray-100 font-bold text-sm shadow-sm text-gray-900">
+                    🕒 系統時間: {new Date().toLocaleDateString()}
+                  </div>
                 </div>
-              </div>
+              )}
             </header>
           )}
           {renderContent()}
