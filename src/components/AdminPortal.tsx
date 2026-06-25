@@ -1855,10 +1855,19 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-end">
               <button 
-                onClick={() => { setIsAddingVoucher(true); setEditingVoucher(null); setVoucherForm(EMPTY_VOUCHER); }}
+                onClick={() => { 
+                  if (isAddingVoucher) {
+                    setIsAddingVoucher(false);
+                  } else {
+                    setIsAddingVoucher(true); 
+                    setEditingVoucher(null); 
+                    setVoucherForm(EMPTY_VOUCHER); 
+                  }
+                }}
                 style={{ backgroundColor: '#6b7280', color: '#ffffff' }}
                 className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold hover:opacity-90 transition-all active:scale-95 shadow-md">
-                <Plus size={18} /> 新增優惠券
+                {isAddingVoucher ? <X size={18} /> : <Plus size={18} />} 
+                {isAddingVoucher ? '取消' : '新增優惠券'}
               </button>
             </div>
 
