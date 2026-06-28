@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Check, Upload, Image as ImageIcon, Send, Landmark, ChevronRight } from 'lucide-react';
+import { X, Copy, Check, Send, Landmark, ChevronRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useCart } from '../hooks/CartProvider';
 import { useTheme } from '../hooks/useTheme';
@@ -16,12 +16,12 @@ interface CheckoutModalProps {
 const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPrice, user }) => {
   const { mode } = useTheme();
   const { cart, clearCart, selectedVoucher } = useCart();
-  const [screenshot, setScreenshot] = useState<string | null>(null);
+
   const [isUploading, setIsUploading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [paymentMethod] = useState<'bank' | 'other'>('bank');
   const [emailJsSettings, setEmailJsSettings] = useState<any>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
 
   const [customerName, setCustomerName] = useState(user?.user_metadata?.full_name || '');
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
@@ -78,16 +78,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setScreenshot(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+
 
   const handleSubmit = async () => {
 

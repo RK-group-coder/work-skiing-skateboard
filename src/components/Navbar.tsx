@@ -542,8 +542,8 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                                       name: data.name,
                                       price: data.price,
                                       type: 'product',
-                                      image_url: data.image_url,
-                                      qty: 1
+                                      image: data.image_url,
+                                      quantity: 1
                                     });
                                     setIsCartOpen(true);
                                   } else {
@@ -568,7 +568,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                                     } else {
                                       supabase.from('products').select('*').eq('id', firstBuyId).single().then(({ data }) => {
                                         if (data) {
-                                          addToCart({ id: data.id, name: data.name, price: data.price, type: 'product', image_url: data.image_url, qty: 1 });
+                                          addToCart({ id: data.id, name: data.name, price: data.price, type: 'product', image: data.image_url, quantity: 1 });
                                           setIsCartOpen(true);
                                         }
                                       });

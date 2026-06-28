@@ -108,7 +108,7 @@ interface Voucher {
   value: number | null;
   min_amount: number | null;
   valid_until?: string;
-  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses' | 'specific';
+  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses' | 'specific' | 'special_bogo';
   target_id?: string;
   is_active: boolean;
   is_published: boolean;
