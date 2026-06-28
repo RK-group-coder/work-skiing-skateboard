@@ -11,14 +11,15 @@ interface NavbarProps {
   onLoginClick: () => void;
   onAdminClick: () => void;
   onLogout: () => void;
+  onSupportClick: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLogout }) => {
-  const { mode, toggleMode } = useTheme();
+const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLogout, onSupportClick }) => {
+  const { mode, toggleMode, setMode } = useTheme();
   const { 
     cart, removeFromCart, totalPrice, totalItems, 
     vouchers, selectedVoucher, selectVoucher, discountedPrice,
-    setIsCheckoutOpen, getVoucherEligibility
+    setIsCheckoutOpen, getVoucherEligibility, addToCart
   } = useCart();
   
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -144,6 +145,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
             <a href="#courses" className="hover:text-primary transition-colors">專業課程</a>
             <a href="#shop" className="hover:text-primary transition-colors">購物商城</a>
             <a href="#contact" className="hover:text-primary transition-colors">聯絡我們</a>
+            <button onClick={onSupportClick} className="hover:text-primary transition-colors text-left font-medium">客服專區</button>
           </div>
 
           <div className="flex items-center gap-4">
@@ -290,6 +292,13 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                         if (v.target_id && targetNames[v.target_id]) {
                           targetLabel = `僅適用於: ${targetNames[v.target_id]}`;
                         }
+                        
+                        if (v.target_type === 'special_bogo') {
+                          try {
+                            const config = JSON.parse(v.target_id || '{}');
+                            targetLabel = config.mode ? `特殊優惠: ${config.mode}` : '特殊組合優惠';
+                          } catch (e) {}
+                        }
 
                         const eligibility = getVoucherEligibility(v);
 
@@ -325,7 +334,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                               {targetLabel}
                             </div>
                             <p className="text-xs opacity-60 font-medium">
-                              {v.type === 'percent' ? `折扣 ${v.value}%` : `折抵 NT$${v.value}`}
+                              {v.target_type === 'special_bogo' ? '達標即自動加入免費贈品' : (v.type === 'percent' ? `折扣 ${v.value}%` : `折抵 NT$${v.value}`)}
                               {(v.min_amount ?? 0) > 0 && ` · 滿 NT$${v.min_amount} 可用`}
                             </p>
                           </button>
@@ -343,6 +352,13 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                         selectedTargetLabel = `僅適用於: ${targetNames[selectedVoucher.target_id]}`;
                       }
 
+                      if (selectedVoucher.target_type === 'special_bogo') {
+                        try {
+                          const config = JSON.parse(selectedVoucher.target_id || '{}');
+                          selectedTargetLabel = config.mode ? `特殊優惠: ${config.mode}` : '特殊組合優惠';
+                        } catch (e) {}
+                      }
+
                       return (
                         <div className="w-full flex flex-col p-4 rounded-xl text-left transition-all border-2 mt-3 shadow-sm"
                              style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--secondary)' }}>
@@ -358,7 +374,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                              {selectedTargetLabel}
                            </div>
                            <p className="text-xs font-bold" style={{ color: 'var(--primary)' }}>
-                             {selectedVoucher.type === 'percent' ? `折扣 ${selectedVoucher.value}%` : `折抵 NT$${selectedVoucher.value}`}
+                             {selectedVoucher.target_type === 'special_bogo' ? '達標即自動加入免費贈品' : (selectedVoucher.type === 'percent' ? `折扣 ${selectedVoucher.value}%` : `折抵 NT$${selectedVoucher.value}`)}
                              {(selectedVoucher.min_amount ?? 0) > 0 && ` · 滿 NT$${selectedVoucher.min_amount} 可用`}
                            </p>
                         </div>
@@ -455,6 +471,15 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                     if (v.target_id && targetNames[v.target_id]) {
                       targetLabel = `僅適用於: ${targetNames[v.target_id]}`;
                     }
+                    
+                    if (v.target_type === 'special_bogo') {
+                      try {
+                        const config = JSON.parse(v.target_id || '{}');
+                        targetLabel = config.mode ? `特殊優惠: ${config.mode}` : '特殊組合優惠';
+                      } catch (e) {}
+                    }
+
+                    const eligibility = getVoucherEligibility(v);
 
                     return (
                       <div 
@@ -482,7 +507,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                           </div>
                           <div className="text-right">
                             <p className="text-xl font-black italic" style={isSelected ? { color: 'var(--primary)' } : { color: 'var(--primary)' }}>
-                              {v.type === 'percent' ? `折扣 ${v.value}%` : `減免 NT$${v.value}`}
+                              {v.target_type === 'special_bogo' ? '自動帶入贈品' : (v.type === 'percent' ? `折扣 ${v.value}%` : `減免 NT$${v.value}`)}
                             </p>
                             {(v.min_amount ?? 0) > 0 && <p className="text-[10px] opacity-60 font-bold mt-1">滿 NT$${v.min_amount}</p>}
                           </div>
@@ -491,16 +516,112 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                           onClick={() => {
                             if (isSelected) {
                               selectVoucher(null);
-                            } else {
+                            } else if (eligibility.isEligible) {
                               selectVoucher(v.id);
                               setIsMyVouchersOpen(false);
                               setIsCartOpen(true);
+                            } else {
+                              // Not eligible, let them shop. Apply voucher and scroll to correct section
+                              selectVoucher(v.id);
+                              setIsMyVouchersOpen(false);
+                              
+                              if (v.target_type === 'course' && v.target_id) {
+                                // Direct to specific course modal
+                                setTimeout(() => {
+                                  window.dispatchEvent(new CustomEvent('openCourseModal', { detail: { courseId: v.target_id } }));
+                                }, 300);
+                                return;
+                              }
+                              
+                              if (v.target_type === 'specific' && v.target_id) {
+                                const firstId = v.target_id.split(',')[0];
+                                supabase.from('products').select('*').eq('id', firstId).single().then(({ data }) => {
+                                  if (data) {
+                                    addToCart({
+                                      id: data.id,
+                                      name: data.name,
+                                      price: data.price,
+                                      type: 'product',
+                                      image_url: data.image_url,
+                                      qty: 1
+                                    });
+                                    setIsCartOpen(true);
+                                  } else {
+                                    setTimeout(() => {
+                                      window.dispatchEvent(new CustomEvent('openCourseModal', { detail: { courseId: firstId } }));
+                                    }, 300);
+                                  }
+                                });
+                                return;
+                              }
+
+                              if (v.target_type === 'special_bogo' && v.target_id) {
+                                try {
+                                  const config = JSON.parse(v.target_id);
+                                  const buyItems = Object.keys(config.buy || {});
+                                  if (buyItems.length > 0) {
+                                    const firstBuyId = buyItems[0];
+                                    if (config.mode && config.mode.includes('買課程')) {
+                                      setTimeout(() => {
+                                        window.dispatchEvent(new CustomEvent('openCourseModal', { detail: { courseId: firstBuyId } }));
+                                      }, 300);
+                                    } else {
+                                      supabase.from('products').select('*').eq('id', firstBuyId).single().then(({ data }) => {
+                                        if (data) {
+                                          addToCart({ id: data.id, name: data.name, price: data.price, type: 'product', image_url: data.image_url, qty: 1 });
+                                          setIsCartOpen(true);
+                                        }
+                                      });
+                                    }
+                                    return;
+                                  }
+                                } catch (e) {}
+                              }
+
+                              if (v.target_type === 'skiing' || v.target_type === 'skateboard') {
+                                const targetMode = v.target_type;
+                                if (setMode && mode !== targetMode) setMode(targetMode as any);
+                                
+                                // Fetch first course of that mode and open booking modal
+                                supabase.from('courses').select('id').eq('mode', targetMode).eq('is_active', true).limit(1).single().then(({ data }) => {
+                                  if (data?.id) {
+                                    setTimeout(() => {
+                                      document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' });
+                                      window.dispatchEvent(new CustomEvent('openCourseModal', { detail: { courseId: data.id } }));
+                                    }, 600);
+                                  } else {
+                                    setTimeout(() => {
+                                      document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' });
+                                    }, 600);
+                                  }
+                                });
+                                return;
+                              }
+
+                              setTimeout(() => {
+                                let targetId = 'shop';
+                                if (v.target_type === 'all_courses') targetId = 'courses';
+                                else if (v.title && v.title.includes('課')) {
+                                  targetId = 'courses';
+                                }
+                                
+                                const element = document.getElementById(targetId);
+                                if (element) {
+                                  element.scrollIntoView({ behavior: 'smooth' });
+                                }
+                              }, 600);
                             }
                           }}
-                          className="w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest text-white shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all mt-4"
-                          style={isSelected ? { backgroundColor: '#ef4444' } : { background: 'var(--primary-gradient)' }}
+                          className={`w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all mt-4 ${(!isSelected && !eligibility.isEligible) ? 'opacity-90' : ''}`}
+                          style={
+                            isSelected 
+                              ? { backgroundColor: '#ef4444', color: '#ffffff' } 
+                              : (!eligibility.isEligible 
+                                  ? { backgroundColor: mode === 'skateboard' ? '#ffffff' : '#111827', color: mode === 'skateboard' ? '#000000' : '#ffffff' } 
+                                  : { background: 'var(--primary-gradient)', color: '#ffffff' })
+                          }
                         >
-                          {isSelected ? '取消使用' : '立即使用'}
+                          {isSelected ? '取消使用' : (eligibility.isEligible ? '立即套用至購物車' : '前往選購，自動帶入')}
                         </button>
                       </div>
                     );
@@ -550,6 +671,8 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
               <a href="#shop" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">購物商城</a>
               <div className="h-[1px] w-full bg-white/20" />
               <a href="#contact" onClick={() => setIsMenuOpen(false)} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">聯絡我們</a>
+              <div className="h-[1px] w-full bg-white/20" />
+              <button onClick={() => { setIsMenuOpen(false); onSupportClick(); }} className="py-5 text-xl font-bold w-full text-center hover:bg-white/5 transition-all">客服專區</button>
               <div className="h-[1px] w-full bg-white/20" />
               
               {user ? (

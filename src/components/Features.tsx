@@ -12,7 +12,7 @@ interface FeaturesProps {
 }
 
 const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
-  const { mode } = useTheme();
+  const { mode, setMode } = useTheme();
   const { claimVoucher, vouchers } = useCart();
   const [isBookingOpen, setIsBookingOpen] = React.useState(false);
   const [selectedCourse, setSelectedCourse] = React.useState<any>(null);
@@ -162,6 +162,60 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
     };
     fetchHeader();
   }, [mode]);
+
+  React.useEffect(() => {
+    const handleOpenCourse = async (e: any) => {
+      const courseId = e.detail?.courseId;
+      if (courseId) {
+        let course = dbCourses.find((p: any) => p.id === courseId);
+        
+        if (!course) {
+          const { data } = await supabase.from('courses').select('*').eq('id', courseId).single();
+          if (data) course = data;
+        }
+
+        if (course) {
+          if (course.mode !== mode && setMode) {
+             setMode(course.mode as any);
+          }
+
+          let priceDisplay = `NT$${(course.first_lesson_price || course.price || 0).toLocaleString()}`;
+          if (course.mode === 'skiing') {
+            const prices = [
+              course.full_day_first_price,
+              course.half_day_am_first_price,
+              course.half_day_pm_first_price,
+              course.first_lesson_price || course.price
+            ].map(p => Number(p)).filter(p => p > 0);
+            
+            if (prices.length > 0) {
+              const minPrice = Math.min(...prices);
+              const maxPrice = Math.max(...prices);
+              if (minPrice !== maxPrice) priceDisplay = `NT$${minPrice.toLocaleString()} ~ ${maxPrice.toLocaleString()}`;
+              else priceDisplay = `NT$${minPrice.toLocaleString()}`;
+            }
+          }
+
+          setSelectedCourse({
+             ...course,
+             priceDisplay,
+             addPrice: Number(course.additional_lesson_price || 0),
+             features: course.description ? course.description.split('\n').filter((s: string) => s.trim()) : ['專業教練指導', '安全防護保證']
+          });
+
+          setIsBookingOpen(true);
+          setTimeout(() => {
+            const element = document.getElementById('courses');
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth' });
+            }
+          }, 300);
+        }
+      }
+    };
+    window.addEventListener('openCourseModal', handleOpenCourse);
+    return () => window.removeEventListener('openCourseModal', handleOpenCourse);
+  }, [dbCourses, mode, setMode]);
 
   return (
     <section id="features-section" className="py-24 bg-secondary transition-colors duration-500 overflow-hidden">

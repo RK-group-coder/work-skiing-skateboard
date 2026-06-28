@@ -10,7 +10,7 @@ export interface Voucher {
   code: string;
   min_amount?: number; // Minimum spend requirement
   valid_until?: string;
-  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses' | 'specific';
+  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses' | 'specific' | 'special_bogo';
   target_id?: string;
   grant_quantity?: number | null;
 }
@@ -92,7 +92,39 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const effectiveCart = directPurchaseItem ? [directPurchaseItem] : cart;
+  let effectiveCart = directPurchaseItem ? [directPurchaseItem] : [...cart];
+
+  if (selectedVoucher && selectedVoucher.target_type === 'special_bogo') {
+    try {
+      const config = JSON.parse(selectedVoucher.target_id || '{}');
+      const buyReq = config.buy || {};
+      
+      let eligible = true;
+      for (const [id, reqQty] of Object.entries(buyReq)) {
+        const cartQty = effectiveCart.filter(i => (i.type === 'course_booking' ? i.details?.courseId : i.id) === id).reduce((sum, i) => sum + i.quantity, 0);
+        if (cartQty < (reqQty as number)) { eligible = false; break; }
+      }
+      
+      if (eligible) {
+        const getDetails = config.get_details || {};
+        for (const [id, details] of Object.entries(getDetails)) {
+          const qty = config.get[id] || 1;
+          const inCartQty = effectiveCart.filter(i => (i.type === 'course_booking' ? i.details?.courseId : i.id) === id || i.id === id + '_free').reduce((sum, i) => sum + i.quantity, 0);
+          if (inCartQty < qty) {
+            effectiveCart.push({
+              id: id + '_free',
+              name: `[贈品] ${(details as any).name}`,
+              price: (details as any).price || 0,
+              quantity: qty - inCartQty,
+              type: (details as any).type || 'product',
+              image: (details as any).image || '',
+              details: { isFreeGift: true, mode: 'skiing', courseId: (details as any).type === 'course_booking' ? id : undefined }
+            } as any);
+          }
+        }
+      }
+    } catch (e) {}
+  }
 
   const addToCart = (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
     setCart(prev => {
@@ -167,8 +199,25 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       if (voucher.target_type === 'skiing') return i.details?.mode === 'skiing';
       if (voucher.target_type === 'skateboard') return i.details?.mode === 'skateboard';
+      if (voucher.target_type === 'special_bogo') {
+        try {
+          const config = JSON.parse(voucher.target_id || '{}');
+          const buyReq = config.buy || {};
+          for (const [id, reqQty] of Object.entries(buyReq)) {
+            const cartQty = effectiveCart.filter(i => (i.type === 'course_booking' ? i.details?.courseId : i.id) === id).reduce((sum, i) => sum + i.quantity, 0);
+            if (cartQty < (reqQty as number)) return false;
+          }
+          return true;
+        } catch (e) { return false; }
+      }
       return false;
     };
+
+    if (voucher.target_type === 'special_bogo') {
+      const eligible = isItemEligible(effectiveCart[0]); // trick to reuse logic, actually just evaluating the whole cart
+      if (!eligible) return { isEligible: false, reason: '未滿足此特殊優惠的購買條件' };
+      return { isEligible: true };
+    }
 
     const eligibleTotal = effectiveCart.filter(isItemEligible).reduce((sum, i) => sum + i.price * i.quantity, 0);
 
@@ -210,12 +259,31 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       };
       
-      const eligibleTotal = effectiveCart.filter(isItemEligible).reduce((sum, i) => sum + i.price * i.quantity, 0);
-      
-      if (selectedVoucher.type === 'percent') {
-        discountedPrice = totalPrice - Math.round(eligibleTotal * (selectedVoucher.value / 100));
+      if (selectedVoucher.target_type === 'special_bogo') {
+        try {
+          const config = JSON.parse(selectedVoucher.target_id || '{}');
+          const getReq = config.get || {};
+          let totalDiscount = 0;
+          for (const [id, reqQty] of Object.entries(getReq)) {
+             const matchingItems = effectiveCart.filter(i => (i.type === 'course_booking' ? i.details?.courseId : i.id) === id || i.id === id + '_free');
+             let remainingQtyToDiscount = reqQty as number;
+             for (const item of matchingItems) {
+                if (remainingQtyToDiscount <= 0) break;
+                const discountQty = Math.min(remainingQtyToDiscount, item.quantity);
+                totalDiscount += item.price * discountQty;
+                remainingQtyToDiscount -= discountQty;
+             }
+          }
+          discountedPrice = Math.max(0, totalPrice - totalDiscount);
+        } catch (e) {}
       } else {
-        discountedPrice = totalPrice - Math.min(eligibleTotal, selectedVoucher.value);
+        const eligibleTotal = effectiveCart.filter(isItemEligible).reduce((sum, i) => sum + i.price * i.quantity, 0);
+        
+        if (selectedVoucher.type === 'percent') {
+          discountedPrice = totalPrice - Math.round(eligibleTotal * (selectedVoucher.value / 100));
+        } else {
+          discountedPrice = totalPrice - Math.min(eligibleTotal, selectedVoucher.value);
+        }
       }
     } else {
       // If selected voucher becomes ineligible (e.g. item removed), auto-deselect

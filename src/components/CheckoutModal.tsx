@@ -90,10 +90,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
   };
 
   const handleSubmit = async () => {
-    if (!screenshot) {
-      alert('請上傳轉帳截圖以供查驗');
-      return;
-    }
+
 
     if (paymentMethod === 'bank' && (!lastFiveDigits || lastFiveDigits.length !== 5)) {
       alert('請填寫正確的付款帳號末五碼（共 5 碼數字）以供對帳');
@@ -131,7 +128,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
             accountNumber: bankInfo.accountNumber,
             lastFiveDigits: lastFiveDigits
           },
-          screenshot_data: screenshot,
+          screenshot_data: 'none',
           last_five_digits: lastFiveDigits,
           status: 'pending_verification',
           mode: mode,
@@ -536,6 +533,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
 
   const blackMetallic = 'linear-gradient(180deg, #374151 0%, #1f2937 45%, #111827 50%, #000000 100%)';
 
+  const isFormIncomplete = !customerName || !customerPhone || !customerEmail || 
+    (paymentMethod === 'bank' && lastFiveDigits.length !== 5) || 
+    (hasPhysicalProducts && deliveryMethod === 'convenience_store' && !convenienceStoreInfo) ||
+    (hasPhysicalProducts && deliveryMethod === 'pickup_location' && !pickupLocationId);
+
   if (!isOpen) return null;
 
   return (
@@ -637,62 +639,14 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                   </div>
                 </div>
 
-                {/* Upload Section - Dark Accent */}
+                {/* Upload Section Removed */}
                 <div className="space-y-4 pt-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1 h-5 rounded-full bg-slate-400" />
-                      <h3 className="font-black uppercase tracking-widest text-[11px] opacity-50">Step 2: Upload Screenshot</h3>
-                    </div>
-                  </div>
-                  
-                  <div 
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`group relative h-48 rounded-[32px] border-4 border-dashed cursor-pointer flex flex-col items-center justify-center transition-all ${
-                      screenshot 
-                      ? 'border-emerald-500/50 bg-emerald-500/5' 
-                      : 'border-current/10 hover:border-slate-400 hover:bg-slate-400/5'
-                    }`}
-                  >
-                    {screenshot ? (
-                      <div className="absolute inset-4 rounded-2xl overflow-hidden shadow-lg">
-                        <img src={screenshot} alt="Screenshot" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <p className="text-white font-black flex items-center gap-2 text-sm uppercase tracking-widest">更換照片 <Upload size={18} /></p>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="w-16 h-16 rounded-full bg-current/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                          <ImageIcon className="opacity-30" size={32} />
-                        </div>
-                        <p className="font-black text-sm opacity-40 uppercase tracking-widest">點擊上傳轉帳截圖</p>
-                      </>
-                    )}
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      onChange={handleFileChange} 
-                      accept="image/*" 
-                      className="hidden" 
-                    />
-                  </div>
-                  
-                  {screenshot && (
-                    <button 
-                      onClick={() => { setScreenshot(''); if(fileInputRef.current) fileInputRef.current.value = ''; }}
-                      className="w-full py-4 rounded-[20px] border-2 border-red-500/20 bg-red-50 text-red-500 font-black text-sm uppercase tracking-widest hover:bg-red-100 active:scale-95 transition-all flex items-center justify-center gap-2"
-                    >
-                      <X size={18} strokeWidth={3} /> 刪除截圖
-                    </button>
-                  )}
-
                   {/* Last Five Digits Section */}
-                  <div className="space-y-3 pt-3">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-5 rounded-full bg-slate-400" />
-                        <h3 className="font-black uppercase tracking-widest text-[11px] opacity-50">第三步: 輸入付款帳號末五碼</h3>
+                        <h3 className="font-black uppercase tracking-widest text-[11px] opacity-50">Step 2: 輸入付款帳號末五碼</h3>
                       </div>
                     </div>
                     <div className="relative">
@@ -837,19 +791,19 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
 
           <div className="p-8 pt-4 border-t border-current/5">
             <button 
-              disabled={(paymentMethod === 'bank' && (!screenshot || lastFiveDigits.length !== 5)) || isUploading}
+              disabled={isFormIncomplete || isUploading}
               onClick={handleSubmit}
               className={`w-full py-5 rounded-[24px] font-black uppercase tracking-[0.3em] active:scale-95 transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${
-                (paymentMethod === 'bank' && (!screenshot || lastFiveDigits.length !== 5)) || isUploading ? 'cursor-not-allowed border-2 border-white/10' : 'shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:scale-[1.02]'
+                isFormIncomplete || isUploading ? 'cursor-not-allowed border-2 border-white/10' : 'shadow-[0_0_30px_rgba(239,68,68,0.4)] hover:scale-[1.02]'
               }`}
               style={{ 
-                background: (paymentMethod === 'bank' && (!screenshot || lastFiveDigits.length !== 5)) || isUploading 
+                background: isFormIncomplete || isUploading 
                   ? (mode === 'skiing' ? '#f1f5f9' : 'rgba(255,255,255,0.05)') 
                   : '#ef4444',
-                color: (paymentMethod === 'bank' && (!screenshot || lastFiveDigits.length !== 5)) || isUploading 
+                color: isFormIncomplete || isUploading 
                   ? (mode === 'skiing' ? '#94a3b8' : 'rgba(255,255,255,0.3)') 
                   : '#ffffff',
-                border: (paymentMethod === 'bank' && (!screenshot || lastFiveDigits.length !== 5)) || isUploading 
+                border: isFormIncomplete || isUploading 
                   ? (mode === 'skiing' ? '2px solid #e2e8f0' : '2px solid rgba(255,255,255,0.1)') 
                   : 'none'
               }}
@@ -861,10 +815,14 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 <div className="w-6 h-6 border-2 border-slate-200 border-t-black rounded-full animate-spin" />
               ) : (
                 <span className="relative z-10 flex items-center gap-3 font-black">
-                  {paymentMethod === 'bank' && !screenshot 
-                    ? '請先上傳轉帳截圖' 
-                    : paymentMethod === 'bank' && lastFiveDigits.length !== 5 
+                  {paymentMethod === 'bank' && lastFiveDigits.length !== 5 
                     ? '請填寫末五碼對帳' 
+                    : (!customerName || !customerPhone || !customerEmail)
+                    ? '請填寫聯絡資訊'
+                    : (hasPhysicalProducts && deliveryMethod === 'convenience_store' && !convenienceStoreInfo)
+                    ? '請填寫超商門市資訊'
+                    : (hasPhysicalProducts && deliveryMethod === 'pickup_location' && !pickupLocationId)
+                    ? '請選擇取貨據點'
                     : '確認送出訂單'}
                   <Send size={20} />
                 </span>

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, Calendar, Clock, MapPin, Users, 
   ChevronRight, ChevronLeft, 
-  CheckCircle2 
+  CheckCircle2, Tag
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTheme } from '../hooks/useTheme';
@@ -669,6 +669,16 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                           <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">附加資訊</label>
                           <textarea placeholder="技能程度或特殊備註..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-gray-50 rounded-2xl h-24 outline-none font-medium text-gray-900" />
                         </div>
+                        <div className="pt-2">
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">套用優惠券</label>
+                          <button onClick={() => setIsVoucherModalOpen(true)} className="w-full p-4 rounded-2xl border-2 border-dashed border-gray-200 hover:border-primary/50 text-gray-500 hover:text-primary transition-all flex items-center justify-between font-bold text-sm bg-gray-50">
+                            <div className="flex items-center gap-2">
+                              <Tag size={18} />
+                              {selectedVoucher ? <span className="text-green-600 font-black">已選擇: {selectedVoucher.code}</span> : '選擇優惠券'}
+                            </div>
+                            <ChevronRight size={18} />
+                          </button>
+                        </div>
                       </div>
                       
                       <div className="bg-neutral-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden">
@@ -973,6 +983,16 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                           <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">程度與備註</label>
                           <textarea placeholder="請描述您的運動程度..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl border border-gray-200 h-32 outline-none text-gray-900" />
                         </div>
+                        <div className="pt-2">
+                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">套用優惠券</label>
+                          <button onClick={() => setIsVoucherModalOpen(true)} className="w-full p-4 rounded-2xl border-2 border-dashed border-gray-200 hover:border-primary/50 text-gray-500 hover:text-primary transition-all flex items-center justify-between font-bold text-sm bg-white">
+                            <div className="flex items-center gap-2">
+                              <Tag size={18} />
+                              {selectedVoucher ? <span className="text-green-600 font-black">已選擇: {selectedVoucher.code}</span> : '選擇優惠券'}
+                            </div>
+                            <ChevronRight size={18} />
+                          </button>
+                        </div>
                       </div>
                       <div className="bg-neutral-900 rounded-[32px] p-8 text-white">
                         <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">預估總計</div>
@@ -1043,52 +1063,71 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                 <button onClick={() => setIsVoucherModalOpen(false)} className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm"><X size={20}/></button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {vouchers.filter(v => {
-                  if (v.target_type === 'global' || v.target_type === 'all_courses') return true;
-                  if (v.target_type === 'specific' && (v.target_id || '').split(',').includes(course.id)) return true;
-                  if (v.target_type === 'course' && v.target_id === course.id) return true;
-                  if (v.target_type === 'skiing' && mode === 'skiing') return true;
-                  if (v.target_type === 'skateboard' && mode === 'skateboard') return true;
-                  return false;
-                }).length > 0 ? vouchers.filter(v => {
-                  if (v.target_type === 'global' || v.target_type === 'all_courses') return true;
-                  if (v.target_type === 'specific' && (v.target_id || '').split(',').includes(course.id)) return true;
-                  if (v.target_type === 'course' && v.target_id === course.id) return true;
-                  if (v.target_type === 'skiing' && mode === 'skiing') return true;
-                  if (v.target_type === 'skateboard' && mode === 'skateboard') return true;
-                  return false;
-                }).map(v => {
-                  const isMinMet = !v.min_amount || totalTWD >= v.min_amount;
-                  const isSelected = selectedVoucher?.id === v.id;
-                  
-                  return (
-                    <button 
-                      key={v.id}
-                      disabled={!isMinMet}
-                      onClick={() => {
-                        setSelectedVoucher(isSelected ? null : v);
-                        setIsVoucherModalOpen(false);
-                      }}
-                      className={`w-full p-6 rounded-3xl border-2 transition-all text-left relative overflow-hidden group ${
-                        isSelected ? 'bg-green-50 border-green-500 shadow-lg' : isMinMet ? 'bg-white border-gray-100 hover:border-primary/30' : 'bg-gray-50 border-transparent opacity-40 grayscale'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <div className={`text-xs font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-green-600' : 'text-gray-400'}`}>
-                            {v.type === 'percent' ? `${v.value}% OFF` : `固定折扣 NT$${v.value}`}
+                {(() => {
+                  const applicableVouchers = vouchers.filter(v => {
+                    if (v.target_type === 'global' || v.target_type === 'all_courses') return true;
+                    if (v.target_type === 'specific' && (v.target_id || '').split(',').includes(course.id)) return true;
+                    if (v.target_type === 'course' && v.target_id === course.id) return true;
+                    if (v.target_type === 'skiing' && mode === 'skiing') return true;
+                    if (v.target_type === 'skateboard' && mode === 'skateboard') return true;
+                    return false;
+                  });
+
+                  if (applicableVouchers.length === 0) {
+                    return <div className="py-20 text-center text-gray-300 font-bold italic border-2 border-dashed border-gray-100 rounded-[32px]">目前暫無可用優惠券</div>;
+                  }
+
+                  const eligibleVouchers = applicableVouchers.filter(v => !v.min_amount || totalTWD >= v.min_amount);
+                  const ineligibleVouchers = applicableVouchers.filter(v => v.min_amount && totalTWD < v.min_amount);
+
+                  const renderVoucher = (v: any, isMinMet: boolean) => {
+                    const isSelected = selectedVoucher?.id === v.id;
+                    return (
+                      <button 
+                        key={v.id}
+                        disabled={!isMinMet}
+                        onClick={() => {
+                          setSelectedVoucher(isSelected ? null : v);
+                          setIsVoucherModalOpen(false);
+                        }}
+                        className={`w-full p-6 rounded-3xl border-2 transition-all text-left relative overflow-hidden group ${
+                          isSelected ? 'bg-green-50 border-green-500 shadow-lg' : isMinMet ? 'bg-white border-gray-100 hover:border-primary/30 shadow-sm' : 'bg-gray-50 border-transparent opacity-50 grayscale cursor-not-allowed'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <div className={`text-xs font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-green-600' : 'text-gray-400'}`}>
+                              {v.target_type === 'special_bogo' ? '自動加入免費贈品' : (v.type === 'percent' ? `${v.value}% OFF` : `固定折扣 NT$${v.value}`)}
+                            </div>
+                            <div className="text-xl font-black italic tracking-tight">{v.code}</div>
                           </div>
-                          <div className="text-xl font-black italic tracking-tight">{v.code}</div>
+                          {isSelected && <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white"><CheckCircle2 size={14}/></div>}
                         </div>
-                        {isSelected && <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white"><CheckCircle2 size={14}/></div>}
-                      </div>
-                      <p className="text-xs text-gray-500 font-medium">{v.description || '套用此優惠券以獲得折扣'}</p>
-                      <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gray-100/50 rounded-full group-hover:scale-150 transition-transform" />
-                    </button>
+                        <p className="text-xs text-gray-500 font-medium">{v.description || '套用此優惠券以獲得折扣'}</p>
+                        {!isMinMet && <p className="text-[10px] text-red-500 font-bold mt-2">未達使用門檻：還差 NT${(v.min_amount - totalTWD).toLocaleString()}</p>}
+                        {isMinMet && <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gray-100/50 rounded-full group-hover:scale-150 transition-transform" />}
+                      </button>
+                    );
+                  };
+
+                  return (
+                    <div className="space-y-8">
+                      {eligibleVouchers.length > 0 && (
+                        <div className="space-y-4">
+                          <h5 className="text-sm font-black text-gray-900 uppercase tracking-widest">可以使用</h5>
+                          {eligibleVouchers.map(v => renderVoucher(v, true))}
+                        </div>
+                      )}
+                      
+                      {ineligibleVouchers.length > 0 && (
+                        <div className="space-y-4 pt-4 border-t border-gray-100">
+                          <h5 className="text-sm font-black text-gray-400 uppercase tracking-widest">不適用（未達門檻）</h5>
+                          {ineligibleVouchers.map(v => renderVoucher(v, false))}
+                        </div>
+                      )}
+                    </div>
                   );
-                }) : (
-                  <div className="py-20 text-center text-gray-300 font-bold italic border-2 border-dashed border-gray-100 rounded-[32px]">目前暫無可用優惠券</div>
-                )}
+                })()}
               </div>
               <div className="p-6 bg-gray-50 border-t border-gray-100">
                 <button onClick={() => setIsVoucherModalOpen(false)} className="w-full py-4 bg-black text-white rounded-2xl font-black text-sm uppercase tracking-widest">完成</button>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, ChevronRight, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink, Bot, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, ChevronRight, ChevronDown, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink, Bot, MessageSquare, ShoppingCart, Minus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { User } from '@supabase/supabase-js';
@@ -573,9 +573,39 @@ const CourseForm = ({ form, setForm, onSave, onCancel, loading }: { form: Course
   </div>
 );
 
-const VoucherForm = ({ form, setForm, onSave, onCancel, products, courses, loading }: { form: Voucher; setForm: (v: Voucher) => void; onSave: () => void; onCancel: () => void; products: Product[]; courses: Course[]; loading: boolean }) => (
-  <div className="bg-white border border-gray-100 rounded-[28px] p-6 space-y-4">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+const VoucherForm = ({ form, setForm, onSave, onCancel, products, courses, loading }: { form: Voucher; setForm: (v: Voucher) => void; onSave: () => void; onCancel: () => void; products: Product[]; courses: Course[]; loading: boolean }) => {
+  const isSpecialBogo = form.target_type === 'special_bogo';
+  let bogoConfig: any = null;
+  if (isSpecialBogo) {
+    try { bogoConfig = JSON.parse(form.target_id || '{}'); } catch(e){}
+  }
+
+  const renderBogoInfo = () => {
+    if (!bogoConfig) return null;
+    const { buy = {}, get = {}, mode = '' } = bogoConfig;
+    
+    const getNames = (configObj: any) => {
+      return Object.entries(configObj).map(([id, qty]) => {
+        const item = [...products, ...courses].find(i => i.id === id);
+        return item ? `${item.name} (x${qty})` : `未知項目 (x${qty})`;
+      });
+    };
+
+    return (
+      <div className="mb-6 p-5 bg-gray-900 text-white rounded-2xl shadow-sm text-sm font-bold">
+        <div className="text-gray-400 text-xs mb-3 uppercase tracking-widest">{mode} - 已設定條件</div>
+        <div className="flex flex-col gap-3">
+          <div className="flex gap-3"><span className="text-gray-500 shrink-0">購買必須包含：</span> <span className="leading-relaxed">{getNames(buy).join(' 、 ')}</span></div>
+          <div className="flex gap-3"><span className="text-gray-500 shrink-0">即可免費獲得：</span> <span className="text-green-400 leading-relaxed">{getNames(get).join(' 、 ')}</span></div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="bg-white border border-gray-100 rounded-[28px] p-6 space-y-4">
+      {isSpecialBogo && renderBogoInfo()}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label className={labelCls}>優惠名稱 Title</label>
         <input type="text" value={form.title || ''} onChange={e => setForm({ ...form, title: e.target.value })} className={inputCls} placeholder="e.g. 首次課程 9 折優惠" />
@@ -589,7 +619,10 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, products, courses, loadi
       <label className={labelCls}>自訂內文 Description (選填)</label>
       <textarea rows={3} value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })} className={`${inputCls} resize-none`} placeholder="e.g. 適用於特定商品或課程&#10;安全第一優先" />
     </div>
-    <div className="space-y-3">
+    
+    {!isSpecialBogo && (
+      <>
+        <div className="space-y-3">
       <div className="flex items-center justify-between">
         <label className={labelCls}>適用對象 Target Type</label>
         <button 
@@ -671,26 +704,31 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, products, courses, loadi
             </div>
           )}
         </div>
+          )}
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>折扣類型 Type</label>
+            <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value as any })} className={inputCls}>
+              <option value="percent">百分比 (% Off)</option>
+              <option value="fixed">固定金額 (Cash Off)</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>折扣值 Value ({form.type === 'percent' ? '%' : 'NT$'})</label>
+            <input type="number" value={form.value ?? ''} onChange={e => setForm({ ...form, value: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+          </div>
+        </div>
+      </>
+    )}
+    <div className={`grid grid-cols-1 md:grid-cols-${isSpecialBogo ? '2' : '3'} gap-4`}>
+      {!isSpecialBogo && (
+        <div>
+          <label className={labelCls}>最低消費 Min (NT$)</label>
+          <input type="number" value={form.min_amount ?? ''} onChange={e => setForm({ ...form, min_amount: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+        </div>
       )}
-    </div>
-    <div className="grid grid-cols-2 gap-4">
-      <div>
-        <label className={labelCls}>折扣類型 Type</label>
-        <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value as any })} className={inputCls}>
-          <option value="percent">百分比 (% Off)</option>
-          <option value="fixed">固定金額 (Cash Off)</option>
-        </select>
-      </div>
-      <div>
-        <label className={labelCls}>折扣值 Value ({form.type === 'percent' ? '%' : 'NT$'})</label>
-        <input type="number" value={form.value ?? ''} onChange={e => setForm({ ...form, value: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
-      </div>
-    </div>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div>
-        <label className={labelCls}>最低消費 Min (NT$)</label>
-        <input type="number" value={form.min_amount ?? ''} onChange={e => setForm({ ...form, min_amount: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
-      </div>
       <div>
         <label className={labelCls}>有效期限 Valid Until (選填)</label>
         <input type="date" value={form.valid_until || ''} onChange={e => setForm({ ...form, valid_until: e.target.value })} className={inputCls} />
@@ -715,7 +753,8 @@ const VoucherForm = ({ form, setForm, onSave, onCancel, products, courses, loadi
       <button onClick={onCancel} className="px-6 py-3 bg-gray-100 text-gray-500 rounded-xl font-bold hover:bg-gray-200 transition-colors">取消</button>
     </div>
   </div>
-);
+  );
+};
 
 const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
@@ -806,6 +845,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const [editingVoucher, setEditingVoucher] = useState<Voucher | null>(null);
   const [isAddingVoucher, setIsAddingVoucher] = useState(false);
   const [voucherForm, setVoucherForm] = useState<Voucher>(EMPTY_VOUCHER);
+  const [isAddingSpecialVoucher, setIsAddingSpecialVoucher] = useState(false);
+  const [specialVoucherMode, setSpecialVoucherMode] = useState<string>('');
+  const [isSpecialDropdownOpen, setIsSpecialDropdownOpen] = useState(false);
+  const [specialBuyItems, setSpecialBuyItems] = useState<Record<string, number>>({});
+  const [specialGetItems, setSpecialGetItems] = useState<Record<string, number>>({});
   
   // Orders
   const [orders, setOrders] = useState<Order[]>([]);
@@ -1853,7 +1897,29 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
         return (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => {
+                  if (isAddingSpecialVoucher) {
+                    setIsAddingSpecialVoucher(false);
+                    setSpecialVoucherMode('');
+                    setIsSpecialDropdownOpen(false);
+                    setSpecialBuyItems({});
+                    setSpecialGetItems({});
+                  } else {
+                    setIsAddingSpecialVoucher(true);
+                    setIsAddingVoucher(false);
+                    setEditingVoucher(null);
+                    setIsSpecialDropdownOpen(false);
+                    setSpecialBuyItems({});
+                    setSpecialGetItems({});
+                  }
+                }}
+                style={{ backgroundColor: '#111827', color: '#ffffff' }}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold hover:opacity-90 transition-all active:scale-95 shadow-md">
+                {isAddingSpecialVoucher ? <X size={18} /> : <Plus size={18} />} 
+                {isAddingSpecialVoucher ? '取消' : '新增特殊優惠'}
+              </button>
               <button 
                 onClick={() => { 
                   if (isAddingVoucher) {
@@ -1870,6 +1936,173 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 {isAddingVoucher ? '取消' : '新增優惠券'}
               </button>
             </div>
+
+            {isAddingSpecialVoucher && (
+              <div className="bg-white border border-gray-100 rounded-[28px] p-6 shadow-sm mb-6 animate-in fade-in zoom-in-95">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                  <h3 className="font-black text-xl text-gray-900 tracking-tight">特殊優惠設定</h3>
+                  <div className="relative z-20">
+                    <button 
+                      onClick={() => setIsSpecialDropdownOpen(!isSpecialDropdownOpen)}
+                      style={specialVoucherMode ? { backgroundColor: '#111827', color: '#ffffff' } : {}}
+                      className={`flex items-center justify-between min-w-[200px] gap-2 px-6 py-3 rounded-xl font-bold transition-colors ${
+                        specialVoucherMode 
+                          ? 'border-transparent hover:opacity-90' 
+                          : 'bg-gray-50 border border-gray-200 text-gray-700 hover:bg-gray-100'
+                      }`}>
+                      {specialVoucherMode || '選擇模式'}
+                      <ChevronDown size={16} className={`transition-transform ${isSpecialDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {/* Dropdown Menu */}
+                    {isSpecialDropdownOpen && (
+                      <div className="absolute right-0 top-full mt-2 w-full min-w-[200px] bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden origin-top animate-in fade-in zoom-in-95">
+                        {['買課程送課程', '買商品送商品', '買課程送商品', '買商品送課程'].map(mode => (
+                          <button 
+                            key={mode}
+                            onClick={() => {
+                              setSpecialVoucherMode(mode);
+                              setIsSpecialDropdownOpen(false);
+                              setSpecialBuyItems({});
+                              setSpecialGetItems({});
+                            }}
+                            style={specialVoucherMode === mode ? { backgroundColor: '#111827', color: '#ffffff' } : {}}
+                            className={`w-full text-left px-5 py-3 text-sm font-bold transition-colors ${specialVoucherMode === mode ? '' : 'hover:bg-gray-50 text-gray-700'}`}
+                          >
+                            {mode}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {specialVoucherMode && (
+                  <div className="mt-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Left Side: Buy */}
+                      <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                        <h4 className="font-black text-gray-900 mb-6 flex items-center justify-center gap-2">
+                          <ShoppingCart size={18} /> 購買以下項目 (指定數量)
+                        </h4>
+                        <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
+                          {(specialVoucherMode.startsWith('買課程') ? courses : products).map(item => (
+                            <div key={item.id} className={`flex items-center justify-between bg-white p-4 rounded-xl border transition-all ${specialBuyItems[item.id!] ? 'border-gray-900 shadow-md' : 'border-gray-100 hover:border-gray-300 shadow-sm'}`}>
+                              <label className="flex items-center gap-4 flex-1 cursor-pointer">
+                                <input type="checkbox" className="w-5 h-5 text-gray-900 rounded focus:ring-gray-900" 
+                                  checked={!!specialBuyItems[item.id!]}
+                                  onChange={(e) => {
+                                    const next = { ...specialBuyItems };
+                                    if (e.target.checked) next[item.id!] = 1;
+                                    else delete next[item.id!];
+                                    setSpecialBuyItems(next);
+                                  }}
+                                />
+                                <span className="font-bold text-sm text-gray-700">{item.name}</span>
+                              </label>
+                              {specialBuyItems[item.id!] && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">數量</span>
+                                  <div className="flex items-center bg-gray-100 border border-gray-200 rounded-lg overflow-hidden">
+                                    <button type="button" 
+                                      onClick={() => setSpecialBuyItems({...specialBuyItems, [item.id!]: Math.max(1, specialBuyItems[item.id!] - 1)})}
+                                      className="px-2 py-1.5 hover:bg-gray-200 text-gray-500 font-bold transition-colors focus:outline-none">
+                                      <Minus size={14} />
+                                    </button>
+                                    <span className="w-8 text-center font-bold text-sm text-gray-900">{specialBuyItems[item.id!]}</span>
+                                    <button type="button" 
+                                      onClick={() => setSpecialBuyItems({...specialBuyItems, [item.id!]: specialBuyItems[item.id!] + 1})}
+                                      className="px-2 py-1.5 hover:bg-gray-200 text-gray-500 font-bold transition-colors focus:outline-none">
+                                      <Plus size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Right Side: Get */}
+                      <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                        <h4 className="font-black text-gray-900 mb-6 flex items-center justify-center gap-2">
+                          <Package size={18} /> 贈送以下項目 (指定數量)
+                        </h4>
+                        <div className="space-y-3 max-h-72 overflow-y-auto pr-2">
+                          {(specialVoucherMode.endsWith('送課程') ? courses : products).map(item => (
+                            <div key={item.id} className={`flex items-center justify-between bg-white p-4 rounded-xl border transition-all ${specialGetItems[item.id!] ? 'border-gray-900 shadow-md' : 'border-gray-100 hover:border-gray-300 shadow-sm'}`}>
+                              <label className="flex items-center gap-4 flex-1 cursor-pointer">
+                                <input type="checkbox" className="w-5 h-5 text-gray-900 rounded focus:ring-gray-900" 
+                                  checked={!!specialGetItems[item.id!]}
+                                  onChange={(e) => {
+                                    const next = { ...specialGetItems };
+                                    if (e.target.checked) next[item.id!] = 1;
+                                    else delete next[item.id!];
+                                    setSpecialGetItems(next);
+                                  }}
+                                />
+                                <span className="font-bold text-sm text-gray-700">{item.name}</span>
+                              </label>
+                              {specialGetItems[item.id!] && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">數量</span>
+                                  <div className="flex items-center bg-gray-100 border border-gray-200 rounded-lg overflow-hidden">
+                                    <button type="button" 
+                                      onClick={() => setSpecialGetItems({...specialGetItems, [item.id!]: Math.max(1, specialGetItems[item.id!] - 1)})}
+                                      className="px-2 py-1.5 hover:bg-gray-200 text-gray-500 font-bold transition-colors focus:outline-none">
+                                      <Minus size={14} />
+                                    </button>
+                                    <span className="w-8 text-center font-bold text-sm text-gray-900">{specialGetItems[item.id!]}</span>
+                                    <button type="button" 
+                                      onClick={() => setSpecialGetItems({...specialGetItems, [item.id!]: specialGetItems[item.id!] + 1})}
+                                      className="px-2 py-1.5 hover:bg-gray-200 text-gray-500 font-bold transition-colors focus:outline-none">
+                                      <Plus size={14} />
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-10 flex justify-center">
+                      <button 
+                        onClick={() => {
+                          if (Object.keys(specialBuyItems).length === 0 || Object.keys(specialGetItems).length === 0) {
+                            alert('請至少選擇一項購買項目與一項贈送項目！');
+                            return;
+                          }
+                          const config = { 
+                            buy: specialBuyItems, 
+                            get: specialGetItems, 
+                            get_details: Object.keys(specialGetItems).reduce((acc: any, id) => {
+                              const item: any = [...products, ...courses].find((i: any) => i.id === id);
+                              if (item) acc[id] = { name: item.name, price: item.price || item.first_lesson_price || 0, type: item.first_lesson_price !== undefined ? 'course_booking' : 'product', image: item.images?.[0] || item.image || '' };
+                              return acc;
+                            }, {}),
+                            mode: specialVoucherMode 
+                          };
+                          setVoucherForm({ 
+                            ...EMPTY_VOUCHER, 
+                            target_type: 'special_bogo', 
+                            target_id: JSON.stringify(config),
+                            type: 'percent', // 100% discount on the free items
+                            value: 100, 
+                            title: specialVoucherMode,
+                            description: `購買指定項目即贈送指定項目，全數滿足條件即可享有 100% 贈品折扣。`
+                          });
+                          setIsAddingSpecialVoucher(false);
+                          setIsAddingVoucher(true);
+                        }}
+                        style={{ backgroundColor: '#111827', color: '#ffffff' }}
+                        className="px-12 py-4 rounded-xl font-black shadow-2xl hover:opacity-90 active:scale-95 transition-all flex items-center gap-3"
+                      >
+                        <Check size={20} /> 確定設定，接續填寫優惠券細節
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {isAddingVoucher && (
               <VoucherForm form={voucherForm} setForm={setVoucherForm}
@@ -2506,21 +2739,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                             </div>
                           </div>
                         </div>
-
-                        {/* Screenshot Preview */}
-                        <div className="w-full lg:w-64 shrink-0">
-                          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 text-center">轉帳截圖</div>
-                          <div 
-                            onClick={(e) => { e.stopPropagation(); setSelectedOrderImage(order.screenshot_data); }}
-                            className="aspect-[3/4] bg-neutral-100 rounded-[32px] overflow-hidden cursor-pointer group relative border-4 border-white shadow-2xl hover:scale-[1.02] transition-all"
-                          >
-                            <img src={order.screenshot_data} alt="Transfer" className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <span className="text-white text-[10px] font-black uppercase tracking-widest border border-white/40 px-4 py-2 rounded-full backdrop-blur-sm">查看大圖</span>
-                            </div>
-                          </div>
-                        </div>
-
                       </div>
                     </div>
                   )}
@@ -2797,19 +3015,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 italic tracking-tight uppercase">{tabLabel[activeTab]}</h2>
                 <p className="text-gray-400 font-medium text-sm md:text-base">{tabDesc[activeTab]}</p>
               </div>
-              {activeTab !== 'support' && (
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={onBack}
-                    className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-primary text-gray-900 rounded-2xl font-black text-sm hover:bg-primary/5 transition-all active:scale-95 shadow-sm"
-                  >
-                    <Search size={18} className="text-primary" /> 預覽網站成果
-                  </button>
-                  <div className="bg-white px-6 py-3 rounded-2xl border border-gray-100 font-bold text-sm shadow-sm text-gray-900">
-                    🕒 系統時間: {new Date().toLocaleDateString()}
-                  </div>
-                </div>
-              )}
             </header>
           )}
           {renderContent()}

@@ -10,6 +10,7 @@ import ProductShowcase from './components/ProductShowcase';
 import Contact from './components/Contact';
 import AdminPortal from './components/AdminPortal';
 import AuthModal from './components/AuthModal';
+import CustomerSupport from './components/CustomerSupport';
 import { Award, ShieldCheck, Users, Heart, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { User } from '@supabase/supabase-js';
@@ -203,6 +204,7 @@ function AuthModalWrapper({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
 function App() {
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -247,6 +249,22 @@ function App() {
     );
   }
 
+  if (showSupport) {
+    return (
+      <ThemeProvider>
+        <CustomerSupport 
+          user={user} 
+          onBack={() => setShowSupport(false)} 
+          onLoginRequest={() => setIsAuthModalOpen(true)}
+        />
+        <AuthModalWrapper
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+        />
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider>
       <CartProvider>
@@ -256,6 +274,7 @@ function App() {
             onLoginClick={() => setIsAuthModalOpen(true)}
             onAdminClick={() => toggleAdmin(true)}
             onLogout={handleLogout}
+            onSupportClick={() => setShowSupport(true)}
           />
           <main>
             <Hero />
