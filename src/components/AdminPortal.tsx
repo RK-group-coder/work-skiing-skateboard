@@ -1622,6 +1622,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       // ── 課程設置 ───────────────────────────────────────────────
       case 'courses': {
         const filtered = courseFilter === 'all' ? courses : courses.filter(c => c.mode === courseFilter);
+        const coursePackages = (courseFilter === 'all' ? products : products.filter(p => p.mode === courseFilter)).filter(p => p.dimensions === 'course_package');
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
 
@@ -1748,6 +1749,43 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                       </div>
                     </div>
                   )}
+                </div>
+              ))}
+              {coursePackages.map(pkg => (
+                <div key={pkg.id}>
+                  <div className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex items-center gap-4 hover:shadow-sm transition-shadow">
+                    <div className="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center shrink-0 border border-gray-800">
+                      <BookOpen size={20} className="text-white" />
+                    </div>
+                    <div className="flex-[2] min-w-0">
+                      <div className="font-black text-base text-gray-900 mb-1">
+                        {pkg.name.length > 20 ? pkg.name.slice(0, 20) + '...' : pkg.name}
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border whitespace-nowrap ${pkg.mode === 'skiing' ? 'bg-sky-50 text-sky-600 border-sky-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
+                          {pkg.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
+                        </span>
+                        <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
+                          NT${pkg.price.toLocaleString()} / {pkg.weight}堂
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex-1 text-right shrink-0 pr-2">
+                      <div className={`text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${pkg.is_active ? 'text-green-600' : 'text-gray-400'}`}>
+                        {pkg.is_active ? '開放購買' : '已關閉'}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button onClick={() => {
+                        if (confirm('確定要刪除這個優惠方案嗎？')) {
+                          if (pkg.id) handleDeleteProduct(pkg.id);
+                        }
+                      }}
+                        className="w-10 h-10 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-red-100">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
