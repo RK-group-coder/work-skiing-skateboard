@@ -1658,8 +1658,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                   <div className="absolute top-0 right-0 w-64 h-64 bg-gray-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
                   <div className="relative z-10 space-y-8">
                      <h2 className="text-3xl font-black italic tracking-tighter text-gray-900">
-                        ADD SPECIAL COURSE
-                        <span className="block text-sm text-gray-400 font-bold uppercase tracking-widest not-italic mt-2">新增優惠課程方案</span>
+                        新增優惠課程
+                        <span className="block text-sm text-gray-400 font-bold uppercase tracking-widest not-italic mt-2">ADD SPECIAL COURSE</span>
                      </h2>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                        <div>
