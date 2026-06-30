@@ -1519,12 +1519,20 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                   </button>
                 ))}
               </div>
-              <button 
-                onClick={() => { setIsAddingCourse(true); setEditingCourse(null); setCourseForm(EMPTY_COURSE); }}
-                style={{ backgroundColor: '#111827', color: '#ffffff' }}
-                className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold hover:opacity-90 transition-all active:scale-95 shadow-md">
-                <Plus size={18} /> 新增課程
-              </button>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => { setActiveTab('vouchers'); setIsAddingSpecialVoucher(true); setSpecialVoucherMode('買課程送課程'); }}
+                  style={{ backgroundColor: '#111827', color: '#ffffff' }}
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold hover:opacity-90 transition-all active:scale-95 shadow-md">
+                  <Plus size={18} /> 新增優惠課程
+                </button>
+                <button 
+                  onClick={() => { setIsAddingCourse(true); setEditingCourse(null); setCourseForm(EMPTY_COURSE); }}
+                  style={{ backgroundColor: '#111827', color: '#ffffff' }}
+                  className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold hover:opacity-90 transition-all active:scale-95 shadow-md">
+                  <Plus size={18} /> 新增課程
+                </button>
+              </div>
             </div>
 
             {isAddingCourse && (
