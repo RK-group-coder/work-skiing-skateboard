@@ -399,10 +399,11 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                             });
                             setIsCheckoutOpen(true);
                           }}
-                          className="w-full mt-3 py-3 rounded-2xl font-black uppercase tracking-tighter transition-all active:scale-95 border-2 border-gray-900 bg-gray-900 text-white hover:bg-gray-800 flex flex-col items-center justify-center leading-tight shadow-lg"
+                          className="w-full mt-3 py-3 rounded-2xl font-black uppercase tracking-tighter transition-all active:scale-95 flex flex-col items-center justify-center leading-tight shadow-lg"
+                          style={{ backgroundColor: '#111827', color: '#ffffff', border: '2px solid #111827' }}
                         >
-                          <span className="text-sm">專屬優惠方案：{pkg.weight} 堂</span>
-                          <span className="text-lg text-primary italic">NT${pkg.price.toLocaleString()}</span>
+                          <span className="text-sm opacity-90">專屬優惠方案：{pkg.weight} 堂</span>
+                          <span className="text-xl mt-1" style={{ color: 'var(--primary-color, #f59e0b)' }}>NT${pkg.price.toLocaleString()}</span>
                         </button>
                       );
                     }
