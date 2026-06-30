@@ -13,12 +13,13 @@ interface FeaturesProps {
 
 const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
   const { mode, setMode } = useTheme();
-  const { claimVoucher, vouchers } = useCart();
+  const { claimVoucher, vouchers, addToCart, setIsCheckoutOpen } = useCart();
   const [isBookingOpen, setIsBookingOpen] = React.useState(false);
   const [selectedCourse, setSelectedCourse] = React.useState<any>(null);
 
   const [availableVouchers, setAvailableVouchers] = React.useState<Voucher[]>([]);
   const [dbCourses, setDbCourses] = React.useState<any[]>([]);
+  const [coursePackages, setCoursePackages] = React.useState<any[]>([]);
   const [loadingCourses, setLoadingCourses] = React.useState(true);
 
   React.useEffect(() => {
@@ -51,8 +52,16 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
         
         if (error) throw error;
         setDbCourses(data || []);
+
+        const { data: pkgData } = await supabase
+          .from('products')
+          .select('*')
+          .eq('dimensions', 'course_package')
+          .eq('is_active', true)
+          .eq('mode', mode);
+        setCoursePackages(pkgData || []);
       } catch (err) {
-        console.error('Error fetching courses:', err);
+        console.error('Error fetching courses/packages:', err);
       } finally {
         setLoadingCourses(false);
       }
@@ -371,6 +380,34 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                   >
                     立即報名
                   </button>
+                  {(() => {
+                    const pkg = coursePackages.find(pkg => pkg.tag === p.id);
+                    if (pkg) {
+                      return (
+                        <button 
+                          onClick={() => {
+                            addToCart({
+                              id: pkg.id,
+                              name: pkg.name,
+                              price: pkg.price,
+                              type: 'product',
+                              image: pkg.image_url,
+                              quantity: 1,
+                              weight: pkg.weight,
+                              dimensions: pkg.dimensions,
+                              tag: pkg.tag
+                            });
+                            setIsCheckoutOpen(true);
+                          }}
+                          className="w-full mt-3 py-3 rounded-2xl font-black uppercase tracking-tighter transition-all active:scale-95 border-2 border-gray-900 bg-gray-900 text-white hover:bg-gray-800 flex flex-col items-center justify-center leading-tight shadow-lg"
+                        >
+                          <span className="text-sm">專屬優惠方案：{pkg.weight} 堂</span>
+                          <span className="text-lg text-primary italic">NT${pkg.price.toLocaleString()}</span>
+                        </button>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               </motion.div>
             ))}

@@ -23,6 +23,9 @@ interface CartItem {
   image?: string;
   quantity: number;
   details?: any; // For booking dates, times, etc.
+  weight?: string | number;
+  dimensions?: string;
+  tag?: string;
 }
 
 export interface CartContextType {
