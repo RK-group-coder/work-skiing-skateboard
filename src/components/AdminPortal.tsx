@@ -1280,7 +1280,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
         name: `[優惠] ${course.name} - ${coursePackageForm.count}堂課`,
         mode: coursePackageForm.mode,
         price: Number(coursePackageForm.price),
-        category_id: 'course_package',
+        category_id: null,
         tag: coursePackageForm.courseId,
         weight: coursePackageForm.count.toString(),
         dimensions: 'course_package',
@@ -1312,7 +1312,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       let packageTitle = '';
       if (order.user_id) {
         for (const item of order.items) {
-           if (item.category_id === 'course_package') {
+          if (item.dimensions === 'course_package' || item.category_id === 'course_package') {
              const courseId = item.tag;
              const count = parseInt(item.weight || '1', 10);
              grantedCount += count;
