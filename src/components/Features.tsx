@@ -13,7 +13,7 @@ interface FeaturesProps {
 
 const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
   const { mode, setMode } = useTheme();
-  const { claimVoucher, vouchers, addToCart, setIsCheckoutOpen } = useCart();
+  const { claimVoucher, vouchers, setIsCheckoutOpen, setDirectPurchaseItem } = useCart();
   const [isBookingOpen, setIsBookingOpen] = React.useState(false);
   const [selectedCourse, setSelectedCourse] = React.useState<any>(null);
 
@@ -386,7 +386,7 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                       return (
                         <button 
                           onClick={() => {
-                            addToCart({
+                            setDirectPurchaseItem({
                               id: pkg.id,
                               name: pkg.name,
                               price: pkg.price,
