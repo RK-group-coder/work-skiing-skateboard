@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../hooks/useTheme';
-import { useCart } from '../hooks/CartProvider';
+import { useCart, type Voucher } from '../hooks/CartProvider';
 import { ShoppingCart, Search, Menu, X, Ticket, Trash2, Tag, Settings2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -446,7 +446,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center gap-2">
                   <Tag size={24} className="text-primary" />
-                  <h2 className="text-2xl font-black uppercase italic tracking-tighter">我的優惠券</h2>
+                  <h2 className="text-2xl font-black uppercase italic tracking-tighter">我的優惠券 / 課程</h2>
                 </div>
                 <button onClick={() => setIsMyVouchersOpen(false)} className="p-2 hover:bg-black/10 rounded-full transition-colors">
                   <X size={24} />
@@ -454,13 +454,26 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
               </div>
 
               <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-4">
-                {vouchers.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center opacity-40 text-center">
-                    <Tag size={64} className="mb-4" />
-                    <p className="font-bold">目前沒有可用的優惠券</p>
-                  </div>
-                ) : (
-                  vouchers.map((v, index) => {
+                {(() => {
+                  if (vouchers.length === 0) {
+                    return (
+                      <div className="h-full flex flex-col items-center justify-center opacity-40 text-center">
+                        <Tag size={64} className="mb-4" />
+                        <p className="font-bold">目前沒有可用的優惠券/課程</p>
+                      </div>
+                    );
+                  }
+
+                  const groupedVouchers = vouchers.reduce((acc, v) => {
+                    if (!acc[v.id]) {
+                      acc[v.id] = { ...v, count: 1 };
+                    } else {
+                      acc[v.id].count += 1;
+                    }
+                    return acc;
+                  }, {} as Record<string, Voucher & { count: number }>);
+
+                  return Object.values(groupedVouchers).map((v, index) => {
                     const isSelected = selectedVoucher?.id === v.id;
                     let targetLabel = v.target_type === 'global' ? '全站通用' : 
                                         v.target_type === 'skiing' ? '滑雪商品專用' : 
@@ -480,6 +493,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                     }
 
                     const eligibility = getVoucherEligibility(v);
+                    const isCoursePackage = v.target_type === 'course_package';
 
                     return (
                       <div 
@@ -493,7 +507,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                         <div className="flex justify-between items-start w-full mb-3">
                           <div>
                             <p className="text-lg font-black tracking-wider uppercase mb-1 leading-tight" style={isSelected ? { color: 'var(--primary)' } : {}}>
-                              {v.title}
+                              {isCoursePackage ? `[課程] ${v.title}` : v.title}
                             </p>
                             <span 
                               className="inline-block px-2 py-0.5 rounded text-[10px] font-bold"
@@ -502,19 +516,20 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                                 : { backgroundColor: 'rgba(0,0,0,0.1)' }
                               }
                             >
-                              {isSelected ? '套用中' : v.target_type === 'course_package' ? '專屬方案' : targetLabel}
+                              {isSelected ? '套用中' : isCoursePackage ? '專屬方案' : targetLabel}
                             </span>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right flex flex-col items-end">
                             <p className="text-xl font-black italic" style={isSelected ? { color: 'var(--primary)' } : { color: 'var(--primary)' }}>
-                              {v.target_type === 'special_bogo' ? '自動帶入贈品' : (v.type === 'percent' ? `折扣 ${v.value}%` : `減免 NT$${v.value}`)}
+                              {isCoursePackage ? `剩餘 ${v.count} 堂` : (v.target_type === 'special_bogo' ? '自動帶入贈品' : (v.type === 'percent' ? `折扣 ${v.value}%` : `減免 NT$${v.value}`))}
                             </p>
                             {(v.min_amount ?? 0) > 0 && <p className="text-[10px] opacity-60 font-bold mt-1">滿 NT$${v.min_amount}</p>}
+                            {!isCoursePackage && v.count > 1 && <p className="text-[10px] opacity-60 font-bold mt-1">剩餘 {v.count} 張</p>}
                           </div>
                         </div>
                         <button 
                           onClick={() => {
-                            if (v.target_type === 'course_package' && v.target_id) {
+                            if (isCoursePackage && v.target_id) {
                               selectVoucher(v.id);
                               setIsMyVouchersOpen(false);
                               setTimeout(() => {
@@ -634,7 +649,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                       </div>
                     );
                   })
-                )}
+                })()}
               </div>
             </motion.div>
           </div>
