@@ -108,7 +108,7 @@ interface Voucher {
   value: number | null;
   min_amount: number | null;
   valid_until?: string;
-  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses' | 'specific' | 'special_bogo';
+  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses' | 'specific' | 'special_bogo' | 'course_package';
   target_id?: string;
   is_active: boolean;
   is_published: boolean;
@@ -130,6 +130,7 @@ interface Order {
   delivery_method?: string;
   delivery_info?: any;
   last_five_digits?: string;
+  user_id?: string;
 }
 
 const EMPTY_PRODUCT: Product = { 
@@ -839,7 +840,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const [isAddingCourse, setIsAddingCourse] = useState(false);
   const [courseForm, setCourseForm] = useState<Course>(EMPTY_COURSE);
   const [courseFilter, setCourseFilter] = useState<'all' | 'skiing' | 'skateboard'>('all');
-
+  const [isAddingCoursePackage, setIsAddingCoursePackage] = useState(false);
+  const [coursePackageForm, setCoursePackageForm] = useState({ mode: 'skiing', courseId: '', price: '', count: '' });
   // Vouchers
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
   const [editingVoucher, setEditingVoucher] = useState<Voucher | null>(null);
@@ -1264,6 +1266,121 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
     }
   };
 
+  const handleSaveCoursePackage = async () => {
+    if (!coursePackageForm.courseId || !coursePackageForm.price || !coursePackageForm.count) {
+      alert('請填寫完整資訊');
+      return;
+    }
+    const course = courses.find(c => c.id === coursePackageForm.courseId);
+    if (!course) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.from('products').insert({
+        name: `[優惠] ${course.name} - ${coursePackageForm.count}堂課`,
+        mode: coursePackageForm.mode,
+        price: Number(coursePackageForm.price),
+        category_id: 'course_package',
+        tag: coursePackageForm.courseId,
+        weight: coursePackageForm.count.toString(),
+        dimensions: 'course_package',
+        description: `專屬於 ${course.name} 的優惠方案，包含 ${coursePackageForm.count} 堂課。`,
+        image_url: course.image_url,
+        is_active: true
+      });
+      if (error) throw error;
+      alert('優惠課程專案已新增！');
+      setIsAddingCoursePackage(false);
+      fetchProducts();
+    } catch (err: any) {
+      alert('儲存失敗: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmOrder = async (order: Order) => {
+    if (!confirm('確定已經收到款項並發放對應的優惠與課程權益嗎？')) return;
+    setLoading(true);
+    try {
+      // 1. Update order status
+      const { error } = await supabase.from('orders').update({ status: 'confirmed' }).eq('id', order.id);
+      if (error) throw error;
+      
+      // 2. Grant course packages
+      let grantedCount = 0;
+      let packageTitle = '';
+      if (order.user_id) {
+        for (const item of order.items) {
+           if (item.category_id === 'course_package') {
+             const courseId = item.tag;
+             const count = parseInt(item.weight || '1', 10);
+             grantedCount += count;
+             packageTitle = item.name;
+             
+             const { data: vData } = await supabase.from('vouchers').insert({
+               code: `PKG-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+               title: item.name,
+               type: 'percent',
+               value: 100,
+               target_type: 'course_package',
+               target_id: courseId,
+               is_published: false,
+               is_active: true,
+               grant_quantity: 1
+             }).select().single();
+             
+             if (vData) {
+               const uvData = Array.from({ length: count }).map(() => ({
+                 user_id: order.user_id,
+                 voucher_id: vData.id,
+                 is_used: false
+               }));
+               await supabase.from('user_vouchers').insert(uvData);
+             }
+           }
+        }
+      }
+      
+      // 3. Send Email
+      const isEmailConfigured = emailJsSettings?.service_id && emailJsSettings?.public_key && emailJsSettings.service_id !== 'YOUR_SERVICE_ID';
+      if (isEmailConfigured && order.customer_email && grantedCount > 0) {
+        try {
+          const emailjs = (window as any).emailjs;
+          if (emailjs) {
+            emailjs.init(emailJsSettings.public_key);
+            const templateId = emailJsSettings.template_id_course || emailJsSettings.template_id;
+            await emailjs.send(
+              emailJsSettings.service_id,
+              templateId,
+              {
+                to_name: order.customer_name || '貴賓',
+                to_email: order.customer_email,
+                course_name: packageTitle,
+                date: new Date().toLocaleDateString('zh-TW'),
+                time: '依您後續預約為準',
+                coach_name: '專屬方案，自動抵扣',
+                location_name: `您已成功購買 ${packageTitle}，共獲得 ${grantedCount} 堂額度！`,
+                total_price: order.total_price.toLocaleString(),
+                order_id: `SK8-${order.id.slice(0, 8).toUpperCase()}`,
+              }
+            );
+          }
+        } catch (emailErr) {
+          console.error('Email send failed:', emailErr);
+        }
+      }
+      
+      alert('訂單已確認，相關權益已發放！');
+      fetchOrders();
+    } catch (err: any) {
+      alert('操作失敗: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setError(null);
@@ -1521,19 +1638,65 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               </div>
               <div className="flex gap-2">
                 <button 
-                  onClick={() => { setActiveTab('vouchers'); setIsAddingSpecialVoucher(true); setSpecialVoucherMode('買課程送課程'); }}
+                  onClick={() => { setIsAddingCoursePackage(true); setIsAddingCourse(false); setEditingCourse(null); }}
                   style={{ backgroundColor: '#111827', color: '#ffffff' }}
                   className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold hover:opacity-90 transition-all active:scale-95 shadow-md">
                   <Plus size={18} /> 新增優惠課程
                 </button>
                 <button 
-                  onClick={() => { setIsAddingCourse(true); setEditingCourse(null); setCourseForm(EMPTY_COURSE); }}
+                  onClick={() => { setIsAddingCourse(true); setIsAddingCoursePackage(false); setEditingCourse(null); setCourseForm(EMPTY_COURSE); }}
                   style={{ backgroundColor: '#111827', color: '#ffffff' }}
                   className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold hover:opacity-90 transition-all active:scale-95 shadow-md">
                   <Plus size={18} /> 新增課程
                 </button>
               </div>
             </div>
+
+            {isAddingCoursePackage && (
+              <div className="max-w-4xl mx-auto mb-10 animate-in zoom-in-95 duration-300">
+                <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8 md:p-12 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-gray-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+                  <div className="relative z-10 space-y-8">
+                     <h2 className="text-3xl font-black italic tracking-tighter text-gray-900">
+                        ADD SPECIAL COURSE
+                        <span className="block text-sm text-gray-400 font-bold uppercase tracking-widest not-italic mt-2">新增優惠課程方案</span>
+                     </h2>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                       <div>
+                         <label className={labelCls}>選擇類別</label>
+                         <select className={inputCls} value={coursePackageForm.mode} onChange={e => setCoursePackageForm({ ...coursePackageForm, mode: e.target.value, courseId: '' })}>
+                           <option value="skiing">⛷️ 滑雪</option>
+                           <option value="skateboard">🛹 滑板</option>
+                         </select>
+                       </div>
+                       <div>
+                         <label className={labelCls}>選擇對應課程</label>
+                         <select className={inputCls} value={coursePackageForm.courseId} onChange={e => setCoursePackageForm({ ...coursePackageForm, courseId: e.target.value })}>
+                           <option value="">請選擇...</option>
+                           {courses.filter(c => c.mode === coursePackageForm.mode).map(c => (
+                             <option key={c.id} value={c.id}>{c.name}</option>
+                           ))}
+                         </select>
+                       </div>
+                       <div>
+                         <label className={labelCls}>方案價錢 (NT$)</label>
+                         <input type="number" className={inputCls} placeholder="例如: 8000" value={coursePackageForm.price} onChange={e => setCoursePackageForm({ ...coursePackageForm, price: e.target.value })} />
+                       </div>
+                       <div>
+                         <label className={labelCls}>包含課數 (堂)</label>
+                         <input type="number" className={inputCls} placeholder="例如: 5" value={coursePackageForm.count} onChange={e => setCoursePackageForm({ ...coursePackageForm, count: e.target.value })} />
+                       </div>
+                     </div>
+                     <div className="flex gap-4 pt-4">
+                       <button onClick={handleSaveCoursePackage} disabled={loading} style={{ backgroundColor: '#6b7280', color: '#ffffff' }} className="flex-1 py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg active:scale-95 disabled:opacity-50">
+                         <Save size={18} /> 儲存優惠方案
+                       </button>
+                       <button onClick={() => setIsAddingCoursePackage(false)} className="px-8 py-4 bg-gray-100 text-gray-500 rounded-2xl font-black hover:bg-gray-200 transition-colors">取消</button>
+                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {isAddingCourse && (
               <div className="max-w-4xl mx-auto mb-10 animate-in zoom-in-95 duration-300">
@@ -2744,6 +2907,21 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                               <div className="px-3 py-1.5 bg-red-50 text-red-600 rounded-xl text-xs font-black font-mono tracking-widest border border-red-100">
                                 {order.last_five_digits || order.bank_info?.lastFiveDigits || '未填寫'}
                               </div>
+                            </div>
+                            <div className="pt-4 flex justify-end gap-3 mt-4 border-t border-gray-200">
+                              {order.status !== 'confirmed' ? (
+                                <button 
+                                  onClick={() => handleConfirmOrder(order)}
+                                  disabled={loading}
+                                  className="px-6 py-3 bg-emerald-600 text-white rounded-xl text-sm font-black flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                                >
+                                  <Check size={16} /> 確認收款並發放權益
+                                </button>
+                              ) : (
+                                <div className="px-6 py-3 bg-gray-100 text-green-600 rounded-xl text-sm font-black flex items-center gap-2 border border-green-200">
+                                  <Check size={16} /> 已確認並發放
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

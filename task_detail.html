@@ -1,0 +1,651 @@
+<!-- ===== TASK DETAIL PAGE (Health Checkup) ===== -->
+<div class="page task-detail-page hidden" id="page-task-quest5" style="display:none; background-color: #FAF5ED; min-height: 100vh;">
+  <style>
+    .task-detail-page {
+      display: flex;
+      flex-direction: column;
+      font-family: 'Noto Sans TC', sans-serif;
+      color: #333;
+    }
+    .td-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      padding: 0 24px;
+      background: #FAF5ED;
+      border-bottom: 1px solid #E5D5C5;
+    }
+    .td-header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .td-logo-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      font-weight: 700;
+      color: #4A2B12;
+      letter-spacing: 1px;
+    }
+    .td-logo-area img {
+      width: 32px;
+      height: 32px;
+    }
+    .td-breadcrumb {
+      font-size: 14px;
+      color: #8B7355;
+      margin-left: 16px;
+      border-left: 1px solid #D4BFA9;
+      padding-left: 16px;
+    }
+    .td-header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .td-user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #4A2B12;
+    }
+    .td-user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #ccc;
+    }
+    .td-xp-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFFBF5;
+      border: 1px solid #E5D5C5;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+    }
+    .td-xp-bar {
+      width: 80px;
+      height: 6px;
+      background: #E5D5C5;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .td-xp-fill {
+      width: 40%;
+      height: 100%;
+      background: #A62122;
+    }
+    .td-icons svg {
+      width: 20px;
+      height: 20px;
+      stroke: #4A2B12;
+      cursor: pointer;
+    }
+
+    .td-body {
+      display: flex;
+      flex: 1;
+      padding: 24px;
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* LEFT PANEL */
+    .td-sidebar {
+      width: 320px;
+      background: #FFF;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border: 1px solid #F0E6D9;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+    .td-sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      border-bottom: 1px dashed #E5D5C5;
+      padding-bottom: 16px;
+    }
+    .td-sb-title-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .td-sb-icon {
+      width: 48px;
+      height: 48px;
+      background: #6E1414;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+    .td-sb-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #6E1414;
+      margin: 0 0 4px 0;
+    }
+    .td-sb-subtitle {
+      font-size: 12px;
+      color: #8B7355;
+    }
+    .td-sb-progress {
+      text-align: right;
+    }
+    .td-sb-progress-num {
+      font-size: 24px;
+      font-weight: 700;
+      color: #6E1414;
+    }
+    .td-sb-progress-total {
+      font-size: 14px;
+      color: #8B7355;
+    }
+    .td-sb-progress-text {
+      font-size: 12px;
+      color: #8B7355;
+    }
+
+    .td-steps {
+      position: relative;
+      flex: 1;
+    }
+    .td-step-item {
+      display: flex;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .td-step-line {
+      position: absolute;
+      left: 12px;
+      top: 30px;
+      bottom: -15px;
+      width: 2px;
+      border-left: 2px dashed #D4BFA9;
+    }
+    .td-step-item:last-child .td-step-line {
+      display: none;
+    }
+    .td-step-marker {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2px solid #D4BFA9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      color: #8B7355;
+      margin-right: 16px;
+      z-index: 1;
+    }
+    .td-step-item.done .td-step-marker {
+      background: #4CAF50;
+      border-color: #4CAF50;
+      color: #fff;
+    }
+    .td-step-item.done .td-step-line {
+      border-left-color: #4CAF50;
+      border-left-style: solid;
+    }
+    .td-step-content {
+      flex: 1;
+    }
+    .td-step-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+      margin-top: 2px;
+    }
+    .td-step-desc {
+      font-size: 13px;
+      color: #888;
+    }
+    .td-step-item.done .td-step-desc {
+      color: #4CAF50;
+      font-weight: 600;
+    }
+    .td-btn-todo {
+      margin-top: 8px;
+      padding: 4px 12px;
+      border: 1px solid #A62122;
+      color: #A62122;
+      background: #fff;
+      border-radius: 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .td-btn-todo:hover {
+      background: #fcf0f0;
+    }
+
+    .td-sidebar-footer {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .td-btn-next {
+      background: #6E1414;
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    .td-btn-outline {
+      background: #FFFBF5;
+      color: #4A2B12;
+      border: 1px solid #D4BFA9;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* RIGHT PANEL */
+    .td-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .td-browser {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border: 1px solid #E5D5C5;
+      overflow: hidden;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .td-browser-header {
+      height: 48px;
+      background: #F7F7F7;
+      border-bottom: 1px solid #E0E0E0;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+    }
+    .td-browser-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .td-browser-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .td-dot-r { background: #FF5F56; }
+    .td-dot-y { background: #FFBD2E; }
+    .td-dot-g { background: #27C93F; }
+    .td-browser-nav {
+      display: flex;
+      gap: 12px;
+      color: #888;
+    }
+    .td-browser-url {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: #555;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .td-browser-content {
+      padding: 30px;
+      background: #fff;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    
+    /* Mock Web Content - adapted for Health Checkup to make it realistic */
+    .mock-web {
+      max-width: 800px;
+      width: 100%;
+      display: flex;
+      gap: 24px;
+    }
+    .mock-left {
+      flex: 1.5;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .mock-header {
+      background: #116BA8;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+    }
+    .mock-header h3 { margin: 0 0 4px 0; font-size: 18px; }
+    .mock-header p { margin: 0; font-size: 14px; opacity: 0.8; }
+    .mock-form {
+      padding: 24px;
+    }
+    .mock-input-group {
+      display: flex;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .mock-input-label {
+      background: #f5f5f5;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #333;
+      width: 120px;
+      border-right: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+    }
+    .mock-input {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+    }
+    .mock-note {
+      font-size: 12px;
+      color: #116BA8;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .mock-actions {
+      display: flex;
+      gap: 12px;
+    }
+    .mock-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      flex: 1;
+    }
+    .mock-btn-submit { background: #116BA8; }
+    .mock-btn-reset { background: #666; }
+    
+    .mock-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .mock-card {
+      border: 1px solid #82B3D5;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .mock-card-head {
+      background: #F0F6FA;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+      border-bottom: 1px solid #82B3D5;
+    }
+    .mock-card-body {
+      padding: 16px;
+      font-size: 13px;
+    }
+
+    .td-hint-box {
+      background: #FFF9E6;
+      border: 1px solid #FFE082;
+      border-radius: 12px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      color: #5D4037;
+    }
+    .td-hint-icon {
+      font-size: 24px;
+    }
+    .td-hint-text {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .td-hint-text ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+  </style>
+
+  <!-- Header -->
+  <header class="td-header">
+    <div class="td-header-left">
+      <div class="td-logo-area">
+        <img src="ncku_emblem.png?t=1781443941922" alt="NCKU">
+        成大新手教學系統
+      </div>
+      <div class="td-breadcrumb">
+        首頁 &nbsp;/&nbsp; 任務地圖 &nbsp;/&nbsp; <span style="color:#6E1414; font-weight:bold;">健康檢查</span>
+      </div>
+    </div>
+    <div class="td-header-right">
+      <div class="td-user-info">
+        <div class="td-user-avatar"><img src="avatar_boy.png" alt="" onerror="this.style.display='none'" style="width:100%; height:100%; object-fit:cover; border-radius:50%"></div>
+        新生同學 ⌄
+      </div>
+      <div class="td-xp-badge">
+        <span style="font-weight:bold; color:#6E1414;">LV.1</span> 新手村居民
+        <div class="td-xp-bar"><div class="td-xp-fill"></div></div>
+        <span style="font-size:10px; color:#888;">120 / 300 XP 🏅</span>
+      </div>
+      <div class="td-icons">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.73 21a2 2 0 0 1-3.46 0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" style="margin-left:12px;"><line x1="3" y1="12" x2="21" y2="12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="6" x2="21" y2="6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="3" y1="18" x2="21" y2="18" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <div class="td-body">
+    <!-- Left Sidebar -->
+    <aside class="td-sidebar">
+      <div class="td-sidebar-header">
+        <div class="td-sb-title-area">
+          <div class="td-sb-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          </div>
+          <div>
+            <h2 class="td-sb-title">健康檢查</h2>
+            <div class="td-sb-subtitle">依序完成以下步驟</div>
+          </div>
+        </div>
+        <div class="td-sb-progress">
+          <span class="td-sb-progress-num">0</span> <span class="td-sb-progress-total">/ 4</span><br>
+          <span class="td-sb-progress-text">已完成</span>
+        </div>
+      </div>
+
+      <div class="td-steps">
+        <!-- Step 1 -->
+        <div class="td-step-item">
+          <div class="td-step-line"></div>
+          <div class="td-step-marker">1</div>
+          <div class="td-step-content">
+            <div class="td-step-title">進入體檢系統</div>
+            <div class="td-step-desc">點擊右側連結</div>
+          </div>
+        </div>
+        <!-- Step 2 -->
+        <div class="td-step-item">
+          <div class="td-step-line"></div>
+          <div class="td-step-marker">2</div>
+          <div class="td-step-content">
+            <div class="td-step-title">登入新生資料</div>
+            <div class="td-step-desc">輸入學號與密碼</div>
+          </div>
+        </div>
+        <!-- Step 3 -->
+        <div class="td-step-item">
+          <div class="td-step-line"></div>
+          <div class="td-step-marker">3</div>
+          <div class="td-step-content" style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div class="td-step-title">填寫健康問卷</div>
+              <div class="td-step-desc">尚未填寫？</div>
+            </div>
+            <button class="td-btn-todo">加入待辦</button>
+          </div>
+        </div>
+        <!-- Step 4 -->
+        <div class="td-step-item">
+          <div class="td-step-line" style="display:none;"></div>
+          <div class="td-step-marker">4</div>
+          <div class="td-step-content" style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <div class="td-step-title">預約體檢時間</div>
+              <div class="td-step-desc">• 選擇方便的梯次</div>
+            </div>
+            <button class="td-btn-todo">加入待辦</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="td-sidebar-footer">
+        <button class="td-btn-next">
+          下一步 &rarr;
+        </button>
+        <button class="td-btn-outline" onclick="showPage(document.getElementById('page-home'))">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          返回任務地圖
+        </button>
+      </div>
+    </aside>
+
+    <!-- Right Main Content -->
+    <main class="td-main">
+      <div class="td-browser">
+        <div class="td-browser-header">
+          <div class="td-browser-dots">
+            <div class="td-browser-dot td-dot-r"></div>
+            <div class="td-browser-dot td-dot-y"></div>
+            <div class="td-browser-dot td-dot-g"></div>
+          </div>
+          <div class="td-browser-nav">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.6-6.3L2 8"/></svg>
+          </div>
+          <div class="td-browser-url">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            https://campus4.ncku.edu.tw/wwwmenu/program/fresh/health_check.php
+          </div>
+        </div>
+        <div class="td-browser-content">
+          <div class="mock-web">
+            <div class="mock-left">
+              <div class="mock-header">
+                <h3>新生健康檢查系統</h3>
+                <p>Health Checkup System Login</p>
+              </div>
+              <div class="mock-form">
+                <div class="mock-input-group">
+                  <div class="mock-input-label">學號(Student ID)</div>
+                  <input type="text" class="mock-input" placeholder="Student ID Number">
+                </div>
+                <div class="mock-input-group">
+                  <div class="mock-input-label">密碼(Password)</div>
+                  <input type="password" class="mock-input" placeholder="Password">
+                </div>
+                
+                <div class="mock-note">
+                  ※本國學生請以身分證號作為預設密碼登入。<br>
+                  ※僑生、外籍生、陸生、交換生請以學號後4碼加生日4碼(MMDD)共8碼作為預設密碼登入。<br>
+                  ※密碼輸入請注意大小寫。
+                </div>
+                
+                <div class="mock-input-group" style="width: 250px;">
+                  <div class="mock-input-label" style="width: 80px;">驗證碼</div>
+                  <input type="text" class="mock-input" placeholder="">
+                  <div style="background: #E8A1A1; color: #6E1414; padding: 0 15px; display: flex; align-items: center; font-family: monospace; font-weight: bold; font-size: 18px; letter-spacing: 2px;">0A E8</div>
+                </div>
+
+                <div class="mock-actions">
+                  <button class="mock-btn mock-btn-submit">登入 (Submit)</button>
+                  <button class="mock-btn mock-btn-reset">重設 (Reset)</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mock-right">
+              <div class="mock-card">
+                <div class="mock-card-head" style="background:#8FB935; color:#fff; border-color:#8FB935;">
+                  健康檢查預約查詢
+                </div>
+                <div class="mock-card-body">
+                  📄 <strong>健康檢查 - 操作說明</strong><br>
+                  Instruction for health checkup reservation<br><br>
+                  (校內分機 50430)
+                </div>
+              </div>
+              <div class="mock-card">
+                <div class="mock-card-head">
+                  相關表單下載
+                </div>
+                <div class="mock-card-body">
+                  📄 <strong>新生入學健康檢查表</strong><br>
+                  <span style="color:#116BA8; font-size:12px;">※若需自行前往校外醫院體檢，請下載此表單。</span><br><br>
+                  (校內分機 50430)
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="td-hint-box">
+        <div class="td-hint-icon">💡</div>
+        <div class="td-hint-text">
+          <ul>
+            <li>若忘記密碼，可點選「忘記密碼」進行重設。</li>
+            <li>完成右側操作後，回到左側勾選完成，繼續下一步！</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>

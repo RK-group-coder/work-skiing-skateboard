@@ -502,7 +502,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                                 : { backgroundColor: 'rgba(0,0,0,0.1)' }
                               }
                             >
-                              {isSelected ? '購物車套用中' : targetLabel}
+                              {isSelected ? '套用中' : v.target_type === 'course_package' ? '專屬方案' : targetLabel}
                             </span>
                           </div>
                           <div className="text-right">
@@ -514,6 +514,14 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                         </div>
                         <button 
                           onClick={() => {
+                            if (v.target_type === 'course_package' && v.target_id) {
+                              selectVoucher(v.id);
+                              setIsMyVouchersOpen(false);
+                              setTimeout(() => {
+                                window.dispatchEvent(new CustomEvent('openCourseModal', { detail: { courseId: v.target_id, isRedeemingPackage: true, voucherId: v.id } }));
+                              }, 300);
+                              return;
+                            }
                             if (isSelected) {
                               selectVoucher(null);
                             } else if (eligibility.isEligible) {

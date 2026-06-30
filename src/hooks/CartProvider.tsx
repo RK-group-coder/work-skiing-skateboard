@@ -10,7 +10,7 @@ export interface Voucher {
   code: string;
   min_amount?: number; // Minimum spend requirement
   valid_until?: string;
-  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses' | 'specific' | 'special_bogo';
+  target_type: 'global' | 'skiing' | 'skateboard' | 'category' | 'product' | 'course' | 'all_courses' | 'specific' | 'special_bogo' | 'course_package';
   target_id?: string;
   grant_quantity?: number | null;
 }
@@ -81,13 +81,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        fetchUserVouchers(session.user.id);
-      }
-    });
+    const refresh = () => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) fetchUserVouchers(session.user.id);
+      });
+    };
+
+    window.addEventListener('vouchersUpdated', refresh);
+
+    refresh();
 
     return () => {
+      window.removeEventListener('vouchersUpdated', refresh);
       authListener.subscription.unsubscribe();
     };
   }, []);

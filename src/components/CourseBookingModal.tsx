@@ -20,6 +20,8 @@ interface BookingModalProps {
     additional_lesson_price?: number;
     addPrice?: number;
     mode?: string;
+    isRedeemingPackage?: boolean;
+    redeemVoucherId?: string | null;
   };
 }
 
@@ -386,11 +388,10 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
         return;
       }
 
-      // Prepare booking item for cart
       const bookingItem = {
         id: `booking-${Date.now()}`,
         name: `${course.name} - 課程預約`,
-        price: totalTWD,
+        price: course.isRedeemingPackage ? 0 : totalTWD,
         type: 'course_booking' as const,
         details: {
           courseId: course.id,
@@ -401,9 +402,82 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
           skillLevel,
           mediaUrl,
           isFirstLesson,
-          totalPersonSlots
+          totalPersonSlots,
+          isRedemption: course.isRedeemingPackage
         }
       };
+
+      if (course.isRedeemingPackage) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          alert('請先登入');
+          setLoading(false);
+          return;
+        }
+
+        const { error: orderError } = await supabase.from('orders').insert({
+          user_id: userData.user.id,
+          total_price: 0,
+          status: 'confirmed',
+          items: [bookingItem],
+          mode: mode,
+          customer_name: userData.user.user_metadata?.full_name || '會員',
+          customer_email: userData.user.email
+        });
+
+        if (orderError) throw orderError;
+
+        if (course.redeemVoucherId) {
+          // Fetch the first unused voucher row for this user
+          const { data: uvData } = await supabase.from('user_vouchers')
+            .select('id')
+            .eq('voucher_id', course.redeemVoucherId)
+            .eq('user_id', userData.user.id)
+            .eq('is_used', false)
+            .limit(1)
+            .single();
+
+          if (uvData) {
+            await supabase.from('user_vouchers')
+              .update({ is_used: true })
+              .eq('id', uvData.id);
+          }
+        }
+
+        // EmailJS call
+        try {
+          const { data: homepageSettings } = await supabase.from('homepage_settings').select('emailjs_settings').eq('id', mode).single();
+          if (homepageSettings?.emailjs_settings) {
+            const emailjs = (window as any).emailjs;
+            if (emailjs) {
+              const settings = homepageSettings.emailjs_settings;
+              emailjs.init(settings.public_key);
+              await emailjs.send(
+                settings.service_id,
+                settings.template_id_course || settings.template_id,
+                {
+                  to_name: userData.user.user_metadata?.full_name || '會員',
+                  to_email: userData.user.email,
+                  course_name: course.name,
+                  date: selectedDates.join(', '),
+                  time: Object.values(finalTimes).flatMap(times => Object.keys(times)).join(', '),
+                  coach_name: coaches.find(c => c.id === selectedCoach)?.name || '未指定',
+                  location_name: locations.find(l => l.id === selectedLocation)?.name || '未指定',
+                  total_price: '0 (專屬兌換)',
+                  order_id: `RED-${Date.now().toString().slice(-6)}`
+                }
+              );
+            }
+          }
+        } catch (emailErr) {
+          console.error('Email send failed:', emailErr);
+        }
+
+        alert('兌換成功！已完成預約，並寄送通知信。');
+        window.dispatchEvent(new Event('vouchersUpdated')); // Trigger voucher refresh
+        onClose();
+        return;
+      }
 
       addToCart(bookingItem);
       setIsCheckoutOpen(true);
@@ -523,36 +597,47 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                     </div>
                     
                     <div className="flex items-center justify-center gap-8 bg-gray-50 p-10 rounded-[48px] border border-gray-100 max-w-sm mx-auto shadow-sm mb-10">
-                      <button 
-                        onClick={() => {
-                          const newVal = Math.max(1, skiingPersonCount - 1);
-                          setSkiingPersonCount(newVal);
-                        }}
-                        className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all text-gray-900 border border-gray-100"
-                      >-</button>
-                      <span className="text-5xl font-black italic text-primary" style={{ color: activeColor }}>{skiingPersonCount}</span>
-                      <button 
-                        onClick={() => {
-                          const newVal = skiingPersonCount + 1;
-                          setSkiingPersonCount(newVal);
-                        }}
-                        className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all text-gray-900 border border-gray-100"
-                      >+</button>
+                      {!course.isRedeemingPackage && (
+                        <button 
+                          onClick={() => {
+                            const newVal = Math.max(1, skiingPersonCount - 1);
+                            setSkiingPersonCount(newVal);
+                          }}
+                          className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all text-gray-900 border border-gray-100"
+                        >-</button>
+                      )}
+                      <span className="text-5xl font-black italic text-primary" style={{ color: activeColor }}>{course.isRedeemingPackage ? 1 : skiingPersonCount}</span>
+                      {!course.isRedeemingPackage && (
+                        <button 
+                          onClick={() => {
+                            const newVal = skiingPersonCount + 1;
+                            setSkiingPersonCount(newVal);
+                          }}
+                          className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center font-black text-2xl hover:bg-gray-100 transition-all text-gray-900 border border-gray-100"
+                        >+</button>
+                      )}
                     </div>
 
                     {/* Dynamic Price Summary for Step 2 */}
                     <div className="max-w-md mx-auto">
-                      <div className="bg-neutral-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden text-center">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
-                        <div className="relative">
-
-                          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">預估總價</div>
-                          <div className="text-5xl font-black italic tracking-tighter text-primary" style={{ color: activeColor }}>NT${totalTWD.toLocaleString()}</div>
-                          <div className="text-[10px] text-gray-500 font-bold mt-3">
-                            目前已選擇 {skiingPersonCount} 人同行
+                      {course.isRedeemingPackage ? (
+                        <div className="bg-neutral-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden text-center">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
+                          <div className="relative z-10">
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">專屬優惠方案</div>
+                            <div className="text-4xl font-black italic tracking-tighter text-primary">本次兌換單人額度</div>
                           </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="bg-neutral-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden text-center">
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
+                          <div className="relative z-10">
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">預估總計金額</div>
+                            <div className="text-4xl font-black italic tracking-tighter text-primary" style={{ color: activeColor }}>NT${totalTWD.toLocaleString()}</div>
+                            <div className="text-[10px] text-gray-500 font-bold mt-3">目前已選擇 {skiingPersonCount} 人同行</div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -825,14 +910,16 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                       </div>
                       
                       {/* Real-time Price Summary for Step 2 */}
-                      <div className="bg-neutral-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden min-w-[280px]">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -mr-12 -mt-12 blur-2xl opacity-50" />
-                        <div className="relative">
+                      {!course.isRedeemingPackage && (
+                        <div className="bg-neutral-900 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden min-w-[280px]">
+                          <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -mr-12 -mt-12 blur-2xl opacity-50" />
+                          <div className="relative">
 
-                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">預估總價</div>
-                          <div className="text-3xl font-black italic tracking-tighter text-primary">NT${totalTWD.toLocaleString()}</div>
+                            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">預估總價</div>
+                            <div className="text-3xl font-black italic tracking-tighter text-primary">NT${totalTWD.toLocaleString()}</div>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                     
                     <div className="space-y-12">
@@ -879,19 +966,36 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                       </div>
                                     </div>
 
-                                    <div className="flex items-center gap-3 bg-gray-100/50 p-1 rounded-2xl">
-                                      <button 
-                                        onClick={() => updateSlotQty(dateStr, t, -1)}
-                                        className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all text-gray-900"
-                                      >-</button>
-                                      <span className={`w-8 text-center font-black italic text-xl ${isSelected ? 'text-primary' : 'text-gray-400'}`} style={{ color: isSelected ? activeColor : undefined }}>
-                                        {qty}
-                                      </span>
-                                      <button 
-                                        onClick={() => updateSlotQty(dateStr, t, 1)}
-                                        className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all text-gray-900"
-                                      >+</button>
-                                    </div>
+                                    {course.isRedeemingPackage ? (
+                                      <div className="flex items-center gap-3 bg-gray-100/50 p-1 rounded-2xl">
+                                        <button 
+                                          onClick={() => {
+                                            if (isSelected) {
+                                              updateSlotQty(dateStr, t, -1);
+                                            } else {
+                                              updateSlotQty(dateStr, t, 1);
+                                            }
+                                          }}
+                                          className="px-4 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-sm hover:bg-gray-50 active:scale-90 transition-all text-gray-900"
+                                        >
+                                          {isSelected ? '已選' : '選擇'}
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center gap-3 bg-gray-100/50 p-1 rounded-2xl">
+                                        <button 
+                                          onClick={() => updateSlotQty(dateStr, t, -1)}
+                                          className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all text-gray-900"
+                                        >-</button>
+                                        <span className={`w-8 text-center font-black italic text-xl ${isSelected ? 'text-primary' : 'text-gray-400'}`} style={{ color: isSelected ? activeColor : undefined }}>
+                                          {qty}
+                                        </span>
+                                        <button 
+                                          onClick={() => updateSlotQty(dateStr, t, 1)}
+                                          className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center font-black text-lg hover:bg-gray-50 active:scale-90 transition-all text-gray-900"
+                                        >+</button>
+                                      </div>
+                                    )}
                                   </div>
                                 );
                               })}
@@ -983,21 +1087,31 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                           <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">程度與備註</label>
                           <textarea placeholder="請描述您的運動程度..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl border border-gray-200 h-32 outline-none text-gray-900" />
                         </div>
-                        <div className="pt-2">
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">套用優惠券</label>
-                          <button onClick={() => setIsVoucherModalOpen(true)} className="w-full p-4 rounded-2xl border-2 border-dashed border-gray-200 hover:border-primary/50 text-gray-500 hover:text-primary transition-all flex items-center justify-between font-bold text-sm bg-white">
-                            <div className="flex items-center gap-2">
-                              <Tag size={18} />
-                              {selectedVoucher ? <span className="text-green-600 font-black">已選擇: {selectedVoucher.code}</span> : '選擇優惠券'}
-                            </div>
-                            <ChevronRight size={18} />
-                          </button>
+                        {!course.isRedeemingPackage && (
+                          <div className="pt-2">
+                            <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">套用優惠券</label>
+                            <button onClick={() => setIsVoucherModalOpen(true)} className="w-full p-4 rounded-2xl border-2 border-dashed border-gray-200 hover:border-primary/50 text-gray-500 hover:text-primary transition-all flex items-center justify-between font-bold text-sm bg-white">
+                              <div className="flex items-center gap-2">
+                                <Tag size={18} />
+                                {selectedVoucher ? <span className="text-green-600 font-black">已選擇: {selectedVoucher.code}</span> : '選擇優惠券'}
+                              </div>
+                              <ChevronRight size={18} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      {course.isRedeemingPackage ? (
+                        <div className="bg-neutral-900 rounded-[32px] p-8 text-white flex flex-col justify-center items-center h-full">
+                          <div className="w-16 h-16 rounded-full bg-primary/20 text-primary flex items-center justify-center mb-4"><CheckCircle2 size={32} /></div>
+                          <div className="text-xl font-black tracking-tighter">專屬優惠券兌換</div>
+                          <div className="text-sm font-medium text-white/60 mt-2 text-center">本次預約將自動扣抵您購買的課程額度</div>
                         </div>
-                      </div>
-                      <div className="bg-neutral-900 rounded-[32px] p-8 text-white">
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">預估總計</div>
-                        <div className="text-4xl font-black italic tracking-tighter text-primary">NT${totalTWD.toLocaleString()}</div>
-                      </div>
+                      ) : (
+                        <div className="bg-neutral-900 rounded-[32px] p-8 text-white">
+                          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">預估總計</div>
+                          <div className="text-4xl font-black italic tracking-tighter text-primary">NT${totalTWD.toLocaleString()}</div>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -1042,7 +1156,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               }`}
               style={{ background: mode === 'skiing' ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'var(--primary-gradient)' }}
             >
-              {loading ? '處理中...' : step === totalSteps ? '確認預約' : '下一步'} {step < totalSteps && <ChevronRight size={20} />}
+              {loading ? '處理中...' : step === totalSteps ? (course.isRedeemingPackage ? '確認兌換並完成預約' : '確認金額並加入購物車') : '下一步'} {step < totalSteps && <ChevronRight size={20} />}
             </button>
           </div>
         )}
