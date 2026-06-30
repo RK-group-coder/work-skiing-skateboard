@@ -684,7 +684,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                   >
                     <span className="text-[10px] font-black opacity-40 uppercase tracking-widest block mb-1">我的優惠券</span>
                     <span className="text-lg font-bold">
-                      現有優惠卷: {vouchers.length} 張
+                      現有 課程/優惠卷: {vouchers.length} 張
                     </span>
                   </button>
                   <div className="h-[1px] w-full bg-white/20" />
