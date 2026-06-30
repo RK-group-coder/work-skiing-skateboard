@@ -29,7 +29,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
   const [notes, setNotes] = useState('');
   const [lastFiveDigits, setLastFiveDigits] = useState('');
   
-  const hasPhysicalProducts = cart.some(item => item.type === 'product');
+  const hasPhysicalProducts = cart.some(item => item.type === 'product' && item.dimensions !== 'course_package');
   const [deliveryMethod, setDeliveryMethod] = useState<'convenience_store' | 'pickup_location'>('convenience_store');
   const [convenienceStoreInfo, setConvenienceStoreInfo] = useState('');
   const [pickupLocationId, setPickupLocationId] = useState('');
