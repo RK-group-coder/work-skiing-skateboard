@@ -22,12 +22,14 @@ interface BookingModalProps {
     mode?: string;
     isRedeemingPackage?: boolean;
     redeemVoucherId?: string | null;
+    is_night_mode?: boolean;
+    night_mode_slots?: string[];
   };
 }
 
 const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, course }) => {
   const { mode } = useTheme();
-  const { addToCart, setIsCheckoutOpen } = useCart();
+  const { setDirectPurchaseItem, setIsCheckoutOpen } = useCart();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   
@@ -47,8 +49,12 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [isFirstLesson] = useState(true);
   const [skillLevel, setSkillLevel] = useState('');
-  // const [mediaUrl, setMediaUrl] = useState('');
-  const [mediaUrl] = useState('');
+  const [mediaUrl, setMediaUrl] = useState('');
+
+  // Customer Info State (especially for redemptions)
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
 
   // Local state for calendar navigation
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -72,6 +78,15 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
       setSkiingSessionIdx(null);
       setSkiingPersonCount(1);
       setBusyCoachIds([]);
+      
+      // Fetch default user data
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user) {
+          setCustomerName(data.user.user_metadata?.full_name || '');
+          setCustomerEmail(data.user.email || '');
+          setCustomerPhone('');
+        }
+      });
     }
   }, [isOpen, mode]);
 
@@ -79,7 +94,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     if (mode === 'skiing' && skiingSessionIdx !== null && selectedDates.length > 0) {
       const date = selectedDates[0];
       const available = getAvailableTimes(date);
-      const slotTime = available[skiingSessionIdx] || "";
+      const slotTime = course.is_night_mode ? ((course.night_mode_slots || [])[skiingSessionIdx] || "") : (available[skiingSessionIdx] || "");
       if (slotTime) {
         setSelectedTimes({ [date]: { [slotTime]: skiingPersonCount } });
       }
@@ -96,8 +111,8 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     try {
       const { data: orders, error } = await supabase
         .from('orders')
-        .select('items')
-        .eq('status', 'confirmed');
+        .select('items, status')
+        .in('status', ['confirmed', 'pending_verification']);
         
       if (error) throw error;
       
@@ -116,6 +131,11 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
             // Check overlaps
             selectedDates.forEach(date => {
               if (orderDates.includes(date)) {
+                if (mode === 'skiing') {
+                  busyIds.add(coachId);
+                  return;
+                }
+                
                 const mySlots = Object.keys(selectedTimes[date] || {});
                 const theirSlots = Object.keys(orderTimes[date] || {});
                 
@@ -234,7 +254,10 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
         let unitFirst = 0;
         let unitAdd = 0;
         
-        if (skiingSessionIdx === 0) {
+        if (course.is_night_mode) {
+          unitFirst = course.first_lesson_price ?? baseFirst;
+          unitAdd = course.additional_lesson_price ?? baseAdd;
+        } else if (skiingSessionIdx === 0) {
           unitFirst = (course as any).half_day_am_first_price ?? baseFirst;
           unitAdd = (course as any).half_day_am_add_price ?? baseAdd;
         } else if (skiingSessionIdx === 1) {
@@ -323,6 +346,15 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
 
 
   const updateSlotQty = (dateStr: string, t: string, delta: number) => {
+    if (course.isRedeemingPackage) {
+      if (delta > 0) {
+        setSelectedTimes({ [dateStr]: { [t]: 1 } });
+      } else {
+        setSelectedTimes({});
+      }
+      return;
+    }
+
     setSelectedTimes(prev => {
       const dateSlots = { ...(prev[dateStr] || {}) };
       const currentQty = dateSlots[t] || 0;
@@ -344,9 +376,12 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
        return;
     }
 
-    if (mode === 'skiing') {
-      // In skiing mode, only one date can be selected
+    if (mode === 'skiing' || course.isRedeemingPackage) {
+      // In skiing mode or redemption, only one date can be selected
       setSelectedDates([dateStr]);
+      if (course.isRedeemingPackage) {
+        setSelectedTimes({});
+      }
     } else {
       setSelectedDates(prev => 
         prev.includes(dateStr) ? prev.filter(d => d !== dateStr) : [...prev, dateStr].sort()
@@ -370,8 +405,10 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
         
         // Force sync session info to finalTimes if missing or empty
         const available = getAvailableTimes(date);
-        const fallbackSlot = skiingSessionIdx === 0 ? "半天(上午) 09:00-12:00" : skiingSessionIdx === 1 ? "半天(下午) 13:00-16:00" : "全天課程 09:00-15:00";
-        const slotTime = (skiingSessionIdx !== null && available[skiingSessionIdx]) || fallbackSlot;
+        const fallbackSlot = course.is_night_mode 
+          ? (course.night_mode_slots?.join(', ') || "夜滑時段")
+          : (skiingSessionIdx === 0 ? "半天(上午) 09:00-12:00" : skiingSessionIdx === 1 ? "半天(下午) 13:00-16:00" : "全天課程 09:00-15:00");
+        const slotTime = course.is_night_mode ? fallbackSlot : ((skiingSessionIdx !== null && available[skiingSessionIdx]) || fallbackSlot);
         
         if (Object.keys(finalTimes).length === 0 || !finalTimes[date] || !finalTimes[date][slotTime]) {
           finalTimes = { [date]: { [slotTime]: skiingPersonCount } };
@@ -390,7 +427,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
 
       const bookingItem = {
         id: `booking-${Date.now()}`,
-        name: `${course.name} - 課程預約`,
+        name: `${course.name} - 課程${course.isRedeemingPackage ? '預約' : '報名'}`,
         price: course.isRedeemingPackage ? 0 : totalTWD,
         type: 'course_booking' as const,
         details: {
@@ -421,8 +458,11 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
           status: 'confirmed',
           items: [bookingItem],
           mode: mode,
-          customer_name: userData.user.user_metadata?.full_name || '會員',
-          customer_email: userData.user.email
+          customer_name: customerName || '會員',
+          customer_email: customerEmail,
+          customer_phone: customerPhone,
+          bank_info: { method: 'voucher_redemption', note: '課程方案直接兌換' },
+          last_five_digits: '00000'
         });
 
         if (orderError) throw orderError;
@@ -446,27 +486,129 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
 
         // EmailJS call
         try {
-          const { data: homepageSettings } = await supabase.from('homepage_settings').select('emailjs_settings').eq('id', mode).single();
-          if (homepageSettings?.emailjs_settings) {
-            const emailjs = (window as any).emailjs;
-            if (emailjs) {
-              const settings = homepageSettings.emailjs_settings;
-              emailjs.init(settings.public_key);
-              await emailjs.send(
-                settings.service_id,
-                settings.template_id_course || settings.template_id,
-                {
-                  to_name: userData.user.user_metadata?.full_name || '會員',
-                  to_email: userData.user.email,
-                  course_name: course.name,
-                  date: selectedDates.join(', '),
-                  time: Object.values(finalTimes).flatMap(times => Object.keys(times)).join(', '),
-                  coach_name: coaches.find(c => c.id === selectedCoach)?.name || '未指定',
-                  location_name: locations.find(l => l.id === selectedLocation)?.name || '未指定',
-                  total_price: '0 (專屬兌換)',
-                  order_id: `RED-${Date.now().toString().slice(-6)}`
-                }
-              );
+          const { data: systemSettings } = await supabase.from('system_settings').select('*');
+          if (systemSettings) {
+            const settings: any = {};
+            systemSettings.forEach(item => {
+              settings[item.key] = item.value;
+            });
+            const courseTemplateId = settings.emailjs_template_id_course || settings.emailjs_template_id;
+            
+            if (settings.emailjs_service_id && settings.emailjs_public_key && courseTemplateId) {
+              const hardClean = (str: string) => str.replace(/[^a-zA-Z0-9_-]/g, '');
+              const cleanedUid = hardClean(settings.emailjs_public_key);
+              
+              const sendWithSDK = async (params: any) => {
+                const cleanedTid = hardClean(params.template_id || '');
+                const cleanedSid = hardClean(settings.emailjs_service_id || 'default_service');
+                return new Promise((resolve, reject) => {
+                  const invokeSDK = () => {
+                    const emailjs = (window as any).emailjs;
+                    emailjs.send(cleanedSid, cleanedTid, params.template_params, cleanedUid)
+                      .then((res: any) => resolve(res))
+                      .catch((err: any) => reject(err));
+                  };
+                  if ((window as any).emailjs) {
+                    invokeSDK();
+                  } else {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+                    script.onload = invokeSDK;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                  }
+                });
+              };
+
+              let bookingListHtml = '';
+              const dateKeys = Object.keys(finalTimes).sort();
+              if (dateKeys.length > 0) {
+                dateKeys.forEach((dateStr) => {
+                  const slotsForDate = finalTimes[dateStr];
+                  const timeKeys = Object.keys(slotsForDate).sort();
+                  timeKeys.forEach((timeStr) => {
+                    const pCount = slotsForDate[timeStr] || 1;
+                    let displayTime = timeStr;
+                    if (!timeStr.includes('-') && !timeStr.includes('~')) {
+                      try {
+                        const [hour, min] = timeStr.split(':').map(Number);
+                        const endHour = hour + 1;
+                        const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(min || 0).padStart(2, '0')}`;
+                        displayTime = `${timeStr}~${endTimeStr}`;
+                      } catch (e) {
+                        displayTime = timeStr;
+                      }
+                    }
+                    bookingListHtml += `
+                      <div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${dateStr}</span></div>
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${displayTime}</span></div>
+                        <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${pCount} 人</span></div>
+                      </div>`;
+                  });
+                });
+              }
+
+              const statusRedHtml = '<span style="color: #ff0000; font-weight: bold; font-size: 1.2em;">方案兌換成功</span>';
+              const lastFiveHtml = `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #4a5568; font-size: 13px; font-weight: bold; line-height: 1.6;">預約方式：課程方案直接兌換</div>`;
+              const currentTime = new Date().toLocaleString('zh-TW', { hour12: false });
+              const coachData = coaches.find(c => c.id === selectedCoach) || { name: '未指定', email: '' };
+
+              const sharedParams = {
+                status_html: statusRedHtml,
+                customer_name: customerName || '會員',
+                course_name: course.name,
+                course_table: bookingListHtml,
+                total_amount: `NT$ 0 (方案兌換)`,
+                coach_name: coachData.name,
+                contact_phone: customerPhone || '未提供',
+                skill_level: skillLevel || '未填寫',
+                video_link: mediaUrl ? `<a href="${mediaUrl}">${mediaUrl}</a>` : '無影片連結',
+                order_time: currentTime,
+                last_five_digits: '方案兌換',
+                payment_method: '課程方案兌換',
+                system_footer: `${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
+              };
+
+              // (A) 寄給 教練
+              if (coachData.email) {
+                try {
+                  await sendWithSDK({
+                    template_id: courseTemplateId,
+                    template_params: {
+                      ...sharedParams,
+                      to_email: coachData.email,
+                      subject: `【新預約通知】學員：${customerName}`
+                    }
+                  });
+                } catch (e) { console.error('Coach email failed:', e); }
+              }
+
+              // (B) 寄給 客戶
+              try {
+                await sendWithSDK({
+                  template_id: courseTemplateId,
+                  template_params: {
+                    ...sharedParams,
+                    to_email: customerEmail,
+                    subject: `【預約成功】感謝預約 ${course.name}`
+                  }
+                });
+              } catch (e) { console.error('Customer email failed:', e); }
+
+              // (C) 寄給 老闆
+              if (settings.admin_email) {
+                try {
+                  await sendWithSDK({
+                    template_id: courseTemplateId,
+                    template_params: {
+                      ...sharedParams,
+                      to_email: settings.admin_email,
+                      subject: `【後台通知】新兌換預約 - ${customerName}`
+                    }
+                  });
+                } catch (e) { console.error('Admin email failed:', e); }
+              }
             }
           }
         } catch (emailErr) {
@@ -479,12 +621,12 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
         return;
       }
 
-      addToCart(bookingItem);
+      setDirectPurchaseItem({ ...bookingItem, quantity: 1 } as any);
       setIsCheckoutOpen(true);
       onClose(); // Close the booking modal
     } catch (err) {
       console.error('Booking failed:', err);
-      alert('預約失敗，請稍後再試或聯繫客服。');
+      alert(`${course.isRedeemingPackage ? '預約' : '報名'}失敗，請稍後再試或聯繫客服。`);
     } finally {
       setLoading(false);
     }
@@ -496,6 +638,18 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   // const totalJPY = Math.round(totalTWD * JPY_RATE);
   const activeColor = mode === 'skiing' ? '#3b82f6' : '#ef4444';
   const totalSteps = mode === 'skiing' ? 4 : 4; // Both are 4 steps now, but different logic
+
+  const applicableVouchers = vouchers.filter(v => {
+    if (v.target_type === 'global' || v.target_type === 'all_courses') return true;
+    if (v.target_type === 'specific' && (v.target_id || '').split(',').includes(course.id)) return true;
+    if (v.target_type === 'course' && v.target_id === course.id) return true;
+    if (v.target_type === 'skiing' && mode === 'skiing') return true;
+    if (v.target_type === 'skateboard' && mode === 'skateboard') return true;
+    return false;
+  });
+
+  const eligibleVouchers = applicableVouchers.filter(v => !v.min_amount || totalTWD >= v.min_amount);
+  const ineligibleVouchers = applicableVouchers.filter(v => v.min_amount && totalTWD < v.min_amount);
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-0 md:p-4 bg-black/80 backdrop-blur-md">
@@ -513,7 +667,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               </span>
             </div>
             <h3 className="text-2xl font-black italic uppercase tracking-tighter text-gray-950">
-              {course.name} <span className="text-gray-500 not-italic ml-2 font-semibold tracking-normal text-lg">預約</span>
+              {course.name} <span className="text-gray-500 not-italic ml-2 font-semibold tracking-normal text-lg">{course.isRedeemingPackage ? '預約' : '報名'}</span>
             </h3>
           </div>
           <button onClick={onClose} className="w-12 h-12 flex items-center justify-center bg-white rounded-2xl shadow-sm hover:scale-110 active:scale-95 transition-all text-gray-400 hover:text-black">
@@ -535,7 +689,51 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                     </div>
                     
                     <div className="grid grid-cols-1 gap-4">
-                      {[0, 1, 2].map(idx => {
+                      {course.is_night_mode ? (
+                        [0].map(idx => {
+                          const label = "夜滑課程";
+                          const isSelected = skiingSessionIdx === idx;
+                          
+                          const fPrice = course.first_lesson_price || course.price || 0;
+                          const aPrice = course.additional_lesson_price || (course as any).addPrice || 0;
+                          const slotTime = course.night_mode_slots?.join(', ') || "依日期選擇時段";
+                          
+                          return (
+                            <button 
+                              key={idx}
+                              onClick={() => {
+                                setSkiingSessionIdx(idx);
+                                const date = selectedDates[0];
+                                if (date) {
+                                  setSelectedTimes({ [date]: { [slotTime]: skiingPersonCount } });
+                                }
+                              }}
+                              className={`p-6 rounded-[32px] border-2 text-left transition-all flex items-center justify-between group ${
+                                isSelected ? 'bg-white shadow-xl ring-4 ring-primary/5 border-primary' : 'bg-gray-50 border-gray-100 hover:bg-gray-100/50'
+                              }`}
+                              style={{ borderColor: isSelected ? activeColor : undefined }}
+                            >
+                              <div className="flex items-center gap-5">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${isSelected ? 'bg-primary text-white' : 'bg-white text-gray-500'}`} style={{ backgroundColor: isSelected ? activeColor : undefined }}>
+                                  夜滑
+                                </div>
+                                <div>
+                                  <div className={`font-black text-lg ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}>{label}</div>
+                                  <div className={`text-xs font-bold ${isSelected ? 'text-gray-500' : 'text-gray-500'}`}>{slotTime}</div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <div className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-gray-500' : 'text-gray-600'}`}>起價</div>
+                                <div className={`text-xl font-black italic ${isSelected ? 'text-primary' : 'text-gray-700'}`} style={{ color: isSelected ? activeColor : undefined }}>
+                                  NT${fPrice.toLocaleString()}
+                                </div>
+                                <div className={`text-[9px] font-bold ${isSelected ? 'text-gray-500' : 'text-gray-600'}`}>多一人 NT${aPrice.toLocaleString()}</div>
+                              </div>
+                            </button>
+                          );
+                        })
+                      ) : (
+                        [0, 1, 2].map(idx => {
                         const available = getAvailableTimes(new Date().toISOString()); // Just to get slots
                         const slotTime = available[idx] || (idx === 0 ? "09:00-12:00" : idx === 1 ? "13:00-16:00" : "09:00-15:00");
                         const label = idx === 0 ? "半天 (上午)" : idx === 1 ? "半天 (下午)" : "全天課程";
@@ -580,11 +778,12 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                               <div className={`text-xl font-black italic ${isSelected ? 'text-primary' : 'text-gray-700'}`} style={{ color: isSelected ? activeColor : undefined }}>
                                 NT${fPrice.toLocaleString()}
                               </div>
-                              <div className={`text-[9px] font-bold ${isSelected ? 'text-gray-500' : 'text-gray-600'}`}>續報價 NT${aPrice.toLocaleString()}</div>
+                              <div className={`text-[9px] font-bold ${isSelected ? 'text-gray-500' : 'text-gray-600'}`}>多一人 NT${aPrice.toLocaleString()}</div>
                             </div>
                           </button>
                         );
-                      })}
+                      })
+                    )}
                     </div>
                   </motion.div>
                 )}
@@ -680,7 +879,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                 toggleDateSelection(dateStr);
                                 // Sync times
                                 const available = getAvailableTimes(dateStr);
-                                const slotTime = available[skiingSessionIdx!] || "";
+                                const slotTime = course.is_night_mode ? (course.night_mode_slots?.join(', ') || "夜滑時段") : (available[skiingSessionIdx!] || "");
                                 if (slotTime) setSelectedTimes({ [dateStr]: { [slotTime]: skiingPersonCount } });
                               }}
                               className={`aspect-square rounded-xl flex items-center justify-center transition-all ${isSelected ? 'text-white shadow-lg scale-105 z-10' : 'bg-white text-gray-700 shadow-sm'} ${isPast || isBlocked ? 'opacity-20' : ''}`}
@@ -707,14 +906,19 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-6">
                         <div>
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">選擇地點</label>
-                          <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} className="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none font-bold text-gray-900">
+                          <label className="text-xs font-black text-gray-900 tracking-widest mb-3 block uppercase">選擇地點</label>
+                          <select value={selectedLocation} onChange={(e) => setSelectedLocation(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 outline-none font-bold text-gray-900 focus:ring-4 focus:ring-gray-100 shadow-sm transition-all cursor-pointer">
                             <option value="">選擇上課地點</option>
                             {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                           </select>
                         </div>
                         <div>
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">選擇教練</label>
+                          <label className="text-xs font-black text-gray-900 tracking-widest mb-3 flex items-center flex-wrap gap-2 uppercase">
+                            選擇教練
+                            <span className="text-[10px] font-bold text-gray-400 normal-case tracking-normal">
+                              (若教練該時段已有課，將反灰無法點選)
+                            </span>
+                          </label>
                           <div className="grid grid-cols-2 gap-3">
                             {coaches.map(c => {
                               const isBusy = busyCoachIds.includes(c.id);
@@ -723,14 +927,16 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                   key={c.id} 
                                   disabled={isBusy}
                                   onClick={() => setSelectedCoach(c.id)} 
-                                  className={`p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                                  className={`relative p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
                                     selectedCoach === c.id 
-                                      ? 'bg-white shadow-lg border-primary scale-[1.05] z-10' 
+                                      ? 'bg-white shadow-xl scale-[1.05] z-10 border-transparent' 
                                       : isBusy 
                                         ? 'bg-gray-50 border-gray-100 opacity-50 cursor-not-allowed grayscale'
                                         : 'bg-gray-50 border-transparent hover:border-gray-200'
                                   }`} 
-                                  style={{ borderColor: selectedCoach === c.id ? activeColor : undefined }}
+                                  style={{ 
+                                    boxShadow: selectedCoach === c.id ? `0 0 0 3px ${activeColor}, 0 10px 15px -3px rgba(0, 0, 0, 0.1)` : undefined 
+                                  }}
                                 >
                                   <div className="w-16 h-16 rounded-xl overflow-hidden bg-white shadow-inner border border-black/5">
                                     {c.image_url ? (
@@ -751,28 +957,52 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                           </div>
                         </div>
                         <div>
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">附加資訊</label>
-                          <textarea placeholder="技能程度或特殊備註..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-gray-50 rounded-2xl h-24 outline-none font-medium text-gray-900" />
+                          <label className="text-xs font-black text-gray-900 tracking-widest mb-3 block uppercase">學生學習程度</label>
+                          <textarea placeholder="學生可提供自身滑雪/滑板程度 供教練方便備課..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl h-24 outline-none font-medium text-gray-900 border-2 border-gray-900 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm mb-4" />
+                          <input type="text" placeholder="可提供之前學滑板/滑雪影片" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 outline-none font-medium text-gray-900 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm" />
                         </div>
-                        <div className="pt-2">
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">套用優惠券</label>
-                          <button onClick={() => setIsVoucherModalOpen(true)} className="w-full p-4 rounded-2xl border-2 border-dashed border-gray-200 hover:border-primary/50 text-gray-500 hover:text-primary transition-all flex items-center justify-between font-bold text-sm bg-gray-50">
+                        {course.isRedeemingPackage && (
+                          <div className="pt-2">
+                            <label className="text-xs font-black text-gray-900 tracking-widest mb-3 block uppercase">聯絡資訊 (必填)</label>
+                            <div className="space-y-3">
+                              <input type="text" placeholder="真實姓名" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 outline-none font-bold text-gray-900 focus:ring-4 focus:ring-gray-100 shadow-sm" />
+                              <input type="tel" placeholder="聯絡電話" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 outline-none font-bold text-gray-900 focus:ring-4 focus:ring-gray-100 shadow-sm" />
+                              <input type="email" placeholder="Email (接收預約信件)" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 outline-none font-bold text-gray-900 focus:ring-4 focus:ring-gray-100 shadow-sm" />
+                            </div>
+                          </div>
+                        )}
+                        {!course.isRedeemingPackage && (
+                          <div className="pt-2">
+                            <label className="text-xs font-black text-gray-900 tracking-widest mb-3 block uppercase">套用優惠券</label>
+                            <button onClick={() => setIsVoucherModalOpen(true)} className="w-full p-4 rounded-2xl border-2 border-gray-900 hover:bg-gray-50 text-gray-900 transition-all flex items-center justify-between font-bold text-sm bg-white shadow-sm focus:ring-4 focus:ring-gray-100">
                             <div className="flex items-center gap-2">
                               <Tag size={18} />
-                              {selectedVoucher ? <span className="text-green-600 font-black">已選擇: {selectedVoucher.code}</span> : '選擇優惠券'}
+                              {selectedVoucher ? (
+                                <span className="text-green-600 font-black">已選擇: {selectedVoucher.code}</span>
+                              ) : (
+                                <span className="flex items-center">
+                                  選擇優惠券 
+                                  {eligibleVouchers.length > 0 && (
+                                    <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest" style={{ color: activeColor, backgroundColor: `${activeColor}15` }}>
+                                      {eligibleVouchers.length} 張可用
+                                    </span>
+                                  )}
+                                </span>
+                              )}
                             </div>
                             <ChevronRight size={18} />
                           </button>
                         </div>
+                        )}
                       </div>
                       
                       <div className="bg-neutral-900 rounded-[32px] p-8 text-white shadow-2xl relative overflow-hidden">
                         <div className="relative z-10">
-                          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">預約摘要</div>
+                          <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6">{course.isRedeemingPackage ? '預約' : '報名'}摘要</div>
                           <div className="space-y-4 mb-8">
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-gray-400">時段類型</span>
-                              <span className="font-bold">{skiingSessionIdx === 0 ? "半天 (上午)" : skiingSessionIdx === 1 ? "半天 (下午)" : "全天課程"}</span>
+                              <span className="font-bold">{course.is_night_mode ? "夜滑" : (skiingSessionIdx === 0 ? "半天 (上午)" : skiingSessionIdx === 1 ? "半天 (下午)" : "全天課程")}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-gray-400">日期</span>
@@ -1031,7 +1261,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                       )) : (
                         <div className="col-span-2 py-20 px-8 bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-200">
                           <div className="text-gray-400 font-bold italic mb-2">目前該模式尚無預設地點</div>
-                          <div className="text-[10px] text-gray-400 font-medium italic">您可以直接點擊「下一步」繼續預約</div>
+                          <div className="text-[10px] text-gray-400 font-medium italic">您可以直接點擊「下一步」繼續{course.isRedeemingPackage ? '預約' : '報名'}</div>
                         </div>
                       )}
                     </div>
@@ -1047,7 +1277,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-6">
                         <div>
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">選擇教練</label>
+                          <label className="text-xs font-black text-gray-900 tracking-widest mb-3 block uppercase">選擇教練</label>
                           <div className="grid grid-cols-2 gap-3">
                             {coaches.map(c => {
                               const isBusy = busyCoachIds.includes(c.id);
@@ -1056,14 +1286,16 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                   key={c.id} 
                                   disabled={isBusy}
                                   onClick={() => setSelectedCoach(c.id)} 
-                                  className={`p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                                  className={`relative p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
                                     selectedCoach === c.id 
-                                      ? 'bg-white shadow-lg border-primary scale-[1.05] z-10' 
+                                      ? 'bg-white shadow-xl scale-[1.05] z-10 border-transparent' 
                                       : isBusy 
                                         ? 'bg-gray-50 border-gray-100 opacity-50 cursor-not-allowed grayscale'
                                         : 'bg-gray-50 border-transparent hover:border-gray-200'
                                   }`} 
-                                  style={{ borderColor: selectedCoach === c.id ? activeColor : undefined }}
+                                  style={{ 
+                                    boxShadow: selectedCoach === c.id ? `0 0 0 3px ${activeColor}, 0 10px 15px -3px rgba(0, 0, 0, 0.1)` : undefined 
+                                  }}
                                 >
                                   <div className="w-16 h-16 rounded-xl overflow-hidden bg-white shadow-inner border border-black/5">
                                     {c.image_url ? (
@@ -1084,16 +1316,38 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                           </div>
                         </div>
                         <div>
-                          <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">程度與備註</label>
-                          <textarea placeholder="請描述您的運動程度..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl border border-gray-200 h-32 outline-none text-gray-900" />
+                          <label className="text-xs font-black text-gray-900 tracking-widest mb-3 block uppercase">學生學習程度</label>
+                          <textarea placeholder="學生可提供自身滑雪/滑板程度 供教練方便備課..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 h-32 outline-none text-gray-900 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm mb-4" />
+                          <input type="text" placeholder="可提供之前學滑板/滑雪影片" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 outline-none font-medium text-gray-900 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm" />
                         </div>
+                        {course.isRedeemingPackage && (
+                          <div className="pt-2">
+                            <label className="text-xs font-black text-gray-900 tracking-widest mb-3 block uppercase">聯絡資訊 (必填)</label>
+                            <div className="space-y-3">
+                              <input type="text" placeholder="真實姓名" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 outline-none font-bold text-gray-900 focus:ring-4 focus:ring-gray-100 shadow-sm" />
+                              <input type="tel" placeholder="聯絡電話" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 outline-none font-bold text-gray-900 focus:ring-4 focus:ring-gray-100 shadow-sm" />
+                              <input type="email" placeholder="Email (接收預約信件)" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 outline-none font-bold text-gray-900 focus:ring-4 focus:ring-gray-100 shadow-sm" />
+                            </div>
+                          </div>
+                        )}
                         {!course.isRedeemingPackage && (
                           <div className="pt-2">
-                            <label className="text-xs font-black text-gray-400 tracking-widest mb-3 block uppercase">套用優惠券</label>
-                            <button onClick={() => setIsVoucherModalOpen(true)} className="w-full p-4 rounded-2xl border-2 border-dashed border-gray-200 hover:border-primary/50 text-gray-500 hover:text-primary transition-all flex items-center justify-between font-bold text-sm bg-white">
+                            <label className="text-xs font-black text-gray-900 tracking-widest mb-3 block uppercase">套用優惠券</label>
+                            <button onClick={() => setIsVoucherModalOpen(true)} className="w-full p-4 rounded-2xl border-2 border-gray-900 hover:bg-gray-50 text-gray-900 transition-all flex items-center justify-between font-bold text-sm bg-white shadow-sm focus:ring-4 focus:ring-gray-100">
                               <div className="flex items-center gap-2">
                                 <Tag size={18} />
-                                {selectedVoucher ? <span className="text-green-600 font-black">已選擇: {selectedVoucher.code}</span> : '選擇優惠券'}
+                                {selectedVoucher ? (
+                                  <span className="text-green-600 font-black">已選擇: {selectedVoucher.code}</span>
+                                ) : (
+                                  <span className="flex items-center">
+                                    選擇優惠券 
+                                    {eligibleVouchers.length > 0 && (
+                                      <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest" style={{ color: activeColor, backgroundColor: `${activeColor}15` }}>
+                                        {eligibleVouchers.length} 張可用
+                                      </span>
+                                    )}
+                                  </span>
+                                )}
                               </div>
                               <ChevronRight size={18} />
                             </button>
@@ -1140,11 +1394,17 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                   if (step === 3 && selectedDates.length === 0) { alert('請選擇上課日期'); return; }
                   if (step === 4 && locations.length > 0 && !selectedLocation) { alert('請選擇上課地點'); return; }
                   if (step === 4 && coaches.length > 0 && !selectedCoach) { alert('請選擇教練'); return; }
+                  if (step === 4 && course.isRedeemingPackage) {
+                    if (!customerName || !customerPhone || !customerEmail) { alert('請填寫完整聯絡資訊 (姓名、電話、Email)'); return; }
+                  }
                 } else {
                   if (step === 1 && selectedDates.length === 0) { alert('請選擇上課日期'); return; }
                   if (step === 2 && Object.values(selectedTimes).every(slots => Object.keys(slots).length === 0)) { alert('請選擇上課時段與人數'); return; }
                   if (step === 3 && locations.length > 0 && !selectedLocation) { alert('請選擇上課地點'); return; }
                   if (step === 4 && coaches.length > 0 && !selectedCoach) { alert('請選擇教練'); return; }
+                  if (step === 4 && course.isRedeemingPackage) {
+                    if (!customerName || !customerPhone || !customerEmail) { alert('請填寫完整聯絡資訊 (姓名、電話、Email)'); return; }
+                  }
                 }
 
                 if (step === totalSteps) handleBooking();
@@ -1156,7 +1416,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               }`}
               style={{ background: mode === 'skiing' ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : 'var(--primary-gradient)' }}
             >
-              {loading ? '處理中...' : step === totalSteps ? (course.isRedeemingPackage ? '確認兌換並完成預約' : '確認金額並加入購物車') : '下一步'} {step < totalSteps && <ChevronRight size={20} />}
+              {loading ? '處理中...' : step === totalSteps ? (course.isRedeemingPackage ? '確認兌換並完成預約' : '直接購買') : '下一步'} {step < totalSteps && <ChevronRight size={20} />}
             </button>
           </div>
         )}
@@ -1170,29 +1430,17 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white w-full max-w-lg rounded-[40px] overflow-hidden shadow-2xl flex flex-col max-h-[80vh]"
+              className="bg-white w-full max-w-lg rounded-[40px] overflow-hidden shadow-2xl flex flex-col max-h-[80vh] text-gray-900"
             >
               <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h4 className="text-xl font-black italic uppercase tracking-tighter">可用優惠券</h4>
-                <button onClick={() => setIsVoucherModalOpen(false)} className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm"><X size={20}/></button>
+                <h4 className="text-xl font-black italic uppercase tracking-tighter text-gray-900">可用優惠券</h4>
+                <button onClick={() => setIsVoucherModalOpen(false)} className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm border border-gray-200 text-gray-900 hover:bg-gray-100 transition-colors"><X size={20}/></button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {(() => {
-                  const applicableVouchers = vouchers.filter(v => {
-                    if (v.target_type === 'global' || v.target_type === 'all_courses') return true;
-                    if (v.target_type === 'specific' && (v.target_id || '').split(',').includes(course.id)) return true;
-                    if (v.target_type === 'course' && v.target_id === course.id) return true;
-                    if (v.target_type === 'skiing' && mode === 'skiing') return true;
-                    if (v.target_type === 'skateboard' && mode === 'skateboard') return true;
-                    return false;
-                  });
-
                   if (applicableVouchers.length === 0) {
                     return <div className="py-20 text-center text-gray-300 font-bold italic border-2 border-dashed border-gray-100 rounded-[32px]">目前暫無可用優惠券</div>;
                   }
-
-                  const eligibleVouchers = applicableVouchers.filter(v => !v.min_amount || totalTWD >= v.min_amount);
-                  const ineligibleVouchers = applicableVouchers.filter(v => v.min_amount && totalTWD < v.min_amount);
 
                   const renderVoucher = (v: any, isMinMet: boolean) => {
                     const isSelected = selectedVoucher?.id === v.id;
@@ -1244,7 +1492,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                 })()}
               </div>
               <div className="p-6 bg-gray-50 border-t border-gray-100">
-                <button onClick={() => setIsVoucherModalOpen(false)} className="w-full py-4 bg-black text-white rounded-2xl font-black text-sm uppercase tracking-widest">完成</button>
+                <button onClick={() => setIsVoucherModalOpen(false)} className="w-full py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-md transition-colors">完成</button>
               </div>
             </motion.div>
           </div>

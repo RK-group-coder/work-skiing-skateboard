@@ -126,6 +126,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
           customer_name: customerName,
           customer_phone: customerPhone,
           customer_email: customerEmail,
+          notes: notes,
           delivery_method: hasPhysicalProducts ? deliveryMethod : null,
           delivery_info: hasPhysicalProducts ? (
             deliveryMethod === 'convenience_store' 
@@ -177,6 +178,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
           console.error('Failed to consume voucher:', voucherErr);
         }
       }
+
+
 
       // 取得 EmailJS 系統設定
       const isEmailConfigured = emailJsSettings?.service_id && emailJsSettings?.public_key && emailJsSettings.service_id !== 'YOUR_SERVICE_ID';

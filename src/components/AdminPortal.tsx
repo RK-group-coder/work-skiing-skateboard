@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, ChevronRight, ChevronDown, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink, Bot, MessageSquare, ShoppingCart, Minus } from 'lucide-react';
+import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, ChevronRight, ChevronDown, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink, Bot, MessageSquare, ShoppingCart, Minus, FileText, Ticket } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import type { User } from '@supabase/supabase-js';
 import DashboardView from './DashboardView';
 import AITeam from './AITeam';
@@ -68,6 +68,10 @@ interface Course {
   description: string;
   image_url: string;
   is_active: boolean;
+  is_night_mode?: boolean;
+  night_mode_coaches?: string[];
+  night_mode_slots?: string[];
+  sort_order?: number;
 }
 
 interface Coach {
@@ -127,6 +131,7 @@ interface Order {
   customer_name?: string;
   customer_phone?: string;
   customer_email?: string;
+  notes?: string;
   delivery_method?: string;
   delivery_info?: any;
   last_five_digits?: string;
@@ -149,7 +154,7 @@ const EMPTY_PRODUCT: Product = {
   rating: 5.0, 
   is_active: true 
 };
-const EMPTY_COURSE: Course = { mode: 'skiing', name: '', price: '' as any, first_lesson_price: '' as any, additional_lesson_price: '' as any, description: '', image_url: '', is_active: true };
+const EMPTY_COURSE: Course = { mode: 'skiing', name: '', price: '' as any, first_lesson_price: '' as any, additional_lesson_price: '' as any, description: '', image_url: '', is_active: true, is_night_mode: false, night_mode_coaches: [], night_mode_slots: [] };
 const EMPTY_COACH: Coach = { name: '', email: '', mode: 'skiing', image_url: '', description: '' };
 const EMPTY_LOCATION: CourseLocation = { name: '', mode: 'skiing', address: '' };
 const EMPTY_VOUCHER: Voucher = { code: '', title: '', description: '', type: 'percent', value: '' as any, min_amount: '' as any, valid_until: '', target_type: 'global', target_id: '', is_active: true, is_published: true, grant_quantity: 1 };
@@ -469,23 +474,83 @@ const ProductForm = ({ form, setForm, onSave, onCancel, categories, loading }: {
   </div>
 );
 
-const CourseForm = ({ form, setForm, onSave, onCancel, loading }: { form: Course; setForm: (v: Course) => void; onSave: () => void; onCancel: () => void; loading: boolean }) => (
+const CourseForm = ({ form, setForm, onSave, onCancel, loading, coaches }: { form: Course; setForm: (v: Course) => void; onSave: () => void; onCancel: () => void; loading: boolean; coaches: Coach[] }) => (
   <div className="bg-white border border-gray-100 rounded-[28px] p-6 space-y-5">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
       <div>
-        <label className={labelCls}>課程類別 Mode</label>
-        <select value={form.mode} onChange={e => setForm({ ...form, mode: e.target.value as any })} className={inputCls}>
-          <option value="skiing">滑雪</option>
-          <option value="skateboard">滑板</option>
-        </select>
+        <label className={labelCls}>課程類別 MODE</label>
+        <div className="flex items-center gap-4">
+          <select value={form.mode} onChange={e => setForm({ ...form, mode: e.target.value as any })} className={`${inputCls} flex-1`}>
+            <option value="skiing">滑雪</option>
+            <option value="skateboard">滑板</option>
+          </select>
+          <label className="flex items-center gap-2 cursor-pointer shrink-0 border border-gray-100 bg-gray-50 px-3 py-2 rounded-xl">
+            <div className="relative flex items-center">
+              <input type="checkbox" className="sr-only" checked={form.is_night_mode || false} onChange={e => setForm({ ...form, is_night_mode: e.target.checked })} />
+              <div className={`block w-10 h-6 rounded-full transition-colors ${form.is_night_mode ? 'bg-primary' : 'bg-gray-300'}`}></div>
+              <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${form.is_night_mode ? 'transform translate-x-4' : ''}`}></div>
+            </div>
+            <span className="text-xs font-black text-gray-700 uppercase tracking-widest mt-0.5">夜滑模式</span>
+          </label>
+        </div>
       </div>
       <div>
         <label className={labelCls}>課程名稱 Course Name</label>
         <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={inputCls} placeholder="請輸入課程標題" />
       </div>
+
+      {form.is_night_mode && (
+        <div className="col-span-1 md:col-span-2 p-5 rounded-3xl bg-gray-50 border border-gray-200 space-y-5">
+          <h5 className="text-sm font-black text-gray-900 flex items-center gap-2">🌙 夜滑專屬設定</h5>
+          
+          <div>
+            <label className={labelCls}>專屬教練</label>
+            <div className="flex flex-wrap gap-3 mt-2">
+              {coaches.filter(c => c.mode === form.mode).map(coach => {
+                const isSelected = (form.night_mode_coaches || []).includes(coach.id!);
+                return (
+                  <button
+                    key={coach.id}
+                    type="button"
+                    onClick={() => {
+                      const current = form.night_mode_coaches || [];
+                      setForm({ ...form, night_mode_coaches: isSelected ? current.filter(id => id !== coach.id) : [...current, coach.id!] });
+                    }}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${isSelected ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400'}`}
+                  >
+                    {coach.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>專屬時段</label>
+            <div className="flex flex-wrap gap-3 mt-2">
+              {['17:00~18:00', '18:00~19:00', '19:00~20:00', '20:00~21:00', '21:00~22:00', '22:00~23:00', '23:00~24:00'].map(slot => {
+                const isSelected = (form.night_mode_slots || []).includes(slot);
+                return (
+                  <button
+                    key={slot}
+                    type="button"
+                    onClick={() => {
+                      const current = form.night_mode_slots || [];
+                      setForm({ ...form, night_mode_slots: isSelected ? current.filter(s => s !== slot) : [...current, slot] });
+                    }}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${isSelected ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400'}`}
+                  >
+                    {slot}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
 
-    {form.mode === 'skiing' ? (
+    {form.mode === 'skiing' && !form.is_night_mode && (
       <div className="space-y-6">
         <div className="p-4 rounded-3xl bg-primary/5 border border-primary/10 space-y-4">
           <h5 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
@@ -535,19 +600,39 @@ const CourseForm = ({ form, setForm, onSave, onCancel, loading }: { form: Course
           </div>
         </div>
       </div>
-    ) : (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div>
-          <label className={labelCls}>單堂原價 Base Price (NT$)</label>
-          <input type="number" value={form.price ?? ''} onChange={e => setForm({ ...form, price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
-        </div>
-        <div>
-          <label className={labelCls}>初次體驗價 First Price (NT$)</label>
-          <input type="number" value={form.first_lesson_price ?? ''} onChange={e => setForm({ ...form, first_lesson_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
-        </div>
-        <div>
-          <label className={labelCls}>加購續報價 Add Price (NT$)</label>
-          <input type="number" value={form.additional_lesson_price ?? ''} onChange={e => setForm({ ...form, additional_lesson_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+    )}
+
+    {((form.mode === 'skateboard') || (form.mode === 'skiing' && form.is_night_mode)) && (
+      <div className="space-y-6">
+        {form.mode === 'skiing' && form.is_night_mode && (
+          <h5 className="text-xs font-black uppercase tracking-widest text-indigo-600 flex items-center gap-2">
+            🌙 夜滑課程價格設定
+          </h5>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {form.mode === 'skateboard' ? (
+            <>
+              <div>
+                <label className={labelCls}>單堂原價 Base Price (NT$)</label>
+                <input type="number" value={form.price ?? ''} onChange={e => setForm({ ...form, price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>優惠價 Special Price (NT$)</label>
+                <input type="number" value={form.first_lesson_price ?? ''} onChange={e => setForm({ ...form, first_lesson_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className={labelCls}>初次體驗價 First Price (NT$)</label>
+                <input type="number" value={form.first_lesson_price ?? ''} onChange={e => setForm({ ...form, first_lesson_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>加購續報價 Add Price (NT$)</label>
+                <input type="number" value={form.additional_lesson_price ?? ''} onChange={e => setForm({ ...form, additional_lesson_price: e.target.value === '' ? '' : Number(e.target.value) } as any)} className={inputCls} />
+              </div>
+            </>
+          )}
         </div>
       </div>
     )}
@@ -774,6 +859,27 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const [usersList, setUsersList] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
+  const [readOrderIds, setReadOrderIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('sk8_read_orders');
+      if (stored) {
+        setReadOrderIds(new Set(JSON.parse(stored)));
+      }
+    } catch (e) {}
+  }, []);
+
+  const markAsRead = (id: string) => {
+    setReadOrderIds(prev => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      localStorage.setItem('sk8_read_orders', JSON.stringify(Array.from(next)));
+      return next;
+    });
+  };
+
   // Categories
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryForm, setCategoryForm] = useState<{ name: string; mode: 'skiing' | 'skateboard' }>({ name: '', mode: 'skiing' });
@@ -836,10 +942,9 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
   // Courses
   const [courses, setCourses] = useState<Course[]>([]);
-  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [, setEditingCourse] = useState<Course | null>(null);
   const [isAddingCourse, setIsAddingCourse] = useState(false);
   const [courseForm, setCourseForm] = useState<Course>(EMPTY_COURSE);
-  const [courseFilter, setCourseFilter] = useState<'all' | 'skiing' | 'skateboard'>('all');
   const [isAddingCoursePackage, setIsAddingCoursePackage] = useState(false);
   const [coursePackageForm, setCoursePackageForm] = useState({ mode: 'skiing', courseId: '', price: '', count: '' });
   // Vouchers
@@ -983,7 +1088,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
   const fetchCourses = async () => {
     try {
-      const { data, error } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('courses').select('*').order('sort_order', { ascending: true, nullsFirst: false }).order('created_at', { ascending: false });
       if (error) throw error;
       if (data) setCourses(data);
     } catch (err) { console.error('Error fetching courses:', err); }
@@ -1010,6 +1115,97 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       setHasFetchedOrders(true);
     }
   };
+
+  const handleConfirmOrder = async (order: Order) => {
+    if (!confirm('確定要確認此訂單嗎？（若包含優惠課程包，將會自動發放對應堂數給使用者）')) return;
+    try {
+      const { error } = await supabase.from('orders').update({ status: 'confirmed' }).eq('id', order.id);
+      if (error) throw error;
+      
+      const packageItems = order.items.filter(item => item.dimensions === 'course_package' || item.category_id === 'course_package');
+      if (packageItems.length > 0 && order.user_id) {
+        for (const item of packageItems) {
+           const courseId = item.tag || '';
+           const count = (parseInt(String(item.weight || '1'), 10)) * (item.quantity || 1);
+           
+           const { data: vData } = await supabase.from('vouchers').insert({
+             code: `PKG-${Date.now()}-${Math.floor(Math.random()*1000)}`,
+             title: item.name,
+             type: 'percent',
+             value: 100,
+             target_type: 'course_package',
+             target_id: courseId,
+             is_published: false,
+             is_active: true,
+             grant_quantity: 1
+           }).select().single();
+           
+           if (vData) {
+             const uvData = Array.from({ length: count }).map(() => ({
+               user_id: order.user_id,
+               voucher_id: vData.id,
+               is_used: false
+             }));
+             await supabase.from('user_vouchers').insert(uvData);
+           }
+        }
+      }
+      
+      markAsRead(order.id);
+      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: 'confirmed' } : o));
+      alert('訂單已確認！');
+    } catch (err: any) {
+      alert('確認訂單失敗: ' + err.message);
+    }
+  };
+
+  const handleCancelOrder = async (order: Order) => {
+    if (!confirm('確定要取消此訂單嗎？（若包含已發放的優惠課程，未使用之堂數將會自動收回）')) return;
+    try {
+      const { error } = await supabase.from('orders').update({ status: 'cancelled' }).eq('id', order.id);
+      if (error) throw error;
+      
+      const packageItems = order.items.filter(item => item.dimensions === 'course_package' || item.category_id === 'course_package');
+      if (packageItems.length > 0 && order.user_id) {
+        for (const item of packageItems) {
+           const countToRevoke = (parseInt(String(item.weight || '1'), 10)) * (item.quantity || 1);
+           
+           const { data: recentVouchers } = await supabase
+             .from('vouchers')
+             .select('id')
+             .eq('title', item.name)
+             .eq('target_type', 'course_package')
+             .order('created_at', { ascending: false });
+             
+           if (recentVouchers && recentVouchers.length > 0) {
+             for (const v of recentVouchers) {
+               const { data: uvs } = await supabase
+                 .from('user_vouchers')
+                 .select('id, is_used')
+                 .eq('voucher_id', v.id)
+                 .eq('user_id', order.user_id);
+                 
+               if (uvs && uvs.length > 0) {
+                 const unusedIds = uvs.filter(u => !u.is_used).map(u => u.id);
+                 const idsToDelete = unusedIds.slice(0, countToRevoke);
+                 if (idsToDelete.length > 0) {
+                   await supabase.from('user_vouchers').delete().in('id', idsToDelete);
+                 }
+                 break;
+               }
+             }
+           }
+        }
+      }
+
+      markAsRead(order.id);
+      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: 'cancelled' } : o));
+      alert('訂單已取消！');
+    } catch (err: any) {
+      alert('取消訂單失敗: ' + err.message);
+    }
+  };
+
 
   const fetchPickupLocations = async () => {
     try {
@@ -1299,8 +1495,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
     }
   };
 
+  /*
   const handleConfirmOrder = async (order: Order) => {
-    if (!confirm('確定已經收到款項並發放對應的優惠與課程權益嗎？')) return;
     setLoading(true);
     try {
       // 1. Update order status
@@ -1379,6 +1575,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       setLoading(false);
     }
   };
+  */
 
 
 
@@ -1621,22 +1818,42 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
       // ── 課程設置 ───────────────────────────────────────────────
       case 'courses': {
-        const filtered = courseFilter === 'all' ? courses : courses.filter(c => c.mode === courseFilter);
-        const coursePackages = (courseFilter === 'all' ? products : products.filter(p => p.mode === courseFilter)).filter(p => p.dimensions === 'course_package');
+        const skiingCourses = courses.filter(c => c.mode === 'skiing');
+        const skateboardCourses = courses.filter(c => c.mode === 'skateboard');
+        const coursePackages = products.filter(p => p.dimensions === 'course_package');
+
+        const handleReorderCourses = async (newOrder: Course[], _mode: 'skiing' | 'skateboard') => {
+          // Optimistic update
+          const updatedCourses = [...courses];
+          newOrder.forEach((course, index) => {
+            const idx = updatedCourses.findIndex(c => c.id === course.id);
+            if (idx !== -1) {
+              updatedCourses[idx] = { ...course, sort_order: index };
+            }
+          });
+          updatedCourses.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+          setCourses(updatedCourses);
+
+          // Save to database
+          try {
+            for (let i = 0; i < newOrder.length; i++) {
+              if (newOrder[i].id) {
+                await supabase.from('courses').update({ sort_order: i }).eq('id', newOrder[i].id);
+              }
+            }
+          } catch (err) {
+            console.error('Failed to update course order:', err);
+          }
+        };
+
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
 
             {/* ── 課程列表 ── */}
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex gap-2">
-                {(['all', 'skiing', 'skateboard'] as const).map(f => (
-                  <button key={f} onClick={() => setCourseFilter(f)}
-                    style={courseFilter === f ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
-                    className="px-4 py-2 rounded-xl text-sm font-black transition-all border border-gray-200 shadow-sm">
-                    {f === 'all' ? '全部' : f === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
-                  </button>
-                ))}
-              </div>
+              <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+                <BookOpen size={24} className="text-primary" /> 課程管理
+              </h2>
               <div className="flex gap-2">
                 <button 
                   onClick={() => { setIsAddingCoursePackage(true); setIsAddingCourse(false); setEditingCourse(null); }}
@@ -1701,94 +1918,108 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
             {isAddingCourse && (
               <div className="max-w-4xl mx-auto mb-10 animate-in zoom-in-95 duration-300">
-                <CourseForm form={courseForm} setForm={setCourseForm} onSave={handleSaveCourse} onCancel={() => setIsAddingCourse(false)} loading={loading} />
+                <CourseForm coaches={coaches} form={courseForm} setForm={setCourseForm} onSave={handleSaveCourse} onCancel={() => setIsAddingCourse(false)} loading={loading} />
               </div>
             )}
 
-            <div className="space-y-3">
-              {filtered.length === 0 && !isAddingCourse && (
-                <div className="text-center py-20 text-gray-300 font-bold">尚無課程，點擊「新增課程」開始新增</div>
-              )}
-              {filtered.map(c => (
-                <div key={c.id}>
-                  {editingCourse?.id === c.id ? (
-                    <CourseForm form={courseForm} setForm={setCourseForm}
-                      onSave={handleSaveCourse} onCancel={() => setEditingCourse(null)} loading={loading} />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+              {/* Skiing Courses */}
+              <div className="bg-white border border-gray-100 rounded-[32px] overflow-hidden shadow-sm flex flex-col">
+                <div className="bg-sky-50 px-6 py-4 flex items-center justify-between border-b border-sky-100/50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">⛷️</span>
+                    <span className="font-black text-sky-700">滑雪課程</span>
+                  </div>
+                  <span className="text-xs font-bold text-sky-600/50 uppercase tracking-widest px-2 bg-sky-100/50 rounded-full py-0.5">可按住拖曳排序</span>
+                </div>
+                <div className="p-4 flex-1">
+                  {skiingCourses.length === 0 ? (
+                    <div className="text-center py-10 text-gray-300 font-bold">尚無滑雪課程</div>
                   ) : (
-                    <div className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex items-center gap-4 hover:shadow-sm transition-shadow">
-                      <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200">
-                        <BookOpen size={20} className="text-gray-600" />
-                      </div>
-                      <div className="flex-[2] min-w-0">
-                        <div className="font-black text-base text-gray-900 mb-1">
-                          {c.name.length > 10 ? c.name.slice(0, 10) + '...' : c.name}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border whitespace-nowrap ${c.mode === 'skiing' ? 'bg-sky-50 text-sky-600 border-sky-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
-                            {c.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
-                          </span>
-                          <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-                            NT${(c.mode === 'skiing' ? (c.full_day_first_price || 0) : (c.first_lesson_price || 0)).toLocaleString()} / NT${(c.mode === 'skiing' ? (c.full_day_add_price || 0) : (c.additional_lesson_price || 0)).toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex-1 text-right shrink-0 pr-2">
-                        <div className={`text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${c.is_active ? 'text-green-600' : 'text-gray-400'}`}>
-                          {c.is_active ? '開放報名' : '已關閉'}
-                        </div>
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        <button onClick={() => { setEditingCourse(c); setCourseForm(c); setIsAddingCourse(false); }}
-                          className="w-10 h-10 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-blue-100">
-                          <Pencil size={16} />
-                        </button>
-                        <button onClick={() => c.id && handleDeleteCourse(c.id)}
-                          className="w-10 h-10 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-red-100">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
+                    <Reorder.Group axis="y" values={skiingCourses} onReorder={(newOrder) => handleReorderCourses(newOrder, 'skiing')} className="space-y-3">
+                      {skiingCourses.map(c => (
+                        <Reorder.Item key={c.id} value={c} className="cursor-grab active:cursor-grabbing">
+                          <div className="bg-white border border-gray-100 rounded-2xl px-5 py-4 flex items-center gap-4 hover:shadow-md hover:border-gray-300 transition-all">
+                            <div className="flex-1 min-w-0">
+                              <div className="font-black text-sm text-gray-900 mb-1 truncate">{c.name}</div>
+                              <div className="text-xs font-bold text-gray-400">NT${(c.full_day_first_price || 0).toLocaleString()} / NT${(c.full_day_add_price || 0).toLocaleString()}</div>
+                            </div>
+                            <div className="flex gap-2 shrink-0">
+                              <button onPointerDownCapture={(e) => { e.stopPropagation(); setEditingCourse(c); setCourseForm(c); setIsAddingCourse(true); }} className="w-8 h-8 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Pencil size={14} /></button>
+                              <button onPointerDownCapture={(e) => { e.stopPropagation(); c.id && handleDeleteCourse(c.id); }} className="w-8 h-8 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Trash2 size={14} /></button>
+                            </div>
+                          </div>
+                        </Reorder.Item>
+                      ))}
+                    </Reorder.Group>
                   )}
                 </div>
-              ))}
-              {coursePackages.map(pkg => (
-                <div key={pkg.id}>
-                  <div className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex items-center gap-4 hover:shadow-sm transition-shadow">
-                    <div className="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center shrink-0 border border-gray-800">
-                      <BookOpen size={20} className="text-white" />
-                    </div>
-                    <div className="flex-[2] min-w-0">
-                      <div className="font-black text-base text-gray-900 mb-1">
-                        {pkg.name.length > 20 ? pkg.name.slice(0, 20) + '...' : pkg.name}
+              </div>
+
+              {/* Skateboard Courses */}
+              <div className="bg-white border border-gray-100 rounded-[32px] overflow-hidden shadow-sm flex flex-col">
+                <div className="bg-red-50 px-6 py-4 flex items-center justify-between border-b border-red-100/50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">🛹</span>
+                    <span className="font-black text-red-700">滑板課程</span>
+                  </div>
+                  <span className="text-xs font-bold text-red-600/50 uppercase tracking-widest px-2 bg-red-100/50 rounded-full py-0.5">可按住拖曳排序</span>
+                </div>
+                <div className="p-4 flex-1">
+                  {skateboardCourses.length === 0 ? (
+                    <div className="text-center py-10 text-gray-300 font-bold">尚無滑板課程</div>
+                  ) : (
+                    <Reorder.Group axis="y" values={skateboardCourses} onReorder={(newOrder) => handleReorderCourses(newOrder, 'skateboard')} className="space-y-3">
+                      {skateboardCourses.map(c => (
+                        <Reorder.Item key={c.id} value={c} className="cursor-grab active:cursor-grabbing">
+                          <div className="bg-white border border-gray-100 rounded-2xl px-5 py-4 flex items-center gap-4 hover:shadow-md hover:border-gray-300 transition-all">
+                            <div className="flex-1 min-w-0">
+                              <div className="font-black text-sm text-gray-900 mb-1 truncate">{c.name}</div>
+                              <div className="text-xs font-bold text-gray-400"><span className="line-through text-gray-300 mr-2">NT${(c.price || 0).toLocaleString()}</span><span className="text-red-500">NT${(c.first_lesson_price || 0).toLocaleString()}</span></div>
+                            </div>
+                            <div className="flex gap-2 shrink-0">
+                              <button onPointerDownCapture={(e) => { e.stopPropagation(); setEditingCourse(c); setCourseForm(c); setIsAddingCourse(true); }} className="w-8 h-8 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Pencil size={14} /></button>
+                              <button onPointerDownCapture={(e) => { e.stopPropagation(); c.id && handleDeleteCourse(c.id); }} className="w-8 h-8 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Trash2 size={14} /></button>
+                            </div>
+                          </div>
+                        </Reorder.Item>
+                      ))}
+                    </Reorder.Group>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Course Packages List (優惠方案) */}
+            {coursePackages.length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-4 flex items-center gap-2">
+                  <Ticket size={16} className="text-primary" /> 優惠方案列表
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {coursePackages.map(pkg => (
+                    <div key={pkg.id} className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm">
+                      <div className="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center shrink-0">
+                        <BookOpen size={20} className="text-white" />
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border whitespace-nowrap ${pkg.mode === 'skiing' ? 'bg-sky-50 text-sky-600 border-sky-100' : 'bg-red-50 text-red-600 border-red-100'}`}>
-                          {pkg.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
-                        </span>
-                        <span className="text-xs font-bold text-gray-400 whitespace-nowrap">
-                          NT${pkg.price.toLocaleString()} / {pkg.weight}堂
-                        </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-black text-sm text-gray-900 mb-1 truncate">{pkg.name}</div>
+                        <div className="text-xs font-bold text-gray-400">
+                          {pkg.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'} · NT${pkg.price.toLocaleString()} / {pkg.weight}堂
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex-1 text-right shrink-0 pr-2">
-                      <div className={`text-[10px] font-black uppercase tracking-widest whitespace-nowrap ${pkg.is_active ? 'text-green-600' : 'text-gray-400'}`}>
-                        {pkg.is_active ? '開放購買' : '已關閉'}
-                      </div>
-                    </div>
-                    <div className="flex gap-2 shrink-0">
                       <button onClick={() => {
                         if (confirm('確定要刪除這個優惠方案嗎？')) {
                           if (pkg.id) handleDeleteProduct(pkg.id);
                         }
-                      }}
-                        className="w-10 h-10 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-red-100">
-                        <Trash2 size={16} />
+                      }} className="w-9 h-9 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm">
+                        <Trash2 size={14} />
                       </button>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
 
             {/* ── 課程附屬設置 ── */}
             <div className="mt-10 pt-10 border-t-2 border-dashed border-gray-100 space-y-6">
@@ -2565,7 +2796,11 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
       // ── 訂單管理 ───────────────────────────────────────────────
       case 'orders': {
+        const productOrdersCount = orders.filter(o => o.status !== 'cancelled' && !readOrderIds.has(o.id) && o.items.some(item => item.type === 'product')).length;
+        const courseOrdersCount = orders.filter(o => o.status !== 'cancelled' && !readOrderIds.has(o.id) && o.items.some(item => item.type === 'course_booking')).length;
+
         const filteredByType = orders.filter(o => {
+          if (o.status === 'cancelled') return false;
           if (orderType === 'product') return o.items.some(item => item.type === 'product');
           return o.items.some(item => item.type === 'course_booking');
         });
@@ -2674,16 +2909,26 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                   <button 
                     onClick={() => setOrderType('product')}
                     style={orderType === 'product' ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
-                    className="flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border border-gray-200 shadow-sm"
+                    className="relative flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border border-gray-200 shadow-sm"
                   >
                     商品訂單
+                    {productOrdersCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-md animate-pulse z-10">
+                        {productOrdersCount}
+                      </span>
+                    )}
                   </button>
                   <button 
                     onClick={() => setOrderType('course')}
                     style={orderType === 'course' ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
-                    className="flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border border-gray-200 shadow-sm"
+                    className="relative flex-1 md:w-40 py-3 rounded-xl font-black text-sm transition-all border border-gray-200 shadow-sm"
                   >
                     課程預約
+                    {courseOrdersCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-md animate-pulse z-10">
+                        {courseOrdersCount}
+                      </span>
+                    )}
                   </button>
                 </div>
 
@@ -2725,7 +2970,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 <div className="p-12 bg-red-50 border border-red-100 rounded-[40px] text-center">
                   <AlertCircle size={32} className="mx-auto mb-4 text-red-500" />
                   <h4 className="text-red-900 font-black mb-1">讀取失敗</h4>
-                  <button onClick={fetchOrders} className="mt-6 px-8 py-3 bg-red-500 text-white rounded-2xl font-black text-sm shadow-xl shadow-red-500/20">重試</button>
+                  <button onClick={fetchOrders} className="mt-6 px-8 py-3 bg-white text-gray-900 rounded-2xl font-black text-sm shadow-sm hover:bg-gray-50 transition-colors border border-gray-200">重試</button>
                 </div>
               )}
 
@@ -2738,6 +2983,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
               {!ordersError && finalFiltered.map(order => {
                 const isExpanded = expandedOrders.has(order.id);
+                const isUnread = !readOrderIds.has(order.id);
+
                 const toggleExpand = (e: React.MouseEvent) => {
                   e.stopPropagation();
                   setExpandedOrders(prev => {
@@ -2751,7 +2998,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 const shortItemNames = itemNames.length > 5 ? itemNames.slice(0, 5) + '...' : itemNames;
 
                 return (
-                <div key={order.id} className="bg-white border-2 border-black rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all">
+                <div key={order.id} className="relative bg-white border-2 border-black rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all">
+                  {isUnread && (
+                    <div className="absolute top-4 right-4 w-3 h-3 bg-red-500 rounded-full shadow-md animate-pulse z-20 pointer-events-none" />
+                  )}
                   {/* Collapsed Summary Row */}
                   <div 
                     onClick={toggleExpand}
@@ -2802,6 +3052,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                                 {order.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}
                               </span>
                               <span className="text-xs font-black text-gray-300 uppercase tracking-widest">ID: {order.id.slice(0, 8)}</span>
+                              <span className={`px-3 py-1 rounded-lg text-[10px] font-black tracking-widest ${
+                                order.status === 'confirmed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' :
+                                order.status === 'cancelled' ? 'bg-red-50 text-red-600 border border-red-100' :
+                                'bg-orange-50 text-orange-600 border border-orange-100'
+                              }`}>
+                                {order.status === 'confirmed' ? '已確認' : order.status === 'cancelled' ? '已取消' : '待確認'}
+                              </span>
                             </div>
                             <div className="flex items-center gap-4">
                               <div className="flex items-center gap-2 text-gray-400">
@@ -2862,6 +3119,24 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                                               ))}
                                             </div>
                                           </div>
+                                          
+                                          <div className="space-y-2">
+                                            <div className="text-[9px] font-black text-gray-400 uppercase tracking-widest px-1">學生狀況與備註</div>
+                                            <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-3">
+                                              <div>
+                                                <div className="text-[10px] font-black text-gray-400 mb-1">學習程度</div>
+                                                <div className="text-xs font-bold text-gray-900 whitespace-pre-wrap">{item.details.skillLevel || '未提供'}</div>
+                                              </div>
+                                              {item.details.mediaUrl && (
+                                                <div className="pt-3 border-t border-gray-50">
+                                                  <div className="text-[10px] font-black text-gray-400 mb-1">參考影片</div>
+                                                  <a href={item.details.mediaUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-blue-600 hover:text-blue-800 underline break-all block">
+                                                    {item.details.mediaUrl}
+                                                  </a>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
                                         </div>
                                       )}
                                     </div>
@@ -2899,6 +3174,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                                     <div>
                                       <div className="text-[9px] font-black text-white/40 uppercase tracking-widest">Email</div>
                                       <div className="font-medium text-xs opacity-80 truncate max-w-[150px]">{order.customer_email || '未提供'}</div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-start gap-3 mt-3 pt-3 border-t border-white/10">
+                                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 shrink-0"><FileText size={16} /></div>
+                                    <div>
+                                      <div className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">備註/尺寸/顏色</div>
+                                      <div className="font-bold text-xs leading-relaxed whitespace-pre-wrap">{order.notes || '無備註'}</div>
                                     </div>
                                   </div>
                                 </div>
@@ -2946,21 +3228,29 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                                 {order.last_five_digits || order.bank_info?.lastFiveDigits || '未填寫'}
                               </div>
                             </div>
-                            <div className="pt-4 flex justify-end gap-3 mt-4 border-t border-gray-200">
-                              {order.status !== 'confirmed' ? (
-                                <button 
-                                  onClick={() => handleConfirmOrder(order)}
-                                  disabled={loading}
-                                  className="px-6 py-3 bg-emerald-600 text-white rounded-xl text-sm font-black flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-md active:scale-95 disabled:opacity-50"
+
+                            {/* Order Actions */}
+                            <div className="pt-4 border-t border-gray-200 flex gap-4 mt-2">
+                              {order.status !== 'confirmed' && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleConfirmOrder(order); }}
+                                  style={{ backgroundColor: '#171717', color: '#ffffff' }}
+                                  className="flex-1 py-3 rounded-xl font-black shadow-sm hover:scale-[1.02] active:scale-95 transition-all text-sm border border-black"
                                 >
-                                  <Check size={16} /> 確認收款並發放權益
+                                  確認訂單
                                 </button>
-                              ) : (
-                                <div className="px-6 py-3 bg-gray-100 text-green-600 rounded-xl text-sm font-black flex items-center gap-2 border border-green-200">
-                                  <Check size={16} /> 已確認並發放
-                                </div>
+                              )}
+                              {order.status !== 'cancelled' && (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleCancelOrder(order); }}
+                                  style={{ backgroundColor: '#171717', color: '#ffffff' }}
+                                  className="flex-1 py-3 rounded-xl font-black shadow-sm hover:scale-[1.02] active:scale-95 transition-all text-sm border border-black"
+                                >
+                                  取消訂單
+                                </button>
                               )}
                             </div>
+
                           </div>
                         </div>
                       </div>
@@ -3215,14 +3505,22 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
             { id: 'support', label: '客服訊息', icon: <MessageSquare size={20} /> },
             { id: 'users', label: '使用者管理', icon: <Users size={20} /> },
             { id: 'homepage', label: '首頁內容設定', icon: <Settings2 size={20} /> },
-          ].map(({ id, label, icon }) => (
+          ].map(({ id, label, icon }) => {
+            const isOrdersTab = id === 'orders';
+            const unreadCount = isOrdersTab ? orders.filter(o => o.status !== 'cancelled' && !readOrderIds.has(o.id)).length : 0;
+            return (
             <button key={id}
               onClick={() => { setActiveTab(id as any); setIsMobileMenuOpen(false); }}
               style={activeTab === id ? { backgroundColor: '#111827', color: '#ffffff' } : {}}
-              className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === id ? 'shadow-xl translate-x-2' : 'text-gray-400 hover:bg-neutral-50 hover:text-gray-900'}`}>
+              className={`relative w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === id ? 'shadow-xl translate-x-2' : 'text-gray-400 hover:bg-neutral-50 hover:text-gray-900'}`}>
               {icon} {label}
+              {isOrdersTab && unreadCount > 0 && (
+                <span className="absolute right-4 bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-md animate-pulse z-10">
+                  {unreadCount}
+                </span>
+              )}
             </button>
-          ))}
+          )})}
         </nav>
 
         <button onClick={() => { setIsLoggedIn(false); onBack(); }} className="mt-auto flex items-center gap-4 px-6 py-4 text-red-500 hover:bg-red-50 rounded-2xl font-bold transition-all">

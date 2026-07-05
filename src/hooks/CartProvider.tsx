@@ -54,6 +54,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [directPurchaseItem, setDirectPurchaseItem] = useState<CartItem | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const fetchUserVouchers = async (userId: string) => {
@@ -73,25 +75,80 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
+    const loadCart = async (uid: string | null, user: any) => {
+      let finalCart: CartItem[] = [];
+      if (uid && user) {
+        let anonCart: CartItem[] = [];
+        try {
+          const anonStored = localStorage.getItem('cart_anonymous');
+          if (anonStored) anonCart = JSON.parse(anonStored);
+        } catch(e){}
+
+        let localCart: CartItem[] = [];
+        try {
+          const stored = localStorage.getItem(`cart_${uid}`);
+          if (stored) localCart = JSON.parse(stored);
+        } catch(e){}
+
+        let cloudCart: CartItem[] = user.user_metadata?.cart || [];
+        
+        // Merge anon into cloud
+        let merged = [...(cloudCart.length > 0 ? cloudCart : localCart)];
+        if (anonCart.length > 0) {
+           anonCart.forEach(item => {
+             if (item.type === 'course_booking') {
+               merged.push(item);
+             } else {
+               const existing = merged.find(i => i.id === item.id && i.type === item.type);
+               if (existing) {
+                 existing.quantity += item.quantity;
+               } else {
+                 merged.push(item);
+               }
+             }
+           });
+           localStorage.removeItem('cart_anonymous');
+           // Update cloud immediately
+           supabase.auth.updateUser({ data: { cart: merged } });
+        }
+        finalCart = merged;
+      } else {
+        try {
+          const stored = localStorage.getItem('cart_anonymous');
+          if (stored) finalCart = JSON.parse(stored);
+        } catch(e){}
+      }
+      setCart(finalCart);
+      setIsInitialized(true);
+    };
+
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        const uid = session?.user?.id || null;
+        setUserId(uid);
         if (session?.user) {
           fetchUserVouchers(session.user.id);
+          loadCart(uid, session.user);
         } else {
           setVouchers([]);
           setSelectedVoucher(null);
+          loadCart(null, null);
         }
       }
     );
 
     const refresh = () => {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) fetchUserVouchers(session.user.id);
+        const uid = session?.user?.id || null;
+        setUserId(uid);
+        if (session?.user) {
+          fetchUserVouchers(session.user.id);
+        }
+        loadCart(uid, session?.user);
       });
     };
 
     window.addEventListener('vouchersUpdated', refresh);
-
     refresh();
 
     return () => {
@@ -99,6 +156,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       authListener.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem(`cart_${userId || 'anonymous'}`, JSON.stringify(cart));
+      if (userId) {
+         const timer = setTimeout(() => {
+           supabase.auth.updateUser({ data: { cart: cart } });
+         }, 2000);
+         return () => clearTimeout(timer);
+      }
+    }
+  }, [cart, userId, isInitialized]);
 
   let effectiveCart = directPurchaseItem ? [directPurchaseItem] : [...cart];
 

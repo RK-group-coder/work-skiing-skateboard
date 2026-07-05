@@ -48,6 +48,7 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
           .select('*')
           .eq('is_active', true)
           .eq('mode', mode)
+          .order('sort_order', { ascending: true, nullsFirst: false })
           .order('created_at', { ascending: false });
         
         if (error) throw error;
@@ -338,7 +339,7 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                   <div className="space-y-4">
                     <div className="flex items-baseline gap-1">
                       <span className="text-2xl font-black text-gray-900 tracking-tighter">{p.priceDisplay}</span>
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-0.5 rounded ml-1">初次體驗</span>
+
                     </div>
                     {p.addPrice > 0 && p.addPrice < p.price && (
                       <div className={`p-4 rounded-2xl flex flex-col gap-1 shadow-lg ring-1 ring-white/20 animate-in slide-in-from-left duration-500 ${

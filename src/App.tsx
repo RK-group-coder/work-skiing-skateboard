@@ -217,19 +217,17 @@ function App() {
 
   React.useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u?.email && ADMIN_EMAILS.includes(u.email.toLowerCase())) {
-        setShowAdmin(true);
-      }
+      setUser(session?.user ?? null);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null;
       setUser(u);
-      if (u?.email && ADMIN_EMAILS.includes(u.email.toLowerCase())) {
-        setShowAdmin(true);
-      } else {
+      
+      if (!u) {
+        setShowAdmin(false);
+        setShowSupport(false);
+      } else if (u.email && !ADMIN_EMAILS.includes(u.email.toLowerCase())) {
         setShowAdmin(false);
       }
     });

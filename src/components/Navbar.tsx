@@ -455,16 +455,8 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
 
               <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-4">
                 {(() => {
-                  if (vouchers.length === 0) {
-                    return (
-                      <div className="h-full flex flex-col items-center justify-center opacity-40 text-center">
-                        <Tag size={64} className="mb-4" />
-                        <p className="font-bold">目前沒有可用的優惠券/課程</p>
-                      </div>
-                    );
-                  }
-
-                  const groupedVouchers = vouchers.reduce((acc, v) => {
+                  const safeVouchers = vouchers || [];
+                  const groupedVouchers = safeVouchers.reduce((acc, v) => {
                     if (!acc[v.id]) {
                       acc[v.id] = { ...v, count: 1 };
                     } else {
@@ -473,7 +465,10 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                     return acc;
                   }, {} as Record<string, Voucher & { count: number }>);
 
-                  return Object.values(groupedVouchers).map((v, index) => {
+                  const coursePackages = Object.values(groupedVouchers).filter(v => v.target_type === 'course_package');
+                  const normalVouchers = Object.values(groupedVouchers).filter(v => v.target_type !== 'course_package');
+
+                  const renderVoucher = (v: Voucher & { count: number }, index: number) => {
                     const isSelected = selectedVoucher?.id === v.id;
                     let targetLabel = v.target_type === 'global' ? '全站通用' : 
                                         v.target_type === 'skiing' ? '滑雪商品專用' : 
@@ -516,7 +511,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                                 : { backgroundColor: 'rgba(0,0,0,0.1)' }
                               }
                             >
-                              {isSelected ? '套用中' : isCoursePackage ? '專屬方案' : targetLabel}
+                              {isSelected ? '套用中' : isCoursePackage ? `適用於：${v.target_id && targetNames[v.target_id] ? targetNames[v.target_id] : '指定課程'}` : targetLabel}
                             </span>
                           </div>
                           <div className="text-right flex flex-col items-end">
@@ -525,6 +520,9 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                             </p>
                             {(v.min_amount ?? 0) > 0 && <p className="text-[10px] opacity-60 font-bold mt-1">滿 NT$${v.min_amount}</p>}
                             {!isCoursePackage && v.count > 1 && <p className="text-[10px] opacity-60 font-bold mt-1">剩餘 {v.count} 張</p>}
+                            <p className="text-[10px] font-bold mt-1 opacity-80" style={{ color: v.valid_until ? '#ef4444' : 'inherit' }}>
+                              到期時間：{v.valid_until ? new Date(v.valid_until).toLocaleDateString('zh-TW') : '無期限'}
+                            </p>
                           </div>
                         </div>
                         <button 
@@ -635,20 +633,52 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                               }, 600);
                             }
                           }}
-                          className={`w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all mt-4 ${(!isSelected && !eligibility.isEligible) ? 'opacity-90' : ''}`}
+                          className={`w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all mt-4 ${(!isSelected && (!eligibility.isEligible && !isCoursePackage)) ? 'opacity-90' : ''}`}
                           style={
                             isSelected 
                               ? { backgroundColor: '#ef4444', color: '#ffffff' } 
-                              : (!eligibility.isEligible 
-                                  ? { backgroundColor: mode === 'skateboard' ? '#ffffff' : '#111827', color: mode === 'skateboard' ? '#000000' : '#ffffff' } 
-                                  : { background: 'var(--primary-gradient)', color: '#ffffff' })
+                              : (isCoursePackage 
+                                  ? { background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#ffffff' }
+                                  : (!eligibility.isEligible 
+                                      ? { backgroundColor: mode === 'skateboard' ? '#ffffff' : '#111827', color: mode === 'skateboard' ? '#000000' : '#ffffff' } 
+                                      : { background: 'var(--primary-gradient)', color: '#ffffff' }))
                           }
                         >
-                          {isSelected ? '取消使用' : (eligibility.isEligible ? '立即套用至購物車' : '前往選購，自動帶入')}
+                          {isSelected ? '取消使用' : (isCoursePackage ? '🎯 立即預約課程 (扣除1堂)' : (eligibility.isEligible ? '立即套用至購物車' : '前往選購，自動帶入'))}
                         </button>
                       </div>
                     );
-                  })
+                  };
+
+                  return (
+                    <div className="flex flex-col gap-8 pb-8">
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-black uppercase tracking-widest opacity-60 border-b border-current/10 pb-2">課程專區</h3>
+                        {coursePackages.length > 0 ? (
+                          <div className="flex flex-col gap-4">
+                            {coursePackages.map((v, index) => renderVoucher(v, index))}
+                          </div>
+                        ) : (
+                          <div className="py-6 flex flex-col items-center justify-center opacity-40 text-center bg-black/5 rounded-xl border border-dashed border-current/20">
+                            <p className="font-bold text-sm">尚無可用課程</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-4">
+                        <h3 className="text-sm font-black uppercase tracking-widest opacity-60 border-b border-current/10 pb-2">優惠卷專區</h3>
+                        {normalVouchers.length > 0 ? (
+                          <div className="flex flex-col gap-4">
+                            {normalVouchers.map((v, index) => renderVoucher(v, index))}
+                          </div>
+                        ) : (
+                          <div className="py-6 flex flex-col items-center justify-center opacity-40 text-center bg-black/5 rounded-xl border border-dashed border-current/20">
+                            <p className="font-bold text-sm">尚無可用優惠券</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
                 })()}
               </div>
             </motion.div>

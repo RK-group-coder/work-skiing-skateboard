@@ -366,7 +366,7 @@ const ProductShowcase: React.FC = () => {
                           </div>
                         )}
                         <div className="flex items-center gap-3">
-                          <div className="text-3xl font-black text-primary">NT${selectedProduct.price.toLocaleString()}</div>
+                          <div className="text-3xl font-black text-gray-900">NT${selectedProduct.price.toLocaleString()}</div>
                           {selectedProduct.originalPrice && (
                             <span className="bg-primary/10 text-primary text-xs font-black px-2 py-1 rounded-lg">會員獨享價</span>
                           )}

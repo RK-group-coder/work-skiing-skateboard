@@ -98,14 +98,30 @@ const Hero: React.FC = () => {
     setIsMuted(!isSettingSoundOn);
   }, [isSettingSoundOn, mode]);
 
+  const pauseCurrentMedia = () => {
+    if (videoRef.current) {
+      try { videoRef.current.pause(); } catch (e) {}
+    }
+    if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
+      try { playerRef.current.pauseVideo(); } catch (e) {}
+    }
+  };
+
   useEffect(() => {
     if (!ytInfo) return;
 
     setIsVideoLoaded(false);
+    const ytPlayerId = `youtube-bg-player-${currentIndex}`;
 
     const loadPlayer = () => {
-      playerRef.current = new window.YT.Player('youtube-bg-player', {
+      playerRef.current = new window.YT.Player(ytPlayerId, {
         events: {
+          onReady: (event: any) => {
+            if (!isMuted) {
+              event.target.unMute();
+            }
+            event.target.playVideo();
+          },
           onStateChange: (event: any) => {
             // PlayerState.PLAYING is 1
             if (event.data === 1) {
@@ -165,6 +181,21 @@ const Hero: React.FC = () => {
     setIsMuted(nextMute);
   };
 
+  // Auto-slide every 3 seconds
+  useEffect(() => {
+    if (bgImages.length <= 1) return;
+    const timer = setInterval(() => {
+      pauseCurrentMedia();
+      setDirection(1);
+      setCurrentIndex(prev => {
+        let next = prev + 1;
+        if (next >= bgImages.length) next = 0;
+        return next;
+      });
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [bgImages.length, currentIndex]);
+
   // Carousel Swipe Logic
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -180,6 +211,7 @@ const Hero: React.FC = () => {
   };
 
   const paginate = (newDirection: number) => {
+    pauseCurrentMedia();
     setDirection(newDirection);
     setCurrentIndex(prev => {
       let next = prev + newDirection;
@@ -265,7 +297,7 @@ const Hero: React.FC = () => {
                   }}
                 />
                 <iframe
-                  id="youtube-bg-player"
+                  id={`youtube-bg-player-${currentIndex}`}
                   src={`https://www.youtube.com/embed/${ytInfo.id}?enablejsapi=1&autoplay=1&mute=1&loop=1&playlist=${ytInfo.id}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
                   className={`absolute top-1/2 left-1/2 transition-opacity duration-700 pointer-events-none ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
                   style={{ 
@@ -298,6 +330,7 @@ const Hero: React.FC = () => {
                 key={i} 
                 onClick={(e) => { 
                   e.stopPropagation(); 
+                  pauseCurrentMedia();
                   setDirection(i > currentIndex ? 1 : -1);
                   setCurrentIndex(i); 
                 }}
