@@ -82,7 +82,7 @@ const scriptContent = `
 
 // Insert the script right before the closing div of page-task-quest5
 // Since it's appended right before </body>, we can just insert before the last </div> of quest5.
-const quest5EndIdx = content.indexOf('</div>\n\n\n</body>');
+const quest5EndIdx = content.indexOf('</div>\n\n\n</body>'); 
 if (quest5EndIdx !== -1) {
     // Actually the page is `</div>` then maybe `<!-- App JS -->` or `</body>`. 
     // Let's use regex to replace the end of page-task-quest5.

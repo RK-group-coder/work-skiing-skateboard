@@ -480,18 +480,20 @@ const CourseForm = ({ form, setForm, onSave, onCancel, loading, coaches }: { for
       <div>
         <label className={labelCls}>課程類別 MODE</label>
         <div className="flex items-center gap-4">
-          <select value={form.mode} onChange={e => setForm({ ...form, mode: e.target.value as any })} className={`${inputCls} flex-1`}>
+          <select value={form.mode} onChange={e => setForm({ ...form, mode: e.target.value as any, ...(e.target.value !== 'skiing' ? { is_night_mode: false } : {}) })} className={`${inputCls} flex-1`}>
             <option value="skiing">滑雪</option>
             <option value="skateboard">滑板</option>
           </select>
-          <label className="flex items-center gap-2 cursor-pointer shrink-0 border border-gray-100 bg-gray-50 px-3 py-2 rounded-xl">
-            <div className="relative flex items-center">
-              <input type="checkbox" className="sr-only" checked={form.is_night_mode || false} onChange={e => setForm({ ...form, is_night_mode: e.target.checked })} />
-              <div className={`block w-10 h-6 rounded-full transition-colors ${form.is_night_mode ? 'bg-primary' : 'bg-gray-300'}`}></div>
-              <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${form.is_night_mode ? 'transform translate-x-4' : ''}`}></div>
-            </div>
-            <span className="text-xs font-black text-gray-700 uppercase tracking-widest mt-0.5">夜滑模式</span>
-          </label>
+          {form.mode === 'skiing' && (
+            <label className="flex items-center gap-2 cursor-pointer shrink-0 border border-gray-100 bg-gray-50 px-3 py-2 rounded-xl">
+              <div className="relative flex items-center">
+                <input type="checkbox" className="sr-only" checked={form.is_night_mode || false} onChange={e => setForm({ ...form, is_night_mode: e.target.checked })} />
+                <div className={`block w-10 h-6 rounded-full transition-colors ${form.is_night_mode ? 'bg-primary' : 'bg-gray-300'}`}></div>
+                <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${form.is_night_mode ? 'transform translate-x-4' : ''}`}></div>
+              </div>
+              <span className="text-xs font-black text-gray-700 uppercase tracking-widest mt-0.5">夜滑模式</span>
+            </label>
+          )}
         </div>
       </div>
       <div>
@@ -527,24 +529,16 @@ const CourseForm = ({ form, setForm, onSave, onCancel, loading, coaches }: { for
 
           <div>
             <label className={labelCls}>專屬時段</label>
-            <div className="flex flex-wrap gap-3 mt-2">
-              {['17:00~18:00', '18:00~19:00', '19:00~20:00', '20:00~21:00', '21:00~22:00', '22:00~23:00', '23:00~24:00'].map(slot => {
-                const isSelected = (form.night_mode_slots || []).includes(slot);
-                return (
-                  <button
-                    key={slot}
-                    type="button"
-                    onClick={() => {
-                      const current = form.night_mode_slots || [];
-                      setForm({ ...form, night_mode_slots: isSelected ? current.filter(s => s !== slot) : [...current, slot] });
-                    }}
-                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${isSelected ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-sm' : 'border-gray-200 bg-white text-gray-600 hover:border-gray-400'}`}
-                  >
-                    {slot}
-                  </button>
-                );
-              })}
-            </div>
+            <input 
+              type="text" 
+              className={inputCls} 
+              placeholder="例如: 17:00~19:00" 
+              value={form.night_mode_slots?.join(', ') || ''} 
+              onChange={e => {
+                const val = e.target.value;
+                setForm({ ...form, night_mode_slots: val ? [val] : [] });
+              }} 
+            />
           </div>
         </div>
       )}
@@ -981,11 +975,15 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
     skateboard: { mode: 'skateboard', weekday_slots: [], weekend_slots: [] }
   });
   const [scheduleMode, setScheduleMode] = useState<'skiing' | 'skateboard'>('skiing');
+  // key = `${coachId}__${date}__${time}`, value = order id (for deleting)
+  const [manualBlocks, setManualBlocks] = useState<Map<string, string>>(new Map());
   const [isAddingCoach, setIsAddingCoach] = useState(false);
   const [coachForm, setCoachForm] = useState<Coach>(EMPTY_COACH);
   const [isAddingLocation, setIsAddingLocation] = useState(false);
   const [locationForm, setLocationForm] = useState<CourseLocation>(EMPTY_LOCATION);
   const [courseHubTab, setCourseHubTab] = useState<'coaches' | 'locations' | 'schedule'>('schedule');
+  const [selectedScheduleDate, setSelectedScheduleDate] = useState<string | null>(null);
+  const [adminCalendarDate, setAdminCalendarDate] = useState(new Date());
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -1107,7 +1105,26 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
     try {
       const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
       if (error) throw error;
-      if (data) setOrders(data);
+      if (data) {
+        setOrders(data);
+        // rebuild manualBlocks from SYSTEM_BLOCK orders
+        const newBlocks = new Map<string, string>();
+        data.forEach((o: any) => {
+          if (o.customer_name === 'SYSTEM_BLOCK' && o.status === 'confirmed') {
+            o.items?.forEach((item: any) => {
+              if (item.type === 'course_booking' && item.details?.times) {
+                const coachId = item.details.coachId || item.details.coach_id;
+                Object.entries(item.details.times).forEach(([date, slots]: [string, any]) => {
+                  Object.keys(slots).forEach(time => {
+                    newBlocks.set(`${coachId}__${date}__${time}`, o.id);
+                  });
+                });
+              }
+            });
+          }
+        });
+        setManualBlocks(newBlocks);
+      }
     } catch (err: any) { 
       console.error('Error fetching orders:', err);
       setOrdersError(err.message);
@@ -1848,7 +1865,266 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
         return (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+            {/* Schedule Grid Modal */}
+            {selectedScheduleDate && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-auto" onClick={(e) => { if (e.target === e.currentTarget) setSelectedScheduleDate(null); }}>
+                <div className="relative w-[1000px] max-w-full bg-[#f8f9fa] rounded-[40px] overflow-hidden shadow-2xl flex flex-col transform transition-all duration-300 animate-in zoom-in-95 my-auto max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                  <div className="px-8 py-8 flex flex-col items-start relative z-10 w-full overflow-hidden">
+                    <div className="flex justify-between items-center w-full mb-6">
+                      <div>
+                        <h3 className="text-2xl font-black text-gray-900 tracking-tight">{selectedScheduleDate} 教練排課狀況</h3>
+                        <p className="text-gray-400 font-bold mt-1 text-sm tracking-widest uppercase">{scheduleMode === 'skiing' ? '⛷ 滑雪端' : '🛹 滑板端'}</p>
+                      </div>
+                      <div className="flex gap-4">
+                        <button 
+                          onClick={() => {
+                            toggleBlockedDate(selectedScheduleDate);
+                          }}
+                          className={`px-5 py-2.5 rounded-xl text-sm font-black transition-all shadow-md ${schedules.some(s => s.blocked_date === selectedScheduleDate && s.mode === scheduleMode) ? 'bg-blue-50 text-blue-600 border-2 border-blue-200 hover:bg-blue-100' : 'bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100'}`}
+                        >
+                          {schedules.some(s => s.blocked_date === selectedScheduleDate && s.mode === scheduleMode) ? '✅ 開放此日預約' : '⛔ 設定當日公休'}
+                        </button>
+                        <button 
+                          onClick={() => setSelectedScheduleDate(null)}
+                          className="w-10 h-10 bg-black/5 rounded-full flex items-center justify-center text-black/40 hover:bg-black/10 hover:text-black transition-colors"
+                        >
+                          <X size={20} />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="w-full overflow-x-auto bg-white rounded-3xl border border-gray-200 shadow-sm">
+                      {(() => {
+                        const gridCoaches = coaches.filter(c => c.mode === scheduleMode);
+                        const dateObj = new Date(selectedScheduleDate);
+                        const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
+                        let rows: { time: string; label: string }[] = [];
+                        
+                        if (scheduleMode === 'skiing') {
+                          const slots = isWeekend ? timeSettings.skiing?.weekend_slots : timeSettings.skiing?.weekday_slots;
+                          rows = [
+                            { label: '上午', time: slots?.[0] || '09:00-12:00' },
+                            { label: '下午', time: slots?.[1] || '13:00-16:00' },
+                            { label: '全天', time: slots?.[2] || '09:00-15:00' },
+                          ];
+                          courses.filter(c => c.mode === 'skiing' && c.is_night_mode).forEach(nc => {
+                            if (nc.night_mode_slots) {
+                              nc.night_mode_slots.forEach(slot => {
+                                if (!rows.find(r => r.time === slot)) {
+                                  rows.push({ label: '夜滑', time: slot });
+                                }
+                              });
+                            }
+                          });
+                        } else {
+                          const slots = isWeekend ? timeSettings.skateboard?.weekend_slots : timeSettings.skateboard?.weekday_slots;
+                          const rawSlots = slots || [];
+                          const parseSlots = (arr: string[]) => {
+                            let expanded: string[] = [];
+                            arr.forEach(s => {
+                              if (typeof s !== 'string') return;
+                              if (s.includes('~') || s.includes('-')) {
+                                const parts = s.split(/[~-]/).map(t => t.trim());
+                                if (parts.length < 2) return;
+                                const [start, end] = parts;
+                                const startHour = parseInt(start.split(':')[0]);
+                                const endHour = parseInt(end.split(':')[0]);
+                                if (isNaN(startHour) || isNaN(endHour)) return;
+                                for (let h = startHour; h < endHour; h++) {
+                                  expanded.push(`${String(h).padStart(2, '0')}:00`);
+                                }
+                              } else {
+                                expanded.push(s);
+                              }
+                            });
+                            return Array.from(new Set(expanded)).sort();
+                          };
+                          rows = parseSlots(rawSlots).map(time => ({ label: '時段', time }));
+                        }
+                        
+                        orders.forEach(o => {
+                          if (o.status !== 'cancelled' && o.mode === scheduleMode) {
+                            o.items.forEach(i => {
+                              if (i.type === 'course_booking' && i.details?.times?.[selectedScheduleDate]) {
+                                Object.keys(i.details.times[selectedScheduleDate]).forEach(time => {
+                                  const exists = rows.some(r => time.includes(r.time) || r.time.includes(time));
+                                  if (!exists) {
+                                    const cleanTime = time.replace(/.*課程\s*/, '').trim();
+                                    const existsClean = rows.some(r => cleanTime.includes(r.time) || r.time.includes(cleanTime));
+                                    if (!existsClean) {
+                                      rows.push({ label: '其他', time: cleanTime });
+                                    }
+                                  }
+                                });
+                              }
+                            });
+                          }
+                        });
 
+                        return (
+                          <table className="w-full min-w-[600px] border-collapse">
+                            <thead>
+                              <tr>
+                                <th className="p-4 border-b-2 border-r-2 border-gray-900 bg-gray-50 text-left w-48 text-gray-900 font-black">時段 / 教練</th>
+                                {gridCoaches.map(c => (
+                                  <th key={c.id} className="p-4 border-b-2 border-r border-gray-200 text-center text-gray-900 font-black w-32 min-w-[128px]">
+                                    {c.name}
+                                  </th>
+                                ))}
+                                <th className="p-4 border-b-2 border-gray-200 w-full"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {rows.map((r, i) => (
+                                <tr key={i} className="hover:bg-blue-50/30 transition-colors">
+                                  <td className="p-4 border-b border-r-2 border-gray-900 bg-gray-50 font-black text-sm">
+                                    <div className="text-gray-900">{r.time}</div>
+                                    <div className="text-gray-400 text-[10px] uppercase tracking-widest">{scheduleMode === 'skiing' ? '滑雪課' : '滑板課'} {r.label}</div>
+                                  </td>
+                                  {gridCoaches.map(c => {
+                                    const isNightRow = r.label === '夜滑';
+                                    const hasConflict = orders.some(o => 
+                                      o.status !== 'cancelled' && 
+                                      o.customer_name !== 'SYSTEM_BLOCK' &&
+                                      o.mode === scheduleMode && 
+                                      o.items.some(i => 
+                                        i.type === 'course_booking' && 
+                                        (i.details?.coachId === c.id || i.details?.coach_id === c.id) &&
+                                        Object.keys(i.details?.times?.[selectedScheduleDate] || {}).some(orderTime => {
+                                          const isOrderNightSlot = rows.filter(row => row.label === '夜滑').some(row => orderTime.includes(row.time) || row.time.includes(orderTime));
+                                          return isNightRow ? isOrderNightSlot : !isOrderNightSlot;
+                                        })
+                                      )
+                                    );
+
+                                    const isReserved = orders.some(o => 
+                                      o.status !== 'cancelled' && 
+                                      o.customer_name !== 'SYSTEM_BLOCK' &&
+                                      o.mode === scheduleMode && 
+                                      o.items.some(i => 
+                                        i.type === 'course_booking' && 
+                                        (i.details?.coachId === c.id || i.details?.coach_id === c.id) &&
+                                        Object.keys(i.details?.times?.[selectedScheduleDate] || {}).some(orderTime => 
+                                          orderTime.includes(r.time) || r.time.includes(orderTime)
+                                        )
+                                      )
+                                    );
+
+                                    const blockKey = `${c.id}__${selectedScheduleDate}__${r.time}`;
+                                    const isManuallyBlocked = manualBlocks.has(blockKey);
+
+                                    let cellText = '待接課';
+                                    let cellClass = 'text-gray-400 bg-white cursor-pointer hover:bg-orange-50 hover:text-orange-500';
+                                    
+                                    if (isReserved) {
+                                      cellText = '已預約';
+                                      cellClass = 'bg-neutral-100 text-neutral-900 cursor-default';
+                                    } else if (isManuallyBlocked) {
+                                      cellText = '手動停止預約';
+                                      cellClass = 'bg-orange-50 text-orange-500 cursor-pointer hover:bg-orange-100 line-through';
+                                    } else if (hasConflict) {
+                                      cellText = '停止預約';
+                                      cellClass = 'bg-red-50/50 text-red-400/60 cursor-default';
+                                    }
+
+                                    const handleCellClick = async (e: React.MouseEvent) => {
+                                      e.stopPropagation();
+                                      if (isReserved || hasConflict) return;
+                                      
+                                      if (isManuallyBlocked) {
+                                        // optimistic update
+                                        setManualBlocks(prev => { const next = new Map(prev); next.delete(blockKey); return next; });
+                                        
+                                        try {
+                                          // Dynamically fetch and delete matching SYSTEM_BLOCK records
+                                          const { data: allBlocks, error: fetchErr } = await supabase.from('orders')
+                                            .select('id, items')
+                                            .eq('customer_name', 'SYSTEM_BLOCK');
+                                          
+                                          if (fetchErr) throw fetchErr;
+                                          
+                                          const idsToDelete = (allBlocks || []).filter(o => 
+                                            o.items?.some((i: any) => 
+                                              i.type === 'course_booking' &&
+                                              (i.details?.coachId === c.id || i.details?.coach_id === c.id) &&
+                                              i.details?.times?.[selectedScheduleDate]?.[r.time]
+                                            )
+                                          ).map(o => o.id);
+                                          
+                                          if (idsToDelete.length > 0) {
+                                            const { error: delErr } = await supabase.from('orders').delete().in('id', idsToDelete);
+                                            if (delErr) throw delErr;
+                                          }
+                                          fetchOrders(); // sync state
+                                        } catch (err: any) {
+                                          setManualBlocks(prev => new Map(prev).set(blockKey, 'error'));
+                                          alert('解除失敗：' + err.message);
+                                        }
+                                      } else {
+                                        const tempId = `temp_${Date.now()}`;
+                                        // optimistic update
+                                        setManualBlocks(prev => new Map(prev).set(blockKey, tempId));
+                                        
+                                        try {
+                                          const { data: { session } } = await supabase.auth.getSession();
+                                          const { error } = await supabase.from('orders').insert([{
+                                            user_id: session?.user?.id || null,
+                                            customer_name: 'SYSTEM_BLOCK',
+                                            customer_phone: '0000000000',
+                                            customer_email: 'system@block.local',
+                                            status: 'confirmed',
+                                            mode: scheduleMode,
+                                            total_price: 0,
+                                            bank_info: { method: 'system_block', note: '手動停止預約' },
+                                            last_five_digits: '00000',
+                                            screenshot_data: 'none',
+                                            items: [{
+                                              type: 'course_booking',
+                                              price: 0,
+                                              quantity: 1,
+                                              details: {
+                                                coachId: c.id,
+                                                dates: [selectedScheduleDate],
+                                                times: { [selectedScheduleDate]: { [r.time]: 1 } }
+                                              }
+                                            }]
+                                          }]);
+                                          if (error) throw error;
+                                          fetchOrders(); // This will replace the tempId with the real UUID from the DB
+                                        } catch (err: any) {
+                                          setManualBlocks(prev => { const next = new Map(prev); next.delete(blockKey); return next; });
+                                          alert('設定失敗：' + err.message);
+                                        }
+                                      }
+                                    };
+
+                                    return (
+                                      <td key={c.id} className="p-4 border-b border-r border-gray-200 text-center font-black text-sm">
+                                        <button
+                                          type="button"
+                                          className={`w-full flex items-center justify-center py-2 px-2 transition-all rounded-lg text-xs ${cellClass}`}
+                                          onClick={handleCellClick}
+                                        >
+                                          {cellText}
+                                        </button>
+                                      </td>
+                                    );
+                                  })}
+                                  <td className="p-4 border-b border-gray-200 w-full"></td>
+                                </tr>
+                              ))}
+                              {rows.length === 0 && (
+                                <tr><td colSpan={gridCoaches.length + 2} className="p-8 text-center text-gray-400 font-bold">尚無任何時段設定</td></tr>
+                              )}
+                            </tbody>
+                          </table>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             {/* ── 課程列表 ── */}
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
@@ -2043,16 +2319,21 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
               {/* Schedule */}
               {courseHubTab === 'schedule' && (() => {
-                const today = new Date();
-                const currentMonth = today.getMonth();
-                const currentYear = today.getFullYear();
+                const currentMonth = adminCalendarDate.getMonth();
+                const currentYear = adminCalendarDate.getFullYear();
                 const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+                const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+                
                 return (
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
                       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                         <h4 className="text-xl font-black italic uppercase flex items-center gap-2 text-gray-900">
                           排課日曆 <span className="text-gray-400 font-medium tracking-normal text-base not-italic">({currentYear} / {currentMonth + 1})</span>
+                          <div className="flex gap-1 ml-2 not-italic">
+                            <button onClick={() => setAdminCalendarDate(new Date(currentYear, currentMonth - 1, 1))} className="p-1 hover:bg-gray-100 rounded-lg text-gray-500 transition-all"><ChevronLeft size={20} /></button>
+                            <button onClick={() => setAdminCalendarDate(new Date(currentYear, currentMonth + 1, 1))} className="p-1 hover:bg-gray-100 rounded-lg text-gray-500 transition-all"><ChevronRight size={20} /></button>
+                          </div>
                         </h4>
                         <div className="flex gap-1 p-1 bg-gray-100 rounded-xl">
                           {['skiing', 'skateboard'].map(m => (
@@ -2067,13 +2348,26 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         {['日', '一', '二', '三', '四', '五', '六'].map(d => (
                           <div key={d} className="text-center text-[10px] font-black text-gray-300 py-2">{d}</div>
                         ))}
+                        {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                          <div key={`empty-${i}`} className="aspect-square" />
+                        ))}
                         {Array.from({ length: daysInMonth }).map((_, i) => {
                           const day = i + 1;
                           const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                           const isBlocked = schedules.some(s => s.blocked_date === dateStr && s.mode === scheduleMode);
+                          const hasClasses = orders.some(o => o.status !== 'cancelled' && o.mode === scheduleMode && o.items?.some(i => i.type === 'course_booking' && i.details?.times && i.details.times[dateStr]));
+                          
+                          let stateCls = "";
+                          if (isBlocked) {
+                            stateCls = "bg-gray-50 border-gray-200 text-gray-400 hover:bg-gray-100 hover:border-gray-300 hover:text-gray-500";
+                          } else {
+                            const textColor = hasClasses ? "text-red-500" : "text-blue-600";
+                            stateCls = `bg-blue-50 border-blue-100 ${textColor} hover:bg-red-50 hover:border-red-200 hover:text-red-500`;
+                          }
+
                           return (
-                            <button key={day} onClick={() => toggleBlockedDate(dateStr)}
-                              className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border ${isBlocked ? 'bg-red-50 border-red-200 text-red-600 hover:bg-neutral-50 hover:border-neutral-200 hover:text-neutral-400' : 'bg-blue-50 border-blue-100 text-blue-600 hover:bg-red-50 hover:border-red-200 hover:text-red-500'}`}>
+                            <button key={day} onClick={() => setSelectedScheduleDate(dateStr)}
+                              className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border ${stateCls}`}>
                               <span className="text-sm font-black">{day}</span>
                             </button>
                           );
@@ -2796,11 +3090,12 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
 
       // ── 訂單管理 ───────────────────────────────────────────────
       case 'orders': {
-        const productOrdersCount = orders.filter(o => o.status !== 'cancelled' && !readOrderIds.has(o.id) && o.items.some(item => item.type === 'product')).length;
-        const courseOrdersCount = orders.filter(o => o.status !== 'cancelled' && !readOrderIds.has(o.id) && o.items.some(item => item.type === 'course_booking')).length;
+        const productOrdersCount = orders.filter(o => o.status !== 'cancelled' && o.customer_name !== 'SYSTEM_BLOCK' && !readOrderIds.has(o.id) && o.items.some(item => item.type === 'product')).length;
+        const courseOrdersCount = orders.filter(o => o.status !== 'cancelled' && o.customer_name !== 'SYSTEM_BLOCK' && !readOrderIds.has(o.id) && o.items.some(item => item.type === 'course_booking')).length;
 
         const filteredByType = orders.filter(o => {
           if (o.status === 'cancelled') return false;
+          if (o.customer_name === 'SYSTEM_BLOCK') return false;
           if (orderType === 'product') return o.items.some(item => item.type === 'product');
           return o.items.some(item => item.type === 'course_booking');
         });
@@ -2828,7 +3123,8 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               </div>
             )}
 
-            {/* Promotion Screenshot Modal */}
+
+
             {showPromotionModal && (
               <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setShowPromotionModal(null)}>
                 <div 
@@ -3507,7 +3803,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
             { id: 'homepage', label: '首頁內容設定', icon: <Settings2 size={20} /> },
           ].map(({ id, label, icon }) => {
             const isOrdersTab = id === 'orders';
-            const unreadCount = isOrdersTab ? orders.filter(o => o.status !== 'cancelled' && !readOrderIds.has(o.id)).length : 0;
+            const unreadCount = isOrdersTab ? orders.filter(o => o.status !== 'cancelled' && o.customer_name !== 'SYSTEM_BLOCK' && !readOrderIds.has(o.id)).length : 0;
             return (
             <button key={id}
               onClick={() => { setActiveTab(id as any); setIsMobileMenuOpen(false); }}

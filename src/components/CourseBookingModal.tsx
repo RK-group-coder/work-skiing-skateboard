@@ -122,7 +122,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
         order.items?.forEach((item: any) => {
           if (item.type === 'course_booking') {
             const details = item.details;
-            const orderDates = details.dates || [];
+            const orderDates = details.dates || Object.keys(details.times || {});
             const orderTimes = details.times || {};
             const coachId = details.coachId;
             
