@@ -1682,7 +1682,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                           : <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><Package size={20} className="text-gray-300" /></div>
                         }
                         <div className="flex-1 min-w-0">
-                          <div className="font-black text-sm mb-1" style={{ color: '#000000', wordBreak: 'break-all' }} title={p.name}>
+                          <div className="font-black text-sm mb-1" style={{ color: '#000000', whiteSpace: 'nowrap' }} title={p.name}>
                             {(() => {
                               const name = p.name || (p as any).title || '未命名商品';
                               return name.length > 10 ? name.slice(0, 10) + '...' : name;
