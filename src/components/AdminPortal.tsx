@@ -1682,8 +1682,13 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                           : <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><Package size={20} className="text-gray-300" /></div>
                         }
                         <div className="flex-1 min-w-0">
-                          <div className="font-black text-sm truncate mb-1" style={{ color: '#000000' }} title={p.name}>{p.name || (p as any).title || '未命名商品'}</div>
-                          <div className="text-xs text-gray-400 font-medium truncate flex flex-wrap gap-1">
+                          <div className="font-black text-sm mb-1" style={{ color: '#000000', wordBreak: 'break-all' }} title={p.name}>
+                            {(() => {
+                              const name = p.name || (p as any).title || '未命名商品';
+                              return name.length > 10 ? name.slice(0, 10) + '...' : name;
+                            })()}
+                          </div>
+                          <div className="text-xs text-gray-400 font-medium flex flex-wrap gap-1">
                             {(() => {
                               const allCatIds = [p.category_id, ...(p.tag || "").split(',')].filter(id => id && id.length === 36);
                               const uniqueCatIds = Array.from(new Set(allCatIds));
