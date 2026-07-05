@@ -35,6 +35,8 @@ const ProductShowcase: React.FC = () => {
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
   const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
@@ -165,6 +167,26 @@ const ProductShowcase: React.FC = () => {
 
   const filteredProducts = products.filter(p => activeCategory === 'all' || p.category_id === activeCategory || (p.tag || "").split(',').includes(activeCategory));
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEndX(null);
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    const distance = touchStartX - touchEndX;
+    if (distance > 50 && currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    }
+    if (distance < -50 && currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
   const currentProducts = filteredProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
   if (loading && products.length === 0) return null;
@@ -212,7 +234,12 @@ const ProductShowcase: React.FC = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+        <div 
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {currentProducts.map((product, index) => (
             <motion.div
               key={product.id}
