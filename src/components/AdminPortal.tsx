@@ -1682,7 +1682,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                           : <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><Package size={20} className="text-gray-300" /></div>
                         }
                         <div className="flex-1 min-w-0">
-                          <div className="font-black text-sm truncate">{p.name}</div>
+                          <div className="font-black text-sm text-gray-900 truncate mb-1" title={p.name}>{p.name || (p as any).title || '未命名商品'}</div>
                           <div className="text-xs text-gray-400 font-medium truncate flex flex-wrap gap-1">
                             {(() => {
                               const allCatIds = [p.category_id, ...(p.tag || "").split(',')].filter(id => id && id.length === 36);
@@ -1705,7 +1705,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="font-black text-sm">NT${p.price.toLocaleString()}</div>
+                          <div className="font-black text-sm text-gray-900">NT${(p.price || 0).toLocaleString()}</div>
                           {p.special_price ? <div className="text-[10px] text-red-500 font-bold italic">SALE NT${p.special_price.toLocaleString()}</div> : null}
                           <div className={`text-[10px] font-bold ${p.is_active ? 'text-green-500' : 'text-gray-300'}`}>{p.is_active ? '上架中' : '已下架'}</div>
                         </div>
