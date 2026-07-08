@@ -53,8 +53,8 @@ export default function AITeam({ products = [], courses = [], orders = [], vouch
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // API Key state
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('sk8_openai_api_key') || '');
-  const [showKeySetting, setShowKeySetting] = useState(!localStorage.getItem('sk8_openai_api_key'));
+  const [apiKey, setApiKey] = useState(() => import.meta.env.VITE_OPENAI_API_KEY || localStorage.getItem('sk8_openai_api_key') || '');
+  const [showKeySetting, setShowKeySetting] = useState(() => !(import.meta.env.VITE_OPENAI_API_KEY || localStorage.getItem('sk8_openai_api_key')));
   const [showSettings, setShowSettings] = useState(false);
   const [tempKey, setTempKey] = useState('');
   const [isShortMode, setIsShortMode] = useState(true);
