@@ -341,7 +341,7 @@ const ProductShowcase: React.FC = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-[40px] w-full max-w-5xl overflow-hidden shadow-2xl relative max-h-[90vh] flex flex-col"
+              className="bg-white rounded-[40px] w-full max-w-5xl overflow-hidden shadow-2xl relative max-h-[85dvh] md:max-h-[90vh] flex flex-col"
             >
               {/* Header / Close Button Area */}
               <div className="flex justify-end p-4 absolute top-0 right-0 z-[110]">
@@ -430,7 +430,7 @@ const ProductShowcase: React.FC = () => {
               </div>
 
               {/* Quantity Selector */}
-              <div className="mb-4 px-6 flex items-center justify-between">
+              <div className="mb-4 px-6 flex items-center justify-between shrink-0">
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">選擇數量</p>
                 <div className="flex items-center gap-2 bg-gray-50 rounded-xl p-1 border border-gray-100">
                   <button 
@@ -450,7 +450,7 @@ const ProductShowcase: React.FC = () => {
               </div>
 
               {/* Fixed Bottom Action Bar */}
-              <div className="sticky bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-100 flex gap-3 z-[120] shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
+              <div className="sticky bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-100 flex gap-3 z-[120] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] shrink-0">
                 <button 
                   onClick={(e) => handleAddToCart(e, selectedProduct)}
                   disabled={selectedProduct.stock !== null && selectedProduct.stock <= 0}
