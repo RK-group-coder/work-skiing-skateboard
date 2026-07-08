@@ -25,7 +25,7 @@ interface Product {
 
 const ProductShowcase: React.FC = () => {
   const { mode } = useTheme();
-  const { addToCart, setIsCheckoutOpen, setDirectPurchaseItem } = useCart();
+  const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
   const [activeCategory, setActiveCategory] = useState('all');
@@ -354,7 +354,7 @@ const ProductShowcase: React.FC = () => {
               </div>
 
               {/* Main Scrollable Content */}
-              <div className="flex-1 overflow-y-auto no-scrollbar">
+              <div className="flex-1 overflow-y-auto no-scrollbar min-h-0">
                 <div className="flex flex-col md:flex-row min-h-full">
                   {/* Images Section */}
                   <div className="md:w-1/2 p-6 md:p-10 h-fit">
@@ -455,36 +455,13 @@ const ProductShowcase: React.FC = () => {
                   onClick={(e) => handleAddToCart(e, selectedProduct)}
                   disabled={selectedProduct.stock !== null && selectedProduct.stock <= 0}
                   style={{ 
-                    backgroundColor: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#f3f4f6' : (mode === 'skiing' ? '#dbeafe' : '#fee2e2'), 
-                    color: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#9ca3af' : (mode === 'skiing' ? '#1e40af' : '#991b1b'),
-                    borderColor: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#e5e7eb' : (mode === 'skiing' ? '#bfdbfe' : '#fecaca')
+                    backgroundColor: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#e5e7eb' : (mode === 'skiing' ? '#2563eb' : '#dc2626'), 
+                    color: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#9ca3af' : '#ffffff' 
                   }}
-                  className="flex-1 py-4 rounded-2xl font-black italic uppercase transition-all hover:opacity-80 active:scale-95 flex items-center justify-center gap-2 border disabled:cursor-not-allowed"
+                  className="w-full py-4 rounded-2xl font-black italic shadow-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all uppercase disabled:cursor-not-allowed disabled:shadow-none"
                 >
-                  <ShoppingCart size={18} />
-                  <span className="hidden sm:inline text-xs">{(selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '庫存不足' : '加入購物車'}</span>
-                  <span className="sm:hidden text-[10px]">{(selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '完售' : '購物車'}</span>
-                </button>
-                <button 
-                  onClick={() => {
-                    if (selectedProduct.stock !== null && selectedProduct.stock <= 0) return;
-                    setDirectPurchaseItem({ 
-                      id: selectedProduct.id, 
-                      name: selectedProduct.name, 
-                      price: selectedProduct.price, 
-                      type: 'product', 
-                      image: selectedProduct.image, 
-                      quantity: purchaseQty,
-                      details: { mode: selectedProduct.mode, category_id: selectedProduct.category_id, tag: selectedProduct.tag }
-                    });
-                    setIsCheckoutOpen(true);
-                    setSelectedProduct(null);
-                  }}
-                  disabled={selectedProduct.stock !== null && selectedProduct.stock <= 0}
-                  style={{ backgroundColor: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#e5e7eb' : (mode === 'skiing' ? '#2563eb' : '#dc2626'), color: (selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '#9ca3af' : '#ffffff' }}
-                  className="flex-[2] py-4 rounded-2xl font-black italic shadow-xl flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all uppercase disabled:cursor-not-allowed disabled:shadow-none"
-                >
-                  {(selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '已售完' : '立刻直接購買'}
+                  <ShoppingCart size={20} />
+                  <span>{(selectedProduct.stock !== null && selectedProduct.stock <= 0) ? '已售完' : '加入購物車'}</span>
                 </button>
               </div>
             </motion.div>

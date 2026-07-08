@@ -49,7 +49,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [isFirstLesson] = useState(true);
   const [skillLevel, setSkillLevel] = useState('');
-  const [mediaUrl, setMediaUrl] = useState('');
+
 
   // Customer Info State (especially for redemptions)
   const [customerName, setCustomerName] = useState('');
@@ -437,7 +437,6 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
           locationId: selectedLocation,
           coachId: selectedCoach,
           skillLevel,
-          mediaUrl,
           isFirstLesson,
           totalPersonSlots,
           isRedemption: course.isRedeemingPackage
@@ -563,7 +562,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                 coach_name: coachData.name,
                 contact_phone: customerPhone || '未提供',
                 skill_level: skillLevel || '未填寫',
-                video_link: mediaUrl ? `<a href="${mediaUrl}">${mediaUrl}</a>` : '無影片連結',
+                video_link: '已合併於學習程度備註',
                 order_time: currentTime,
                 last_five_digits: '方案兌換',
                 payment_method: '課程方案兌換',
@@ -931,7 +930,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                     selectedCoach === c.id 
                                       ? 'bg-white shadow-xl scale-[1.05] z-10 border-transparent' 
                                       : isBusy 
-                                        ? 'bg-gray-50 border-gray-100 opacity-50 cursor-not-allowed grayscale'
+                                        ? 'bg-gray-50 border-gray-100 cursor-not-allowed'
                                         : 'bg-gray-50 border-transparent hover:border-gray-200'
                                   }`} 
                                   style={{ 
@@ -949,7 +948,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                   </div>
                                   <div className="text-center">
                                     <span className={`font-black text-xs uppercase tracking-tight block ${isBusy ? 'text-red-500' : 'text-gray-900'}`}>{c.name}</span>
-                                    {isBusy && <span className="text-[7px] font-black text-red-500 uppercase tracking-widest mt-1">已額滿</span>}
+                                    {isBusy && <span className="text-[10px] font-black text-red-500 uppercase tracking-widest mt-1 block">已滿額</span>}
                                   </div>
                                 </button>
                               );
@@ -958,8 +957,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         </div>
                         <div>
                           <label className="text-xs font-black text-gray-900 tracking-widest mb-3 block uppercase">學生學習程度</label>
-                          <textarea placeholder="學生可提供自身滑雪/滑板程度 供教練方便備課..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl h-24 outline-none font-medium text-gray-900 border-2 border-gray-900 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm mb-4" />
-                          <input type="text" placeholder="可提供之前學滑板/滑雪影片" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 outline-none font-medium text-gray-900 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm" />
+                          <textarea placeholder="學生可提供自身滑雪/滑板程度（文字敘述或影片連結） 供教練方便備課..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl h-32 outline-none font-medium text-gray-900 border-2 border-gray-900 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm mb-4" />
                         </div>
                         {course.isRedeemingPackage && (
                           <div className="pt-2">
@@ -1290,7 +1288,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                     selectedCoach === c.id 
                                       ? 'bg-white shadow-xl scale-[1.05] z-10 border-transparent' 
                                       : isBusy 
-                                        ? 'bg-gray-50 border-gray-100 opacity-50 cursor-not-allowed grayscale'
+                                        ? 'bg-gray-50 border-gray-100 cursor-not-allowed'
                                         : 'bg-gray-50 border-transparent hover:border-gray-200'
                                   }`} 
                                   style={{ 
@@ -1308,7 +1306,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                   </div>
                                   <div className="text-center">
                                     <span className={`font-black text-xs uppercase tracking-tight block ${isBusy ? 'text-red-500' : 'text-gray-900'}`}>{c.name}</span>
-                                    {isBusy && <span className="text-[7px] font-black text-red-500 uppercase tracking-widest mt-1">已額滿</span>}
+                                    {isBusy && <span className="text-[10px] font-black text-red-500 uppercase tracking-widest mt-1 block">已滿額</span>}
                                   </div>
                                 </button>
                               );
@@ -1317,8 +1315,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         </div>
                         <div>
                           <label className="text-xs font-black text-gray-900 tracking-widest mb-3 block uppercase">學生學習程度</label>
-                          <textarea placeholder="學生可提供自身滑雪/滑板程度 供教練方便備課..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 h-32 outline-none text-gray-900 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm mb-4" />
-                          <input type="text" placeholder="可提供之前學滑板/滑雪影片" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 outline-none font-medium text-gray-900 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm" />
+                          <textarea placeholder="學生可提供自身滑雪/滑板程度（文字敘述或影片連結） 供教練方便備課..." value={skillLevel} onChange={(e) => setSkillLevel(e.target.value)} className="w-full p-4 bg-white rounded-2xl border-2 border-gray-900 h-32 outline-none text-gray-900 focus:ring-4 focus:ring-gray-100 transition-all shadow-sm mb-4" />
                         </div>
                         {course.isRedeemingPackage && (
                           <div className="pt-2">

@@ -1177,7 +1177,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   };
 
   const handleCancelOrder = async (order: Order) => {
-    if (!confirm('確定要取消此訂單嗎？（若包含已發放的優惠課程，未使用之堂數將會自動收回）')) return;
+    if (!confirm('確定要取消此訂單嗎？（若包含已發放的優惠課程，未使用之堂數將會自動收回。若是取消課程兌換預約，則會退還一堂額度。）')) return;
     try {
       const { error } = await supabase.from('orders').update({ status: 'cancelled' }).eq('id', order.id);
       if (error) throw error;
@@ -1213,6 +1213,32 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
              }
            }
         }
+      }
+
+      // 退還兌換的課程堂數
+      if (order.bank_info?.method === 'voucher_redemption' && order.user_id) {
+         for (const item of order.items) {
+           if (item.type === 'course_booking' && item.details?.isRedemption) {
+             const courseId = item.details.courseId;
+             if (courseId) {
+               const { data: vData } = await supabase.from('vouchers').select('id').eq('target_type', 'course_package').eq('target_id', courseId);
+               if (vData && vData.length > 0) {
+                 const vIds = vData.map((v: any) => v.id);
+                 const { data: uvData } = await supabase.from('user_vouchers')
+                   .select('id')
+                   .eq('user_id', order.user_id)
+                   .in('voucher_id', vIds)
+                   .eq('is_used', true)
+                   .limit(1)
+                   .single();
+                   
+                 if (uvData) {
+                   await supabase.from('user_vouchers').update({ is_used: false }).eq('id', uvData.id);
+                 }
+               }
+             }
+           }
+         }
       }
 
       markAsRead(order.id);

@@ -17,7 +17,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLogout, onSupportClick }) => {
   const { mode, toggleMode, setMode } = useTheme();
   const { 
-    cart, removeFromCart, totalPrice, totalItems, 
+    cart, removeFromCart, updateQuantity, totalPrice, totalItems, 
     vouchers, selectedVoucher, selectVoucher, discountedPrice,
     setIsCheckoutOpen, getVoucherEligibility, addToCart
   } = useCart();
@@ -249,13 +249,23 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start mb-1">
                             <h4 className="font-bold text-sm truncate pr-2">{item.name}</h4>
-                            <button onClick={() => removeFromCart(item.id)} className="text-red-500 p-1 hover:bg-red-500/10 rounded-lg">
-                              <Trash2 size={16} />
-                            </button>
+                            {item.type === 'course_booking' && (
+                              <button onClick={() => removeFromCart(item.id)} className="text-red-500 p-1 hover:bg-red-500/10 rounded-lg">
+                                <Trash2 size={16} />
+                              </button>
+                            )}
                           </div>
                           <div className="flex justify-between items-center mt-2">
                             <span className="font-black text-primary italic">NT${item.price.toLocaleString()}</span>
-                            <span className="text-xs opacity-60 font-bold">× {item.quantity}</span>
+                            {item.type === 'course_booking' ? (
+                              <span className="text-xs opacity-60 font-bold">× {item.quantity}</span>
+                            ) : (
+                              <div className="flex items-center gap-2 bg-current/5 rounded-lg px-2 py-1">
+                                <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-5 h-5 flex items-center justify-center font-black opacity-60 hover:opacity-100 active:scale-95 transition-all">-</button>
+                                <span className="text-xs font-bold w-4 text-center">{item.quantity}</span>
+                                <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-5 h-5 flex items-center justify-center font-black opacity-60 hover:opacity-100 active:scale-95 transition-all">+</button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -275,10 +285,55 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                   </div>
                   
                   <div className="flex flex-col gap-3 pb-4">
+                    {selectedVoucher && (() => {
+                      let selectedTargetLabel = selectedVoucher.target_type === 'global' ? '全站通用' : 
+                                                selectedVoucher.target_type === 'skiing' ? '滑雪商品專用' : 
+                                                selectedVoucher.target_type === 'skateboard' ? '滑板商品專用' : 
+                                                selectedVoucher.target_type === 'all_courses' ? '所有課程適用' : 
+                                                selectedVoucher.target_type === 'category' ? '指定分類' : '指定商品/課程適用';
+                                                
+                      if (selectedVoucher.target_id && targetNames[selectedVoucher.target_id]) {
+                        selectedTargetLabel = `僅適用於: ${targetNames[selectedVoucher.target_id]}`;
+                      }
+
+                      if (selectedVoucher.target_type === 'special_bogo') {
+                        try {
+                          const config = JSON.parse(selectedVoucher.target_id || '{}');
+                          selectedTargetLabel = config.mode ? `特殊優惠: ${config.mode}` : '特殊組合優惠';
+                        } catch (e) {}
+                      }
+
+                      return (
+                        <div className="w-full flex flex-col p-4 rounded-xl text-left transition-all border-2 mb-2 shadow-sm"
+                             style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--secondary)' }}>
+                           <div className="flex justify-between items-start w-full mb-2">
+                              <p className="text-sm font-black tracking-wider uppercase" style={{ color: 'var(--primary)' }}>{selectedVoucher.title}</p>
+                              <div className="text-[10px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap ml-2 z-10 shadow-sm"
+                                   style={{ backgroundColor: 'var(--primary)', color: '#ffffff' }}>
+                                購物車套用中
+                              </div>
+                           </div>
+                           <div className="text-[10px] font-bold px-2 py-1 rounded-md mb-2 inline-block w-fit"
+                                style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-muted)' }}>
+                             {selectedTargetLabel}
+                           </div>
+                           <p className="text-xs font-bold" style={{ color: 'var(--primary)' }}>
+                             {selectedVoucher.target_type === 'special_bogo' ? '達標即自動加入免費贈品' : (selectedVoucher.type === 'percent' ? `折扣 ${selectedVoucher.value}%` : `折抵 NT$${selectedVoucher.value}`)}
+                             {(selectedVoucher.min_amount ?? 0) > 0 && ` · 滿 NT$${selectedVoucher.min_amount} 可用`}
+                           </p>
+                        </div>
+                      );
+                    })()}
                     {vouchers.length === 0 ? (
                       <p className="text-xs opacity-40 py-4 text-center border-2 border-dashed border-current/10 rounded-xl">尚未領取任何優惠券</p>
                     ) : (
-                      vouchers.map((v, index) => {
+                      [...vouchers].sort((a, b) => {
+                        const aEligible = getVoucherEligibility(a).isEligible;
+                        const bEligible = getVoucherEligibility(b).isEligible;
+                        if (aEligible && !bEligible) return -1;
+                        if (!aEligible && bEligible) return 1;
+                        return 0;
+                      }).map((v, index) => {
                         const isSelected = selectedVoucher?.id === v.id;
                         // 如果被選中且希望"使用後消失"的感覺，我們可以將其隱藏或顯示為使用中
                         if (isSelected) return null; // 點擊後從列表中隱藏，因為上方有「取消使用」按鈕
@@ -341,45 +396,6 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                         );
                       })
                     )}
-                    {selectedVoucher && (() => {
-                      let selectedTargetLabel = selectedVoucher.target_type === 'global' ? '全站通用' : 
-                                                selectedVoucher.target_type === 'skiing' ? '滑雪商品專用' : 
-                                                selectedVoucher.target_type === 'skateboard' ? '滑板商品專用' : 
-                                                selectedVoucher.target_type === 'all_courses' ? '所有課程適用' : 
-                                                selectedVoucher.target_type === 'category' ? '指定分類' : '指定商品/課程適用';
-                                                
-                      if (selectedVoucher.target_id && targetNames[selectedVoucher.target_id]) {
-                        selectedTargetLabel = `僅適用於: ${targetNames[selectedVoucher.target_id]}`;
-                      }
-
-                      if (selectedVoucher.target_type === 'special_bogo') {
-                        try {
-                          const config = JSON.parse(selectedVoucher.target_id || '{}');
-                          selectedTargetLabel = config.mode ? `特殊優惠: ${config.mode}` : '特殊組合優惠';
-                        } catch (e) {}
-                      }
-
-                      return (
-                        <div className="w-full flex flex-col p-4 rounded-xl text-left transition-all border-2 mt-3 shadow-sm"
-                             style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--secondary)' }}>
-                           <div className="flex justify-between items-start w-full mb-2">
-                              <p className="text-sm font-black tracking-wider uppercase" style={{ color: 'var(--primary)' }}>{selectedVoucher.title}</p>
-                              <div className="text-[10px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap ml-2 z-10 shadow-sm"
-                                   style={{ backgroundColor: 'var(--primary)', color: '#ffffff' }}>
-                                購物車套用中
-                              </div>
-                           </div>
-                           <div className="text-[10px] font-bold px-2 py-1 rounded-md mb-2 inline-block w-fit"
-                                style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-muted)' }}>
-                             {selectedTargetLabel}
-                           </div>
-                           <p className="text-xs font-bold" style={{ color: 'var(--primary)' }}>
-                             {selectedVoucher.target_type === 'special_bogo' ? '達標即自動加入免費贈品' : (selectedVoucher.type === 'percent' ? `折扣 ${selectedVoucher.value}%` : `折抵 NT$${selectedVoucher.value}`)}
-                             {(selectedVoucher.min_amount ?? 0) > 0 && ` · 滿 NT$${selectedVoucher.min_amount} 可用`}
-                           </p>
-                        </div>
-                      );
-                    })()}
                   </div>
                 </div>
               </div>
@@ -466,7 +482,13 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                   }, {} as Record<string, Voucher & { count: number }>);
 
                   const coursePackages = Object.values(groupedVouchers).filter(v => v.target_type === 'course_package');
-                  const normalVouchers = Object.values(groupedVouchers).filter(v => v.target_type !== 'course_package');
+                  const normalVouchers = Object.values(groupedVouchers).filter(v => v.target_type !== 'course_package').sort((a, b) => {
+                    const aEligible = getVoucherEligibility(a).isEligible;
+                    const bEligible = getVoucherEligibility(b).isEligible;
+                    if (aEligible && !bEligible) return -1;
+                    if (!aEligible && bEligible) return 1;
+                    return 0;
+                  });
 
                   const renderVoucher = (v: Voucher & { count: number }, index: number) => {
                     const isSelected = selectedVoucher?.id === v.id;

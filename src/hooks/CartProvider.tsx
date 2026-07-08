@@ -34,6 +34,7 @@ export interface CartContextType {
   selectedVoucher: Voucher | null;
   addToCart: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
   removeFromCart: (id: string) => void;
+  updateQuantity: (id: string, newQuantity: number) => void;
   claimVoucher: (voucher: Voucher, count?: number) => void;
   selectVoucher: (voucherId: string | null) => void;
   clearCart: () => void;
@@ -222,6 +223,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCart(prev => prev.filter(i => i.id !== id));
   };
 
+  const updateQuantity = (id: string, newQuantity: number) => {
+    setCart(prev => {
+      if (newQuantity <= 0) {
+        return prev.filter(i => i.id !== id);
+      }
+      return prev.map(i => i.id === id ? { ...i, quantity: newQuantity } : i);
+    });
+  };
+
   const claimVoucher = (voucher: Voucher, count: number = 1) => {
     setVouchers(prev => {
       const newVouchers = [...prev];
@@ -368,6 +378,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
+  // Auto-select eligible voucher if none is selected
+  useEffect(() => {
+    if (!selectedVoucher && effectiveCart.length > 0) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      const eligibleVouchers = vouchers.filter(v => getVoucherEligibility(v).isEligible && v.target_type !== 'course_package');
+      if (eligibleVouchers.length > 0) {
+        setSelectedVoucher(eligibleVouchers[0]);
+      }
+    }
+  }, [cart, directPurchaseItem, vouchers, selectedVoucher]);
+
   // Custom handler for closing checkout to clear direct purchase item
   const handleSetIsCheckoutOpen = (open: boolean) => {
     setIsCheckoutOpen(open);
@@ -379,7 +400,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <CartContext.Provider value={{ 
       cart: effectiveCart, vouchers, selectedVoucher, 
-      addToCart, removeFromCart, claimVoucher, selectVoucher, clearCart, 
+      addToCart, removeFromCart, updateQuantity, claimVoucher, selectVoucher, clearCart, 
       totalItems, totalPrice, discountedPrice,
       isCheckoutOpen, setIsCheckoutOpen: handleSetIsCheckoutOpen,
       setDirectPurchaseItem, getVoucherEligibility
