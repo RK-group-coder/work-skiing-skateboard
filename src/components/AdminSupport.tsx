@@ -162,6 +162,7 @@ const AdminSupport: React.FC = () => {
           ? { ...m, read_by_admin: true } 
           : m
       ));
+      window.dispatchEvent(new CustomEvent('supportMessagesRead'));
       // 更新資料庫
       try {
         await supabase

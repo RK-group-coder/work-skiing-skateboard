@@ -912,6 +912,46 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
     });
   };
 
+  // Support Messages Unread Count
+  const [unreadSupportCount, setUnreadSupportCount] = useState<number>(0);
+
+  const fetchUnreadSupportCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('support_messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_from_admin', false)
+        .eq('read_by_admin', false);
+      if (!error && count !== null) {
+        setUnreadSupportCount(count);
+      }
+    } catch (err) {
+      console.error('Error fetching unread support count:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      fetchUnreadSupportCount();
+      const channel = supabase
+        .channel('admin-unread-support-badge')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'support_messages' }, () => {
+          fetchUnreadSupportCount();
+        })
+        .subscribe();
+
+      const handleSupportRead = () => {
+        fetchUnreadSupportCount();
+      };
+      window.addEventListener('supportMessagesRead', handleSupportRead);
+
+      return () => {
+        supabase.removeChannel(channel);
+        window.removeEventListener('supportMessagesRead', handleSupportRead);
+      };
+    }
+  }, [isLoggedIn, activeTab]);
+
   // Categories
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryForm, setCategoryForm] = useState<{ name: string; mode: 'skiing' | 'skateboard' }>({ name: '', mode: 'skiing' });
@@ -4171,14 +4211,19 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
             { id: 'homepage', label: '首頁內容設定', icon: <Settings2 size={20} /> },
           ].map(({ id, label, icon }) => {
             const isOrdersTab = id === 'orders';
-            const unreadCount = isOrdersTab ? orders.filter(o => o.status !== 'cancelled' && o.customer_name !== 'SYSTEM_BLOCK' && !readOrderIds.has(o.id)).length : 0;
+            const isSupportTab = id === 'support';
+            const unreadCount = isOrdersTab 
+              ? orders.filter(o => o.status !== 'cancelled' && o.customer_name !== 'SYSTEM_BLOCK' && !readOrderIds.has(o.id)).length 
+              : isSupportTab 
+              ? unreadSupportCount 
+              : 0;
             return (
             <button key={id}
               onClick={() => { setActiveTab(id as any); setIsMobileMenuOpen(false); }}
               style={activeTab === id ? { backgroundColor: '#111827', color: '#ffffff' } : {}}
               className={`relative w-full flex items-center gap-4 px-6 py-4 rounded-2xl font-bold transition-all ${activeTab === id ? 'shadow-xl translate-x-2' : 'text-gray-400 hover:bg-neutral-50 hover:text-gray-900'}`}>
               {icon} {label}
-              {isOrdersTab && unreadCount > 0 && (
+              {unreadCount > 0 && (
                 <span className="absolute right-4 bg-red-500 text-white text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-md animate-pulse z-10">
                   {unreadCount}
                 </span>
