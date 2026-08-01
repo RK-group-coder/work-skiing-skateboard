@@ -37,6 +37,17 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
   const [pickupLocations, setPickupLocations] = useState<any[]>([]);
 
   React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  React.useEffect(() => {
     const fetchLocations = async () => {
       const { data } = await supabase.from('pickup_locations').select('*').eq('mode', mode);
       if (data) setPickupLocations(data);
@@ -260,21 +271,25 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
 
                     // 自動計算結束時間 (如果還不是範圍的話)
                     let displayTime = timeStr;
-                    if (!timeStr.includes('-') && !timeStr.includes('~')) {
+                    if (timeStr.includes(':') && !timeStr.includes('-') && !timeStr.includes('~')) {
                       try {
                         const [hour, min] = timeStr.split(':').map(Number);
-                        const endHour = hour + 1;
-                        const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(min || 0).padStart(2, '0')}`;
-                        displayTime = `${timeStr}~${endTimeStr}`;
+                        if (!isNaN(hour)) {
+                          const endHour = hour + 1;
+                          const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(min || 0).padStart(2, '0')}`;
+                          displayTime = `${timeStr}~${endTimeStr}`;
+                        }
                       } catch (e) {
                         displayTime = timeStr;
                       }
                     }
 
+                    const locName = details.locationName || '未指定';
                     bookingListHtml += `
                       <div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
                         <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${dateStr}</span></div>
                         <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${displayTime}</span></div>
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">地點：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${locName}</span></div>
                         <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${pCount} 人</span></div>
                       </div>`;
                   });
@@ -284,10 +299,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 const fallbackDates = Array.isArray(details.dates) ? details.dates : [];
                 const fallbackPCount = details.totalPersonSlots || 1;
                 fallbackDates.forEach((d: string) => {
+                  const locName = details.locationName || '未指定';
                   bookingListHtml += `
                     <div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
                       <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${d}</span></div>
                       <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #ff0000; font-weight: 800; white-space: nowrap;">資料處理中...</span></div>
+                      <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">地點：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${locName}</span></div>
                       <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${fallbackPCount} 人</span></div>
                     </div>`;
                 });
@@ -315,7 +332,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     coach_name: coachData.name,
                     contact_phone: customerPhone,
                     skill_level: (item as any).skillLevel || (item as any).details?.skillLevel || '未填寫',
-                    video_link: ((item as any).videoUrl || (item as any).details?.mediaUrl) ? `<a href="${(item as any).videoUrl || (item as any).details?.mediaUrl}">${(item as any).videoUrl || (item as any).details?.mediaUrl}</a>` : '無影片連結',
                     order_time: currentTime,
                     last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
                     payment_method: paymentMethodName,
@@ -341,7 +357,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     coach_name: coachData.name,
                     contact_phone: customerPhone,
                     skill_level: (item as any).skillLevel || (item as any).details?.skillLevel || '未填寫',
-                    video_link: ((item as any).videoUrl || (item as any).details?.mediaUrl) ? `<a href="${(item as any).videoUrl || (item as any).details?.mediaUrl}">${(item as any).videoUrl || (item as any).details?.mediaUrl}</a>` : '無影片連結',
                     order_time: currentTime,
                     last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
                     payment_method: paymentMethodName,
@@ -368,7 +383,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                       coach_name: coachData.name,
                       contact_phone: customerPhone,
                       skill_level: (item as any).skillLevel || (item as any).details?.skillLevel || '未填寫',
-                      video_link: ((item as any).videoUrl || (item as any).details?.mediaUrl) ? `<a href="${(item as any).videoUrl || (item as any).details?.mediaUrl}">${(item as any).videoUrl || (item as any).details?.mediaUrl}</a>` : '無影片連結',
                       order_time: currentTime,
                       last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
                       payment_method: paymentMethodName,
@@ -458,8 +472,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 • ${deliveryDetailLabel}：${deliveryDetailValue}
               </div>`,
             total_amount: `NT$ ${totalPrice.toLocaleString()}`,
-            skill_level: '商品購買 (免填)',
-            video_link: '商品購買 (免填)'
+            skill_level: '商品購買 (免填)'
           };
 
           // (A) 寄給 客戶

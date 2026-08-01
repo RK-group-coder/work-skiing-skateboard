@@ -85,7 +85,8 @@ const Hero: React.FC = () => {
     setDirection(1);
   }, [mode, rawBgImage]);
 
-  const currentBg = bgImages[currentIndex] || defaultBg;
+  const currentBgRaw = bgImages[currentIndex] || defaultBg;
+  const currentBg = typeof currentBgRaw === 'string' ? currentBgRaw.split('#duration=')[0] : currentBgRaw;
   const isVideo = currentBg.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/i) !== null;
   const ytInfo = !isVideo ? getYoutubeInfo(currentBg) : null;
   
@@ -181,9 +182,15 @@ const Hero: React.FC = () => {
     setIsMuted(nextMute);
   };
 
-  // Auto-slide every 3 seconds
+  // Auto-slide dynamic interval based on current slide setting
   useEffect(() => {
     if (bgImages.length <= 1) return;
+    
+    const currentSlideUrl = bgImages[currentIndex];
+    const durationMatch = typeof currentSlideUrl === 'string' ? currentSlideUrl.match(/#duration=([\d.]+)/) : null;
+    const durationSeconds = durationMatch ? parseFloat(durationMatch[1]) : 3;
+    const durationMs = durationSeconds * 1000;
+
     const timer = setInterval(() => {
       pauseCurrentMedia();
       setDirection(1);
@@ -192,9 +199,9 @@ const Hero: React.FC = () => {
         if (next >= bgImages.length) next = 0;
         return next;
       });
-    }, 3000);
+    }, durationMs);
     return () => clearInterval(timer);
-  }, [bgImages.length, currentIndex]);
+  }, [rawBgImage, currentIndex]);
 
   // Carousel Swipe Logic
   const [touchStart, setTouchStart] = useState<number | null>(null);

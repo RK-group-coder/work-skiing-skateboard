@@ -43,6 +43,17 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
     }
   }, [totalItems]);
 
+  useEffect(() => {
+    if (isMenuOpen || isCartOpen || isMyVouchersOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen, isCartOpen, isMyVouchersOpen]);
+
   React.useEffect(() => {
     const fetchTargetNames = async () => {
       const newNames: Record<string, string> = {};
@@ -304,13 +315,17 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                       }
 
                       return (
-                        <div className="w-full flex flex-col p-4 rounded-xl text-left transition-all border-2 mb-2 shadow-sm"
-                             style={{ borderColor: 'var(--primary)', backgroundColor: 'var(--secondary)' }}>
+                        <button 
+                          onClick={() => selectVoucher(null)}
+                          className="w-full flex flex-col p-4 rounded-xl text-left transition-all mb-2 shadow-sm cursor-pointer hover:shadow-md hover:-translate-y-1 relative group bg-white"
+                          style={{ border: '3px solid var(--primary)' }}
+                        >
                            <div className="flex justify-between items-start w-full mb-2">
                               <p className="text-sm font-black tracking-wider uppercase" style={{ color: 'var(--primary)' }}>{selectedVoucher.title}</p>
-                              <div className="text-[10px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap ml-2 z-10 shadow-sm"
+                              <div className="text-[10px] font-bold px-3 py-1.5 rounded-lg whitespace-nowrap ml-2 z-10 shadow-sm transition-colors group-hover:bg-red-500 group-hover:text-white"
                                    style={{ backgroundColor: 'var(--primary)', color: '#ffffff' }}>
-                                購物車套用中
+                                <span className="group-hover:hidden">購物車套用中</span>
+                                <span className="hidden group-hover:inline">取消使用</span>
                               </div>
                            </div>
                            <div className="text-[10px] font-bold px-2 py-1 rounded-md mb-2 inline-block w-fit"
@@ -321,7 +336,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                              {selectedVoucher.target_type === 'special_bogo' ? '達標即自動加入免費贈品' : (selectedVoucher.type === 'percent' ? `折扣 ${selectedVoucher.value}%` : `折抵 NT$${selectedVoucher.value}`)}
                              {(selectedVoucher.min_amount ?? 0) > 0 && ` · 滿 NT$${selectedVoucher.min_amount} 可用`}
                            </p>
-                        </div>
+                        </button>
                       );
                     })()}
                     {vouchers.length === 0 ? (
@@ -366,11 +381,12 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                               }
                             }}
                             disabled={!eligibility.isEligible}
-                            className={`w-full flex flex-col p-4 rounded-xl text-left transition-all border-2 relative overflow-hidden ${
+                            className={`w-full flex flex-col p-4 rounded-xl text-left transition-all relative overflow-hidden ${
                               eligibility.isEligible 
-                                ? 'bg-current/5 border-transparent opacity-80 hover:opacity-100 cursor-pointer' 
-                                : 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed'
+                                ? 'bg-white shadow-sm hover:shadow-md cursor-pointer' 
+                                : 'bg-gray-50 opacity-60 cursor-not-allowed'
                             }`}
+                            style={{ border: '2px solid #000' }}
                           >
                             <div className="flex justify-between items-start w-full mb-2">
                               <p className={`text-sm font-black tracking-wider uppercase ${eligibility.isEligible ? '' : 'text-gray-500 line-through'}`}>{v.title}</p>

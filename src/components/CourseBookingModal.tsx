@@ -39,6 +39,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   const [coaches, setCoaches] = useState<any[]>([]);
   const [locations, setLocations] = useState<any[]>([]);
   const [vouchers, setVouchers] = useState<any[]>([]);
+  const [allOrders, setAllOrders] = useState<any[]>([]);
 
   // Form State
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -58,6 +59,17 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
 
   // Local state for calendar navigation
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  React.useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   // Skiing Specific Flow State
   const [skiingSessionIdx, setSkiingSessionIdx] = useState<number | null>(null);
@@ -107,18 +119,11 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     }
   }, [selectedDates, selectedTimes]);
 
-  const checkCoachAvailability = async () => {
+  const checkCoachAvailability = () => {
     try {
-      const { data: orders, error } = await supabase
-        .from('orders')
-        .select('items, status')
-        .in('status', ['confirmed', 'pending_verification']);
-        
-      if (error) throw error;
-      
       const busyIds = new Set<string>();
       
-      orders?.forEach(order => {
+      allOrders.forEach(order => {
         order.items?.forEach((item: any) => {
           if (item.type === 'course_booking') {
             const details = item.details;
@@ -172,21 +177,85 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     }
   };
 
+  const isDayFullyBooked = (dateStr: string) => {
+    if (!coaches || coaches.length === 0) return false;
+    
+    if (mode === 'skiing') {
+      const busyCoaches = new Set<string>();
+      allOrders.forEach(order => {
+        order.items?.forEach((item: any) => {
+          if (item.type === 'course_booking') {
+            const details = item.details;
+            const orderDates = details.dates || Object.keys(details.times || {});
+            const coachId = details.coachId;
+            if (coachId && orderDates.includes(dateStr)) {
+              busyCoaches.add(coachId);
+            }
+          }
+        });
+      });
+      return busyCoaches.size >= coaches.length;
+    } else {
+      const available = getAvailableTimes(dateStr);
+      if (available.length === 0) return true;
+      
+      const expand = (s: string) => {
+        const timePart = s.split(' ').pop() || ""; 
+        if (timePart.includes('-') || timePart.includes('~')) {
+          const parts = timePart.split(/[~-]/);
+          const start = parseInt(parts[0]);
+          const end = parseInt(parts[1]);
+          let res = [];
+          for(let i=start; i<end; i++) res.push(i);
+          return res;
+        }
+        return [parseInt(timePart)];
+      };
+      
+      const allAvailableHours = available.flatMap(expand);
+      
+      const isCoachFullyBooked = (coachId: string) => {
+        const coachBusyHours = new Set<number>();
+        allOrders.forEach(order => {
+          order.items?.forEach((item: any) => {
+            if (item.type === 'course_booking') {
+              const details = item.details;
+              if (details.coachId === coachId) {
+                const orderDates = details.dates || Object.keys(details.times || {});
+                if (orderDates.includes(dateStr)) {
+                  const orderTimes = details.times || {};
+                  const theirSlots = Object.keys(orderTimes[dateStr] || {});
+                  const theirHours = theirSlots.flatMap(expand);
+                  theirHours.forEach(h => coachBusyHours.add(h));
+                }
+              }
+            }
+          });
+        });
+        return allAvailableHours.every(h => coachBusyHours.has(h));
+      };
+      
+      return coaches.every(c => isCoachFullyBooked(c.id));
+    }
+  };
+
   const fetchBookingData = async () => {
     const targetMode = course.mode || mode;
     try {
-      const [sch, tSet, coa, loc, vouc] = await Promise.all([
+      const [sch, tSet, coa, loc, vouc, ordersReq] = await Promise.all([
         supabase.from('course_schedules').select('*').eq('mode', targetMode),
         supabase.from('course_time_settings').select('*').eq('mode', targetMode).maybeSingle(),
         supabase.from('coaches').select('*').eq('mode', targetMode),
         supabase.from('locations').select('*').eq('mode', targetMode),
-        supabase.from('vouchers').select('*').eq('is_active', true)
+        supabase.from('vouchers').select('*').eq('is_active', true),
+        supabase.from('orders').select('items, status').in('status', ['confirmed', 'pending_verification'])
       ]);
       if (sch.data) setSchedules(sch.data);
       if (tSet.data) setTimeSettings(tSet.data);
       if (coa.data) setCoaches(coa.data);
       if (loc.data) setLocations(loc.data);
       if (vouc.data) setVouchers(vouc.data);
+      if (ordersReq.data) setAllOrders(ordersReq.data);
     } catch (err) {
       console.error('Fetch data failed:', err);
     }
@@ -225,9 +294,11 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     // Special handling for Skiing: return raw slots (keeping indices for AM/PM/Full)
     if (mode === 'skiing') {
       const rawSlots = Array.isArray(raw) ? raw : (typeof raw === 'string' ? raw.split(',').map(s => s.trim()) : []);
-      return rawSlots.map((s, idx) => {
+      const defaults = ["09:00-12:00", "13:00-16:00", "09:00-15:00"];
+      return [0, 1, 2].map(idx => {
         const label = idx === 0 ? "半天(上午)" : idx === 1 ? "半天(下午)" : "全天課程";
-        return `${label} ${s}`;
+        const timePart = rawSlots[idx] || defaults[idx];
+        return `${label} ${timePart}`;
       });
     }
     
@@ -435,6 +506,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
           dates: selectedDates,
           times: finalTimes,
           locationId: selectedLocation,
+          locationName: locations.find(l => l.id === selectedLocation)?.name || '未指定',
           coachId: selectedCoach,
           skillLevel,
           isFirstLesson,
@@ -528,20 +600,24 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                   timeKeys.forEach((timeStr) => {
                     const pCount = slotsForDate[timeStr] || 1;
                     let displayTime = timeStr;
-                    if (!timeStr.includes('-') && !timeStr.includes('~')) {
+                    if (timeStr.includes(':') && !timeStr.includes('-') && !timeStr.includes('~')) {
                       try {
                         const [hour, min] = timeStr.split(':').map(Number);
-                        const endHour = hour + 1;
-                        const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(min || 0).padStart(2, '0')}`;
-                        displayTime = `${timeStr}~${endTimeStr}`;
+                        if (!isNaN(hour)) {
+                          const endHour = hour + 1;
+                          const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(min || 0).padStart(2, '0')}`;
+                          displayTime = `${timeStr}~${endTimeStr}`;
+                        }
                       } catch (e) {
                         displayTime = timeStr;
                       }
                     }
-                    bookingListHtml += `
+                      const locName = locations.find(l => l.id === selectedLocation)?.name || '未指定';
+                      bookingListHtml += `
                       <div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
                         <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${dateStr}</span></div>
                         <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${displayTime}</span></div>
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">地點：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${locName}</span></div>
                         <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${pCount} 人</span></div>
                       </div>`;
                   });
@@ -562,7 +638,6 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                 coach_name: coachData.name,
                 contact_phone: customerPhone || '未提供',
                 skill_level: skillLevel || '未填寫',
-                video_link: '已合併於學習程度備註',
                 order_time: currentTime,
                 last_five_digits: '方案兌換',
                 payment_method: '課程方案兌換',
@@ -733,9 +808,11 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         })
                       ) : (
                         [0, 1, 2].map(idx => {
-                        const available = getAvailableTimes(new Date().toISOString()); // Just to get slots
-                        const slotTime = available[idx] || (idx === 0 ? "09:00-12:00" : idx === 1 ? "13:00-16:00" : "09:00-15:00");
                         const label = idx === 0 ? "半天 (上午)" : idx === 1 ? "半天 (下午)" : "全天課程";
+                        const date = selectedDates[0];
+                        const available = date ? getAvailableTimes(date) : [];
+                        const dynamicSlot = available[idx]?.split(' ').pop();
+                        const slotTime = dynamicSlot || (idx === 0 ? "09:00-12:00" : idx === 1 ? "13:00-16:00" : "09:00-15:00");
                         const isSelected = skiingSessionIdx === idx;
                         
                         const baseFirst = course.first_lesson_price || course.price || 0;
@@ -873,15 +950,20 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                             const isPast = date < today;
                             const isSelected = selectedDates.includes(dateStr);
                             const isBlocked = schedules.some(s => s.blocked_date === dateStr);
+                            const isFullyBooked = isDayFullyBooked(dateStr);
                             days.push(
-                              <button key={d} disabled={isPast || isBlocked} onClick={() => {
+                              <button key={d} disabled={isPast || isBlocked || isFullyBooked} onClick={() => {
+                                if (isFullyBooked) {
+                                  alert('當天時段已滿');
+                                  return;
+                                }
                                 toggleDateSelection(dateStr);
                                 // Sync times
                                 const available = getAvailableTimes(dateStr);
                                 const slotTime = course.is_night_mode ? (course.night_mode_slots?.join(', ') || "夜滑時段") : (available[skiingSessionIdx!] || "");
                                 if (slotTime) setSelectedTimes({ [dateStr]: { [slotTime]: skiingPersonCount } });
                               }}
-                              className={`aspect-square rounded-xl flex items-center justify-center transition-all ${isSelected ? 'text-white shadow-lg scale-105 z-10' : 'bg-white text-gray-700 shadow-sm'} ${isPast || isBlocked ? 'opacity-20' : ''}`}
+                              className={`aspect-square rounded-xl flex items-center justify-center transition-all ${isSelected ? 'text-white shadow-lg scale-105 z-10' : 'bg-white text-gray-700 shadow-sm'} ${isPast || isBlocked ? 'opacity-20' : ''} ${isFullyBooked ? 'bg-red-50 text-red-500 border border-red-200' : ''}`}
                               style={{ backgroundColor: isSelected ? activeColor : undefined }}>
                                 <span className="text-sm font-bold">{d}</span>
                               </button>
@@ -1081,12 +1163,19 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                             const isPast = date < today;
                             const isSelected = selectedDates.includes(dateStr);
                             const isBlocked = schedules.some(s => s.blocked_date === dateStr);
+                            const isFullyBooked = isDayFullyBooked(dateStr);
 
                             days.push(
                               <button
                                 key={d}
-                                disabled={isPast || isBlocked}
-                                onClick={() => toggleDateSelection(dateStr)}
+                                disabled={isPast || isBlocked || isFullyBooked}
+                                onClick={() => {
+                                  if (isFullyBooked) {
+                                    alert('當天時段已滿');
+                                    return;
+                                  }
+                                  toggleDateSelection(dateStr);
+                                }}
                                 style={{ 
                                   backgroundColor: isSelected ? activeColor : undefined,
                                 }}
@@ -1094,6 +1183,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                   aspect-square rounded-xl flex flex-col items-center justify-center transition-all relative
                                   ${isSelected ? 'text-white shadow-lg scale-105 z-10' : 'bg-white hover:bg-gray-100 text-gray-700 shadow-sm'}
                                   ${(isPast || isBlocked) ? 'opacity-20 cursor-not-allowed bg-transparent shadow-none' : ''}
+                                  ${isFullyBooked ? '!bg-red-50 !text-red-500 border border-red-200' : ''}
                                 `}
                               >
                                 <span className="text-sm font-bold">{d}</span>
@@ -1447,20 +1537,28 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                         disabled={!isMinMet}
                         onClick={() => {
                           setSelectedVoucher(isSelected ? null : v);
-                          setIsVoucherModalOpen(false);
                         }}
-                        className={`w-full p-6 rounded-3xl border-2 transition-all text-left relative overflow-hidden group ${
-                          isSelected ? 'bg-green-50 border-green-500 shadow-lg' : isMinMet ? 'bg-white border-gray-100 hover:border-primary/30 shadow-sm' : 'bg-gray-50 border-transparent opacity-50 grayscale cursor-not-allowed'
+                        className={`w-full p-6 rounded-3xl transition-all duration-300 text-left relative overflow-hidden group ${
+                          isSelected ? 'bg-white border-[3px] border-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)]' : isMinMet ? 'bg-white border-[3px] border-gray-900 shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:shadow-[0_0_25px_rgba(34,197,94,0.6)] hover:-translate-y-1' : 'bg-gray-50 border-2 border-transparent opacity-50 grayscale cursor-not-allowed'
                         }`}
                       >
                         <div className="flex justify-between items-start mb-2">
                           <div>
-                            <div className={`text-xs font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-green-600' : 'text-gray-400'}`}>
+                            <div className={`text-xs font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-blue-600' : 'text-green-600'}`}>
                               {v.target_type === 'special_bogo' ? '自動加入免費贈品' : (v.type === 'percent' ? `${v.value}% OFF` : `固定折扣 NT$${v.value}`)}
                             </div>
-                            <div className="text-xl font-black italic tracking-tight">{v.code}</div>
+                            <div className="text-xl font-black italic tracking-tight text-gray-900">{v.code}</div>
                           </div>
-                          {isSelected && <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white"><CheckCircle2 size={14}/></div>}
+                          {isSelected ? (
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-600 rounded-full text-white shadow-md">
+                              <CheckCircle2 size={14} />
+                              <span className="text-[10px] font-black tracking-widest">已選取</span>
+                            </div>
+                          ) : isMinMet ? (
+                            <div className="px-3 py-1 border-2 border-green-500 rounded-full text-green-500 bg-green-50 shadow-sm">
+                              <span className="text-[10px] font-black tracking-widest">待選取</span>
+                            </div>
+                          ) : null}
                         </div>
                         <p className="text-xs text-gray-500 font-medium">{v.description || '套用此優惠券以獲得折扣'}</p>
                         {!isMinMet && <p className="text-[10px] text-red-500 font-bold mt-2">未達使用門檻：還差 NT${(v.min_amount - totalTWD).toLocaleString()}</p>}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, ChevronRight, ChevronDown, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink, Bot, MessageSquare, ShoppingCart, Minus, FileText, Ticket } from 'lucide-react';
+import { LayoutDashboard, Package, BookOpen, Tag, LogOut, ChevronLeft, ChevronRight, ChevronDown, Settings2, Save, Image as ImageIcon, Plus, Pencil, Trash2, X, Users, Search, Landmark, MoreHorizontal, Check, UserPlus, LogIn, Database, Calendar, MapPin, AlertCircle, ToggleLeft, ToggleRight, ExternalLink, Bot, MessageSquare, ShoppingCart, Minus, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import type { User } from '@supabase/supabase-js';
@@ -27,7 +27,7 @@ interface HomepageSettings {
 
 interface Product {
   id?: string;
-  mode: 'skiing' | 'skateboard';
+  mode: 'skiing' | 'skateboard' | 'common';
   name: string;
   price: number;
   special_price?: number | null;
@@ -47,7 +47,7 @@ interface Product {
 interface Category {
   id: string;
   name: string;
-  mode: 'skiing' | 'skateboard';
+  mode: 'skiing' | 'skateboard' | 'common';
   created_at?: string;
 }
 
@@ -69,6 +69,7 @@ interface Course {
   image_url: string;
   is_active: boolean;
   is_night_mode?: boolean;
+  duration?: string;
   night_mode_coaches?: string[];
   night_mode_slots?: string[];
   sort_order?: number;
@@ -276,44 +277,75 @@ const MultiMediaUploadField = ({ label, value, onChange, bucket }: { label: stri
       
       <div className="flex flex-wrap gap-3">
         {urls.map((u, i) => {
-           const isMp4 = u.toLowerCase().includes('.mp4');
-           const ytThumb = getYoutubeThumb(u);
+           const parsedUrl = u.split('#duration=')[0];
+           const duration = u.includes('#duration=') ? u.split('#duration=')[1] : '3';
+           const isMp4 = parsedUrl.toLowerCase().includes('.mp4');
+           const ytThumb = getYoutubeThumb(parsedUrl);
            return (
-             <div key={i} className="relative w-24 h-24 rounded-2xl border border-gray-200 overflow-hidden group bg-gray-100 flex-shrink-0">
-               {isMp4 ? (
-                 <video src={u} className="w-full h-full object-cover" autoPlay muted loop playsInline />
-               ) : ytThumb ? (
-                 <img src={ytThumb} className="w-full h-full object-cover" alt="YT Preview" />
-               ) : (
-                 <img src={u} alt="Preview" className="w-full h-full object-cover" />
-               )}
+             <div key={i} className="flex flex-col gap-1.5 w-24 flex-shrink-0">
+               <div className="relative w-24 h-24 rounded-2xl border border-gray-200 overflow-hidden group bg-gray-100">
+                 {isMp4 ? (
+                   <video src={parsedUrl} className="w-full h-full object-cover" autoPlay muted loop playsInline />
+                 ) : ytThumb ? (
+                   <img src={ytThumb} className="w-full h-full object-cover" alt="YT Preview" />
+                 ) : (
+                   <img src={parsedUrl} alt="Preview" className="w-full h-full object-cover" />
+                 )}
 
-               {/* Ordering Controls (Mobile Friendly - Always Visible) */}
-               <div className="absolute inset-0 flex items-center justify-between px-1 z-10 pointer-events-none">
+                 {/* Ordering Controls (Mobile Friendly - Always Visible) */}
+                 <div className="absolute inset-0 flex items-center justify-between px-1 z-10 pointer-events-none">
+                   <button 
+                     type="button"
+                     onClick={() => moveUrl(i, 'left')}
+                     className={`p-1 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white pointer-events-auto shadow-sm active:scale-95 transition-transform ${i === 0 ? 'invisible' : ''}`}
+                   >
+                     <ChevronLeft size={16} strokeWidth={3} />
+                   </button>
+                   <button 
+                     type="button"
+                     onClick={() => moveUrl(i, 'right')}
+                     className={`p-1 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white pointer-events-auto shadow-sm active:scale-95 transition-transform ${i === urls.length - 1 ? 'invisible' : ''}`}
+                   >
+                     <ChevronRight size={16} strokeWidth={3} />
+                   </button>
+                 </div>
+
                  <button 
                    type="button"
-                   onClick={() => moveUrl(i, 'left')}
-                   className={`p-1 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white pointer-events-auto shadow-sm active:scale-95 transition-transform ${i === 0 ? 'invisible' : ''}`}
+                   onClick={() => removeUrl(i)}
+                   style={{ backgroundColor: '#000000', color: '#ffffff' }}
+                   className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all active:scale-90 border border-white/40 z-20"
                  >
-                   <ChevronLeft size={16} strokeWidth={3} />
-                 </button>
-                 <button 
-                   type="button"
-                   onClick={() => moveUrl(i, 'right')}
-                   className={`p-1 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white pointer-events-auto shadow-sm active:scale-95 transition-transform ${i === urls.length - 1 ? 'invisible' : ''}`}
-                 >
-                   <ChevronRight size={16} strokeWidth={3} />
+                   <X size={14} strokeWidth={3} />
                  </button>
                </div>
-
-               <button 
-                 type="button"
-                 onClick={() => removeUrl(i)}
-                 style={{ backgroundColor: '#000000', color: '#ffffff' }}
-                 className="absolute top-1 right-1 w-6 h-6 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-all active:scale-90 border border-white/40 z-20"
-               >
-                 <X size={14} strokeWidth={3} />
-               </button>
+               
+               {/* Duration Input */}
+               <div className="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-2 py-1 w-full shadow-sm">
+                 <span className="text-[10px] font-bold text-gray-400">停留</span>
+                 <input
+                   type="number"
+                   step="0.1"
+                   value={duration}
+                   onChange={(e) => {
+                     const val = e.target.value;
+                     const newUrls = [...urls];
+                     newUrls[i] = `${parsedUrl}#duration=${val}`;
+                     onChange(newUrls.join(','));
+                   }}
+                   onBlur={(e) => {
+                     if (!e.target.value) {
+                       const newUrls = [...urls];
+                       newUrls[i] = `${parsedUrl}#duration=3`;
+                       onChange(newUrls.join(','));
+                     }
+                   }}
+                   className="w-8 bg-transparent text-[11px] font-black text-center outline-none text-gray-800 p-0 m-0 border-b border-transparent focus:border-primary transition-colors appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+                   min="0.1"
+                   placeholder="3"
+                 />
+                 <span className="text-[10px] font-bold text-gray-400">秒</span>
+               </div>
              </div>
            );
         })}
@@ -351,36 +383,42 @@ const ProductForm = ({ form, setForm, onSave, onCancel, categories, loading }: {
         <select value={form.mode} onChange={e => setForm({ ...form, mode: e.target.value as any })} className={inputCls}>
           <option value="skiing">滑雪</option>
           <option value="skateboard">滑板</option>
+          <option value="common" style={{ color: '#f97316', fontWeight: 'bold' }}>共同</option>
         </select>
       </div>
       <div>
         <label className={labelCls}>產品分類 Category (可複選)</label>
         <div className="flex flex-wrap gap-2 p-3 bg-neutral-50 rounded-xl border border-gray-100 min-h-[50px]">
-          {categories.filter(c => c.mode === form.mode).map(cat => {
-            // We'll store multiple IDs in the 'tag' field, and the first one in 'category_id'
-            const selectedIds = (form.tag || "").split(',').filter(id => id.length === 36); // UUID length is 36
-            const isSelected = selectedIds.includes(cat.id) || form.category_id === cat.id;
+          {categories.filter(c => c.mode === form.mode || c.mode === 'common').map(cat => {
+            const validCatIds = categories.map(c => c.id);
+            const allTags = (form.tag || "").split(',').filter(Boolean);
+            const selectedCatIds = allTags.filter(id => validCatIds.includes(id));
+            if (form.category_id && validCatIds.includes(form.category_id) && !selectedCatIds.includes(form.category_id)) {
+                selectedCatIds.push(form.category_id);
+            }
+            const nonCatTags = allTags.filter(id => !validCatIds.includes(id));
+            const isSelected = selectedCatIds.includes(cat.id);
             
             return (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => {
-                  let newIds = selectedIds;
+                  let newCatIds = [...selectedCatIds];
                   if (isSelected) {
-                    newIds = newIds.filter(id => id !== cat.id);
+                    newCatIds = newCatIds.filter(id => id !== cat.id);
                   } else {
-                    if (!newIds.includes(cat.id)) newIds.push(cat.id);
+                    newCatIds.push(cat.id);
                   }
-                  // Keep first ID in category_id for backward compat, and full list in tag
-                  const finalTag = newIds.join(',');
-                  setForm({ ...form, tag: finalTag, category_id: newIds[0] || '' });
+                  
+                  const finalTag = [...nonCatTags, ...newCatIds].join(',');
+                  setForm({ ...form, tag: finalTag, category_id: newCatIds[0] || '' });
                 }}
                 style={isSelected ? { backgroundColor: '#4b5563', color: '#ffffff' } : { backgroundColor: '#ffffff', color: '#6b7280' }}
                 className="px-3 py-1.5 rounded-lg text-xs font-bold border border-gray-200 transition-all active:scale-95 shadow-sm"
               >
                 {isSelected && <span className="mr-1">✓</span>}
-                {cat.name}
+                {cat.name} {cat.mode === 'common' && <span className="text-orange-500 ml-1">(共同)</span>}
               </button>
             );
           })}
@@ -959,6 +997,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const [hasFetchedOrders, setHasFetchedOrders] = useState(false);
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  const [cancelOrderModal, setCancelOrderModal] = useState<{ isOpen: boolean; order: Order | null; note: string }>({ isOpen: false, order: null, note: '' });
 
   const [pickupLocations, setPickupLocations] = useState<any[]>([]);
   const [pickupLocationName, setPickupLocationName] = useState('');
@@ -1169,6 +1208,118 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       }
       
       markAsRead(order.id);
+      
+      // EmailJS notification for order confirmation
+      try {
+        const { data: systemSettings } = await supabase.from('system_settings').select('*');
+        if (systemSettings) {
+          const settings: any = {};
+          systemSettings.forEach((item: any) => { settings[item.key] = item.value; });
+          const templateId = settings.emailjs_template_id;
+          if (settings.emailjs_service_id && settings.emailjs_public_key && templateId) {
+            const hardClean = (str: string) => str.replace(/[^a-zA-Z0-9_-]/g, '');
+            const sendWithSDK = async (params: any) => {
+              return new Promise((resolve, reject) => {
+                const invokeSDK = () => {
+                  const emailjs = (window as any).emailjs;
+                  emailjs.send(hardClean(settings.emailjs_service_id), hardClean(templateId), params, hardClean(settings.emailjs_public_key))
+                    .then(resolve).catch(reject);
+                };
+                if ((window as any).emailjs) invokeSDK();
+                else {
+                  const script = document.createElement('script');
+                  script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+                  script.onload = invokeSDK; script.onerror = reject;
+                  document.head.appendChild(script);
+                }
+              });
+            };
+            let bookingListHtml = '';
+            order.items.forEach(item => {
+              if (item.type === 'course_booking') {
+                const details = item.details || {};
+                const timesObj = details.times || {};
+                const dateKeys = Object.keys(timesObj).sort();
+                if (dateKeys.length > 0) {
+                  dateKeys.forEach(dateStr => {
+                    const slotsForDate = timesObj[dateStr];
+                    const timeKeys = Object.keys(slotsForDate).sort();
+                    timeKeys.forEach(timeStr => {
+                      const pCount = slotsForDate[timeStr] || 1;
+                      let displayTime = timeStr;
+                      if (timeStr.includes(':') && !timeStr.includes('-') && !timeStr.includes('~')) {
+                        try {
+                          const [hour, min] = timeStr.split(':').map(Number);
+                          if (!isNaN(hour)) {
+                            const endHour = hour + 1;
+                            const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(min || 0).padStart(2, '0')}`;
+                            displayTime = `${timeStr}~${endTimeStr}`;
+                          }
+                        } catch (e) {
+                          displayTime = timeStr;
+                        }
+                      }
+                      const locName = locations.find(l => l.id === details.locationId)?.name || details.locationName || '未指定';
+                      bookingListHtml += `
+                        <div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
+                          <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">課程：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${item.name}</span></div>
+                          <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${dateStr}</span></div>
+                          <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${displayTime}</span></div>
+                          <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">地點：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${locName}</span></div>
+                          <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${pCount} 人</span></div>
+                        </div>`;
+                    });
+                  });
+                } else {
+                  const fallbackDates = Array.isArray(details.dates) ? details.dates : [];
+                  const fallbackPCount = details.totalPersonSlots || 1;
+                  const locName = locations.find(l => l.id === details.locationId)?.name || details.locationName || '未指定';
+                  fallbackDates.forEach((d: string) => {
+                    bookingListHtml += `
+                      <div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">課程：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${item.name}</span></div>
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${d}</span></div>
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #ff0000; font-weight: 800; white-space: nowrap;">資料處理中...</span></div>
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">地點：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${locName}</span></div>
+                        <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${fallbackPCount} 人</span></div>
+                      </div>`;
+                  });
+                }
+              } else {
+                 bookingListHtml += `<div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
+                    <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">商品：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${item.name}</span></div>
+                    <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">數量：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${item.quantity || 1}</span></div>
+                 </div>`;
+              }
+            });
+
+            const successHtml = `<div style="margin-bottom: 15px; font-weight: bold; color: #10b981; font-size: 1.1em;">感謝您，您的訂單已確認！</div>`;
+            const courseTableContent = `${successHtml}${bookingListHtml}`;
+
+            const sharedParams = {
+              status_html: '<span style="color: #10b981; font-weight: bold; font-size: 1.2em;">訂單已確認</span><!--',
+              customer_name: order.customer_name || '會員',
+              course_name: '',
+              course_table: `-->\n${courseTableContent}`,
+              total_amount: `NT$ ${order.total_price.toLocaleString()}`,
+              coach_name: '',
+              contact_phone: order.customer_phone || '未提供',
+              skill_level: '無',
+              order_time: new Date().toLocaleString('zh-TW'),
+              last_five_digits: order.last_five_digits || '未提供',
+              payment_method: order.bank_info?.method === 'voucher_redemption' ? '課程方案兌換' : '銀行轉帳',
+              system_footer: '<br/><br/>--- SK8滑雪&電動滑板nocap ---'
+            };
+            if (order.customer_email) {
+              await sendWithSDK({ ...sharedParams, to_email: order.customer_email, subject: `【訂單確認通知】您的訂單已確認` }).catch(console.error);
+            }
+            if (settings.admin_email) {
+              await sendWithSDK({ ...sharedParams, to_email: settings.admin_email, subject: `【後台通知】訂單已確認 - ${order.customer_name}` }).catch(console.error);
+            }
+          }
+        }
+      } catch (e) { console.error('Email failed:', e); }
+
       setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: 'confirmed' } : o));
       alert('訂單已確認！');
     } catch (err: any) {
@@ -1176,8 +1327,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
     }
   };
 
-  const handleCancelOrder = async (order: Order) => {
-    if (!confirm('確定要取消此訂單嗎？（若包含已發放的優惠課程，未使用之堂數將會自動收回。若是取消課程兌換預約，則會退還一堂額度。）')) return;
+  const handleCancelOrder = async (order: Order, cancelNote: string = '') => {
     try {
       const { error } = await supabase.from('orders').update({ status: 'cancelled' }).eq('id', order.id);
       if (error) throw error;
@@ -1242,6 +1392,123 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       }
 
       markAsRead(order.id);
+
+      // EmailJS notification for order cancellation
+      try {
+        const { data: systemSettings } = await supabase.from('system_settings').select('*');
+        if (systemSettings) {
+          const settings: any = {};
+          systemSettings.forEach((item: any) => { settings[item.key] = item.value; });
+          const templateId = settings.emailjs_template_id;
+          if (settings.emailjs_service_id && settings.emailjs_public_key && templateId) {
+            const hardClean = (str: string) => str.replace(/[^a-zA-Z0-9_-]/g, '');
+            const sendWithSDK = async (params: any) => {
+              return new Promise((resolve, reject) => {
+                const invokeSDK = () => {
+                  const emailjs = (window as any).emailjs;
+                  emailjs.send(hardClean(settings.emailjs_service_id), hardClean(templateId), params, hardClean(settings.emailjs_public_key))
+                    .then(resolve).catch(reject);
+                };
+                if ((window as any).emailjs) invokeSDK();
+                else {
+                  const script = document.createElement('script');
+                  script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+                  script.onload = invokeSDK; script.onerror = reject;
+                  document.head.appendChild(script);
+                }
+              });
+            };
+            let cancelNoteHtml = '';
+            if (cancelNote.trim()) {
+              cancelNoteHtml = `<div style="margin-bottom: 15px; padding: 15px; border: 2px solid #ef4444; border-radius: 8px; background-color: #fef2f2; color: #ef4444; font-weight: bold;">備註訊息：<br/>${cancelNote.replace(/\n/g, '<br/>')}</div>`;
+            }
+            const apologyHtml = `<div style="margin-bottom: 15px; font-weight: bold; color: #333; font-size: 1.1em;">非常抱歉，您已下的訂單已被取消。</div>`;
+
+            let bookingListHtml = '';
+            order.items.forEach(item => {
+              if (item.type === 'course_booking') {
+                const details = item.details || {};
+                const timesObj = details.times || {};
+                const dateKeys = Object.keys(timesObj).sort();
+                if (dateKeys.length > 0) {
+                  dateKeys.forEach(dateStr => {
+                    const slotsForDate = timesObj[dateStr];
+                    const timeKeys = Object.keys(slotsForDate).sort();
+                    timeKeys.forEach(timeStr => {
+                      const pCount = slotsForDate[timeStr] || 1;
+                      let displayTime = timeStr;
+                      if (timeStr.includes(':') && !timeStr.includes('-') && !timeStr.includes('~')) {
+                        try {
+                          const [hour, min] = timeStr.split(':').map(Number);
+                          if (!isNaN(hour)) {
+                            const endHour = hour + 1;
+                            const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(min || 0).padStart(2, '0')}`;
+                            displayTime = `${timeStr}~${endTimeStr}`;
+                          }
+                        } catch (e) {
+                          displayTime = timeStr;
+                        }
+                      }
+                      const locName = locations.find(l => l.id === details.locationId)?.name || details.locationName || '未指定';
+                      bookingListHtml += `
+                        <div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
+                          <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">課程：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${item.name}</span></div>
+                          <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${dateStr}</span></div>
+                          <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${displayTime}</span></div>
+                          <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">地點：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${locName}</span></div>
+                          <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${pCount} 人</span></div>
+                        </div>`;
+                    });
+                  });
+                } else {
+                  const fallbackDates = Array.isArray(details.dates) ? details.dates : [];
+                  const fallbackPCount = details.totalPersonSlots || 1;
+                  const locName = locations.find(l => l.id === details.locationId)?.name || details.locationName || '未指定';
+                  fallbackDates.forEach((d: string) => {
+                    bookingListHtml += `
+                      <div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">課程：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${item.name}</span></div>
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">日期：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${d}</span></div>
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">時段：</span> <span style="color: #ff0000; font-weight: 800; white-space: nowrap;">資料處理中...</span></div>
+                        <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">地點：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${locName}</span></div>
+                        <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">人數：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${fallbackPCount} 人</span></div>
+                      </div>`;
+                  });
+                }
+              } else {
+                 bookingListHtml += `<div style="margin-bottom: 12px; padding: 12px; background-color: #f9f9f9; border-radius: 10px; border: 1px solid #eee; font-size: 13px; line-height: 1.5;">
+                    <div style="margin-bottom: 4px; white-space: nowrap;"><span style="color: #888; font-weight: bold;">商品：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${item.name}</span></div>
+                    <div style="white-space: nowrap;"><span style="color: #888; font-weight: bold;">數量：</span> <span style="color: #333; font-weight: 800; white-space: nowrap;">${item.quantity || 1}</span></div>
+                 </div>`;
+              }
+            });
+
+            const courseTableContent = `${cancelNoteHtml}${apologyHtml}${bookingListHtml}`;
+
+            const sharedParams = {
+              status_html: '<span style="color: #ef4444; font-weight: bold; font-size: 1.2em;">訂單已取消</span><!--',
+              customer_name: order.customer_name || '會員',
+              course_name: '',
+              course_table: `-->\n${courseTableContent}`,
+              total_amount: `NT$ ${order.total_price.toLocaleString()}`,
+              coach_name: '',
+              contact_phone: order.customer_phone || '未提供',
+              skill_level: '無',
+              order_time: new Date().toLocaleString('zh-TW'),
+              last_five_digits: order.last_five_digits || '未提供',
+              payment_method: order.bank_info?.method === 'voucher_redemption' ? '課程方案兌換' : '銀行轉帳',
+              system_footer: '<br/><br/>--- SK8滑雪&電動滑板nocap ---'
+            };
+            if (order.customer_email) {
+              await sendWithSDK({ ...sharedParams, to_email: order.customer_email, subject: `【訂單取消通知】您的訂單已取消` }).catch(console.error);
+            }
+            if (settings.admin_email) {
+              await sendWithSDK({ ...sharedParams, to_email: settings.admin_email, subject: `【後台通知】訂單已取消 - ${order.customer_name}` }).catch(console.error);
+            }
+          }
+        }
+      } catch (e) { console.error('Email failed:', e); }
+
       setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: 'cancelled' } : o));
       alert('訂單已取消！');
     } catch (err: any) {
@@ -1297,6 +1564,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       if (finalData.price === '' as any) finalData.price = 0;
       if (finalData.special_price === '' as any) finalData.special_price = null;
       if (finalData.stock === '' as any) finalData.stock = null; 
+      if (finalData.category_id === '') finalData.category_id = null as any;
 
       if (productForm.id) {
         const { error } = await supabase.from('products').update(finalData).eq('id', productForm.id);
@@ -1392,11 +1660,19 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   };
 
   const handleSaveTimeSlots = async (mode: 'skiing' | 'skateboard') => {
+    if (!confirm('警告：這裡的時段更動會影響前臺顯示的時段和教練排課狀況！\n若繼續儲存，系統將會「刪除之前課表的格式並清空所有此項目的課表紀錄」。\n\n確定要繼續更改嗎？')) return;
+
     setLoading(true);
     try {
+      // 刪除之前課表的格式和清空之前課表的紀錄
+      const { error: deleteError } = await supabase.from('course_schedules').delete().eq('mode', mode);
+      if (deleteError) throw deleteError;
+
       const { error } = await supabase.from('course_time_settings').upsert(timeSettings[mode]);
       if (error) throw error;
-      alert('時段設定已更新！');
+      
+      alert('時段設定已更新，並已清空舊的課表紀錄！');
+      fetchCourseData();
     } catch (err: any) { alert('儲存失敗: ' + err.message); }
     finally { setLoading(false); }
   };
@@ -1702,53 +1978,57 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                       <ProductForm form={productForm} setForm={setProductForm}
                         onSave={handleSaveProduct} onCancel={() => setEditingProduct(null)} categories={categories} loading={loading} />
                     ) : (
-                      <div className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex items-center gap-4 hover:shadow-sm transition-shadow">
+                      <div className="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 hover:shadow-sm transition-shadow">
                         {p.image_url
-                          ? <img src={p.image_url} alt={p.name} className="w-12 h-12 rounded-xl object-cover shrink-0 bg-gray-100" />
-                          : <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><Package size={20} className="text-gray-300" /></div>
+                          ? <img src={p.image_url} alt={p.name} className="w-14 h-14 rounded-xl object-cover shrink-0 bg-gray-100" />
+                          : <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center shrink-0"><Package size={20} className="text-gray-300" /></div>
                         }
-                        <div className="flex-1 min-w-0">
-                          <div className="font-black text-sm mb-1" style={{ color: '#000000', whiteSpace: 'nowrap' }} title={p.name}>
-                            {(() => {
-                              const name = p.name || (p as any).title || '未命名商品';
-                              return name.length > 10 ? name.slice(0, 10) + '...' : name;
-                            })()}
+                        <div className="flex-1 min-w-0 flex flex-col justify-between">
+                          <div className="flex justify-between items-start gap-2 mb-2">
+                            <div className="font-black text-sm" style={{ color: '#000000', whiteSpace: 'nowrap' }} title={p.name}>
+                              {(() => {
+                                const name = p.name || (p as any).title || '未命名商品';
+                                return name.length > 10 ? name.slice(0, 10) + '...' : name;
+                              })()}
+                            </div>
+                            <div className="text-right shrink-0">
+                              <div className="font-black text-sm leading-tight" style={{ color: '#000000' }}>NT${(p.price || 0).toLocaleString()}</div>
+                              {p.special_price ? <div className="text-[10px] text-red-500 font-bold italic">SALE NT${p.special_price.toLocaleString()}</div> : null}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-400 font-medium flex flex-wrap gap-1">
-                            {(() => {
-                              const allCatIds = [p.category_id, ...(p.tag || "").split(',')].filter(id => id && id.length === 36);
-                              const uniqueCatIds = Array.from(new Set(allCatIds));
-                              const resolvedNames = uniqueCatIds.map(id => categories.find(c => c.id === id)?.name).filter(Boolean);
-                              const otherTags = (p.tag || "").split(',').filter(t => t && t.length !== 36);
-                              
-                              return (
-                                <>
-                                  {resolvedNames.map((name, i) => (
-                                    <span key={i} className="text-primary bg-primary/5 px-1.5 py-0.5 rounded-md">#{name}</span>
-                                  ))}
-                                  {otherTags.map((tag, i) => (
-                                    <span key={i} className="text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-md">{tag}</span>
-                                  ))}
-                                  <span className="ml-1 text-gray-300">{p.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}</span>
-                                </>
-                              );
-                            })()}
+                          <div className="flex justify-between items-end gap-2">
+                            <div className="text-xs text-gray-400 font-medium flex flex-wrap gap-1 items-center">
+                              {(() => {
+                                const allCatIds = [p.category_id, ...(p.tag || "").split(',')].filter(id => id && id.length === 36);
+                                const uniqueCatIds = Array.from(new Set(allCatIds));
+                                const resolvedNames = uniqueCatIds.map(id => categories.find(c => c.id === id)?.name).filter(Boolean);
+                                const otherTags = (p.tag || "").split(',').filter(t => t && t.length !== 36);
+                                
+                                return (
+                                  <>
+                                    {resolvedNames.map((name, i) => (
+                                      <span key={i} className="text-primary bg-primary/5 px-1.5 py-0.5 rounded-md">#{name}</span>
+                                    ))}
+                                    {otherTags.map((tag, i) => (
+                                      <span key={i} className="text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded-md">{tag}</span>
+                                    ))}
+                                    <span className="ml-1 text-gray-300 mr-2">{p.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'}</span>
+                                  </>
+                                );
+                              })()}
+                              <span className={`text-[10px] font-bold ${p.is_active ? 'text-green-500' : 'text-gray-300'}`}>{p.is_active ? '上架中' : '已下架'}</span>
+                            </div>
+                            <div className="flex gap-2 shrink-0">
+                              <button onClick={() => { setEditingProduct(p); setProductForm(p); setIsAddingProduct(false); }}
+                                className="w-8 h-8 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm border border-blue-100">
+                                <Pencil size={14} />
+                              </button>
+                              <button onClick={() => p.id && handleDeleteProduct(p.id)}
+                                className="w-8 h-8 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm border border-red-100">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <div className="font-black text-sm" style={{ color: '#000000' }}>NT${(p.price || 0).toLocaleString()}</div>
-                          {p.special_price ? <div className="text-[10px] text-red-500 font-bold italic">SALE NT${p.special_price.toLocaleString()}</div> : null}
-                          <div className={`text-[10px] font-bold ${p.is_active ? 'text-green-500' : 'text-gray-300'}`}>{p.is_active ? '上架中' : '已下架'}</div>
-                        </div>
-                        <div className="flex gap-2 shrink-0">
-                          <button onClick={() => { setEditingProduct(p); setProductForm(p); setIsAddingProduct(false); }}
-                            className="w-10 h-10 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-blue-100">
-                            <Pencil size={16} />
-                          </button>
-                          <button onClick={() => p.id && handleDeleteProduct(p.id)}
-                            className="w-10 h-10 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm border border-red-100">
-                            <Trash2 size={16} />
-                          </button>
                         </div>
                       </div>
                     )}
@@ -1823,6 +2103,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                     <select value={categoryForm.mode} onChange={e => setCategoryForm({ ...categoryForm, mode: e.target.value as any })} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none font-bold text-sm text-gray-900 shadow-sm">
                       <option value="skiing">⛷ 滑雪</option>
                       <option value="skateboard">🛹 滑板</option>
+                      <option value="common" style={{ color: '#f97316', fontWeight: 'bold' }}>🌟 共同</option>
                     </select>
                   </div>
                 </div>
@@ -1838,27 +2119,29 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-              {['skiing', 'skateboard'].map((m) => (
+              {['skiing', 'skateboard'].map((m) => {
+                const displayCategories = categories.filter(c => c.mode === m || c.mode === 'common');
+                return (
                 <div key={m} className="bg-white border border-gray-100 rounded-[28px] overflow-hidden shadow-sm">
                   <div className={`px-6 py-4 font-black flex items-center justify-between ${m === 'skiing' ? 'bg-sky-50 text-sky-600' : 'bg-red-50 text-red-600'}`}>
                     <span>{m === 'skiing' ? '⛷ 滑雪分類' : '🛹 滑板分類'}</span>
-                    <span className="text-xs opacity-50">{categories.filter(c => c.mode === m).length} ITEMS</span>
+                    <span className="text-xs opacity-50">{displayCategories.length} ITEMS</span>
                   </div>
                   <div className="divide-y divide-gray-50">
-                    {categories.filter(c => c.mode === m).map(cat => (
+                    {displayCategories.map(cat => (
                       <div key={cat.id} className="px-6 py-4 flex items-center justify-between hover:bg-neutral-50 transition-colors">
-                        <span className="font-black text-gray-900">{cat.name}</span>
+                        <span className={`font-black ${cat.mode === 'common' ? 'text-orange-500' : 'text-gray-900'}`}>{cat.name} {cat.mode === 'common' && '(共同)'}</span>
                         <button onClick={() => handleDeleteCategory(cat.id)} className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-600 hover:text-white transition-all shadow-sm">
                           <Trash2 size={15} />
                         </button>
                       </div>
                     ))}
-                    {categories.filter(c => c.mode === m).length === 0 && (
+                    {displayCategories.length === 0 && (
                       <div className="px-6 py-12 text-center text-gray-300 font-bold italic">尚無分類</div>
                     )}
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         );
@@ -2246,15 +2529,63 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                     <Reorder.Group axis="y" values={skiingCourses} onReorder={(newOrder) => handleReorderCourses(newOrder, 'skiing')} className="space-y-3">
                       {skiingCourses.map(c => (
                         <Reorder.Item key={c.id} value={c} className="cursor-grab active:cursor-grabbing">
-                          <div className="bg-white border border-gray-100 rounded-2xl px-5 py-4 flex items-center gap-4 hover:shadow-md hover:border-gray-300 transition-all">
-                            <div className="flex-1 min-w-0">
-                              <div className="font-black text-sm text-gray-900 mb-1 truncate">{c.name}</div>
-                              <div className="text-xs font-bold text-gray-400">NT${(c.full_day_first_price || 0).toLocaleString()} / NT${(c.full_day_add_price || 0).toLocaleString()}</div>
+                          <div className="bg-white border border-gray-100 rounded-2xl p-2 hover:shadow-md hover:border-gray-300 transition-all">
+                            <div className="px-3 py-2 flex items-center gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-black text-sm text-gray-900 mb-1 truncate">{c.name}</div>
+                                <div className="text-xs font-bold text-gray-400">
+                                  {c.is_night_mode 
+                                    ? `NT$${(c.first_lesson_price || 0).toLocaleString()} / NT$${(c.additional_lesson_price || 0).toLocaleString()}` 
+                                    : `NT$${(c.full_day_first_price || 0).toLocaleString()} / NT$${(c.full_day_add_price || 0).toLocaleString()}`
+                                  }
+                                </div>
+                              </div>
+                              <div className="flex gap-2 shrink-0">
+                                <button onPointerDownCapture={(e) => { e.stopPropagation(); setEditingCourse(c); setCourseForm(c); setIsAddingCourse(true); }} className="w-8 h-8 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Pencil size={14} /></button>
+                                <button onPointerDownCapture={(e) => { e.stopPropagation(); c.id && handleDeleteCourse(c.id); }} className="w-8 h-8 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Trash2 size={14} /></button>
+                              </div>
                             </div>
-                            <div className="flex gap-2 shrink-0">
-                              <button onPointerDownCapture={(e) => { e.stopPropagation(); setEditingCourse(c); setCourseForm(c); setIsAddingCourse(true); }} className="w-8 h-8 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Pencil size={14} /></button>
-                              <button onPointerDownCapture={(e) => { e.stopPropagation(); c.id && handleDeleteCourse(c.id); }} className="w-8 h-8 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Trash2 size={14} /></button>
-                            </div>
+                            
+                            {/* 綁定優惠方案顯示 */}
+                            {coursePackages.filter(pkg => pkg.tag === c.id).length > 0 && (
+                              <div className="mt-1 border-t border-gray-100 pt-2 px-2 flex flex-col gap-2">
+                                <div className="flex justify-between items-center px-2 py-1">
+                                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">附屬優惠方案</span>
+                                  <button
+                                    onPointerDownCapture={async (e) => {
+                                      e.stopPropagation();
+                                      const isPackageOnly = c.duration === 'PACKAGE_ONLY';
+                                      try {
+                                        await supabase.from('courses').update({ duration: isPackageOnly ? null : 'PACKAGE_ONLY' }).eq('id', c.id);
+                                        setCourses(prev => prev.map(course => course.id === c.id ? { ...course, duration: isPackageOnly ? undefined : 'PACKAGE_ONLY' } : course));
+                                      } catch (err) { console.error(err); }
+                                    }}
+                                    className={`text-[10px] font-black px-3 py-1 rounded-full transition-all shadow-sm ${c.duration === 'PACKAGE_ONLY' ? 'bg-sky-100 text-sky-700 border border-sky-200 hover:bg-sky-200' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-200'}`}
+                                  >
+                                    {c.duration === 'PACKAGE_ONLY' ? '✅ 只保留優惠方案' : '只保留優惠方案'}
+                                  </button>
+                                </div>
+                                {coursePackages.filter(pkg => pkg.tag === c.id).map(pkg => (
+                                  <div key={pkg.id} className="bg-sky-50/50 border border-sky-100 rounded-xl px-3 py-2 flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center shrink-0">
+                                      <BookOpen size={14} className="text-sky-600" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-bold text-xs text-sky-900 truncate">{pkg.name}</div>
+                                      <div className="text-[10px] font-bold text-sky-600/70">NT${pkg.price.toLocaleString()} / {pkg.weight}堂</div>
+                                    </div>
+                                    <button onPointerDownCapture={(e) => {
+                                      e.stopPropagation();
+                                      if (confirm('確定要刪除這個優惠方案嗎？')) {
+                                        if (pkg.id) handleDeleteProduct(pkg.id);
+                                      }
+                                    }} className="w-7 h-7 bg-white text-red-400 hover:bg-red-500 hover:text-white border border-red-100 rounded-lg flex items-center justify-center transition-all shadow-sm">
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </Reorder.Item>
                       ))}
@@ -2279,15 +2610,58 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                     <Reorder.Group axis="y" values={skateboardCourses} onReorder={(newOrder) => handleReorderCourses(newOrder, 'skateboard')} className="space-y-3">
                       {skateboardCourses.map(c => (
                         <Reorder.Item key={c.id} value={c} className="cursor-grab active:cursor-grabbing">
-                          <div className="bg-white border border-gray-100 rounded-2xl px-5 py-4 flex items-center gap-4 hover:shadow-md hover:border-gray-300 transition-all">
-                            <div className="flex-1 min-w-0">
-                              <div className="font-black text-sm text-gray-900 mb-1 truncate">{c.name}</div>
-                              <div className="text-xs font-bold text-gray-400"><span className="line-through text-gray-300 mr-2">NT${(c.price || 0).toLocaleString()}</span><span className="text-red-500">NT${(c.first_lesson_price || 0).toLocaleString()}</span></div>
+                          <div className="bg-white border border-gray-100 rounded-2xl p-2 hover:shadow-md hover:border-gray-300 transition-all">
+                            <div className="px-3 py-2 flex items-center gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-black text-sm text-gray-900 mb-1 truncate">{c.name}</div>
+                                <div className="text-xs font-bold text-gray-400"><span className="line-through text-gray-300 mr-2">NT${(c.price || 0).toLocaleString()}</span><span className="text-red-500">NT${(c.first_lesson_price || 0).toLocaleString()}</span></div>
+                              </div>
+                              <div className="flex gap-2 shrink-0">
+                                <button onPointerDownCapture={(e) => { e.stopPropagation(); setEditingCourse(c); setCourseForm(c); setIsAddingCourse(true); }} className="w-8 h-8 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Pencil size={14} /></button>
+                                <button onPointerDownCapture={(e) => { e.stopPropagation(); c.id && handleDeleteCourse(c.id); }} className="w-8 h-8 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Trash2 size={14} /></button>
+                              </div>
                             </div>
-                            <div className="flex gap-2 shrink-0">
-                              <button onPointerDownCapture={(e) => { e.stopPropagation(); setEditingCourse(c); setCourseForm(c); setIsAddingCourse(true); }} className="w-8 h-8 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Pencil size={14} /></button>
-                              <button onPointerDownCapture={(e) => { e.stopPropagation(); c.id && handleDeleteCourse(c.id); }} className="w-8 h-8 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-lg flex items-center justify-center transition-all shadow-sm"><Trash2 size={14} /></button>
-                            </div>
+
+                            {/* 綁定優惠方案顯示 */}
+                            {coursePackages.filter(pkg => pkg.tag === c.id).length > 0 && (
+                              <div className="mt-1 border-t border-gray-100 pt-2 px-2 flex flex-col gap-2">
+                                <div className="flex justify-between items-center px-2 py-1">
+                                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">附屬優惠方案</span>
+                                  <button
+                                    onPointerDownCapture={async (e) => {
+                                      e.stopPropagation();
+                                      const isPackageOnly = c.duration === 'PACKAGE_ONLY';
+                                      try {
+                                        await supabase.from('courses').update({ duration: isPackageOnly ? null : 'PACKAGE_ONLY' }).eq('id', c.id);
+                                        setCourses(prev => prev.map(course => course.id === c.id ? { ...course, duration: isPackageOnly ? undefined : 'PACKAGE_ONLY' } : course));
+                                      } catch (err) { console.error(err); }
+                                    }}
+                                    className={`text-[10px] font-black px-3 py-1 rounded-full transition-all shadow-sm ${c.duration === 'PACKAGE_ONLY' ? 'bg-red-100 text-red-700 border border-red-200 hover:bg-red-200' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 border border-gray-200'}`}
+                                  >
+                                    {c.duration === 'PACKAGE_ONLY' ? '✅ 只保留優惠方案' : '只保留優惠方案'}
+                                  </button>
+                                </div>
+                                {coursePackages.filter(pkg => pkg.tag === c.id).map(pkg => (
+                                  <div key={pkg.id} className="bg-red-50/50 border border-red-100 rounded-xl px-3 py-2 flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                                      <BookOpen size={14} className="text-red-600" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-bold text-xs text-red-900 truncate">{pkg.name}</div>
+                                      <div className="text-[10px] font-bold text-red-600/70">NT${pkg.price.toLocaleString()} / {pkg.weight}堂</div>
+                                    </div>
+                                    <button onPointerDownCapture={(e) => {
+                                      e.stopPropagation();
+                                      if (confirm('確定要刪除這個優惠方案嗎？')) {
+                                        if (pkg.id) handleDeleteProduct(pkg.id);
+                                      }
+                                    }} className="w-7 h-7 bg-white text-red-400 hover:bg-red-500 hover:text-white border border-red-100 rounded-lg flex items-center justify-center transition-all shadow-sm">
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </Reorder.Item>
                       ))}
@@ -2297,36 +2671,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               </div>
             </div>
 
-            {/* Course Packages List (優惠方案) */}
-            {coursePackages.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-4 flex items-center gap-2">
-                  <Ticket size={16} className="text-primary" /> 優惠方案列表
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {coursePackages.map(pkg => (
-                    <div key={pkg.id} className="bg-white border border-gray-100 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm">
-                      <div className="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center shrink-0">
-                        <BookOpen size={20} className="text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-black text-sm text-gray-900 mb-1 truncate">{pkg.name}</div>
-                        <div className="text-xs font-bold text-gray-400">
-                          {pkg.mode === 'skiing' ? '⛷ 滑雪' : '🛹 滑板'} · NT${pkg.price.toLocaleString()} / {pkg.weight}堂
-                        </div>
-                      </div>
-                      <button onClick={() => {
-                        if (confirm('確定要刪除這個優惠方案嗎？')) {
-                          if (pkg.id) handleDeleteProduct(pkg.id);
-                        }
-                      }} className="w-9 h-9 bg-red-50 text-red-500 hover:bg-red-600 hover:text-white rounded-xl flex items-center justify-center transition-all shadow-sm">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             {/* ── 課程附屬設置 ── */}
             <div className="mt-10 pt-10 border-t-2 border-dashed border-gray-100 space-y-6">
@@ -3454,14 +3799,6 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                                                 <div className="text-[10px] font-black text-gray-400 mb-1">學習程度</div>
                                                 <div className="text-xs font-bold text-gray-900 whitespace-pre-wrap">{item.details.skillLevel || '未提供'}</div>
                                               </div>
-                                              {item.details.mediaUrl && (
-                                                <div className="pt-3 border-t border-gray-50">
-                                                  <div className="text-[10px] font-black text-gray-400 mb-1">參考影片</div>
-                                                  <a href={item.details.mediaUrl} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-blue-600 hover:text-blue-800 underline break-all block">
-                                                    {item.details.mediaUrl}
-                                                  </a>
-                                                </div>
-                                              )}
                                             </div>
                                           </div>
                                         </div>
@@ -3569,7 +3906,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                               )}
                               {order.status !== 'cancelled' && (
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); handleCancelOrder(order); }}
+                                  onClick={(e) => { e.stopPropagation(); setCancelOrderModal({ isOpen: true, order, note: '' }); }}
                                   style={{ backgroundColor: '#171717', color: '#ffffff' }}
                                   className="flex-1 py-3 rounded-xl font-black shadow-sm hover:scale-[1.02] active:scale-95 transition-all text-sm border border-black"
                                 >
@@ -3867,6 +4204,39 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
             </header>
           )}
           {renderContent()}
+          {cancelOrderModal.isOpen && cancelOrderModal.order && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+              <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl">
+                <h3 className="text-xl font-black text-gray-900 mb-4">取消訂單</h3>
+                <div className="space-y-2 mb-6">
+                  <label className="block text-xs font-black text-red-500 uppercase tracking-widest">寫給客戶的備註 (將隨信件發送)</label>
+                  <textarea
+                    className="w-full p-4 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm font-medium outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/20 transition-all min-h-[100px]"
+                    placeholder="例如：您好，因今日天氣不佳，課程取消..."
+                    value={cancelOrderModal.note}
+                    onChange={(e) => setCancelOrderModal(prev => ({ ...prev, note: e.target.value }))}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => setCancelOrderModal({ isOpen: false, order: null, note: '' })}
+                    className="flex-1 py-3 rounded-xl font-bold bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all"
+                  >
+                    返回操作
+                  </button>
+                  <button 
+                    onClick={() => {
+                      handleCancelOrder(cancelOrderModal.order!, cancelOrderModal.note);
+                      setCancelOrderModal({ isOpen: false, order: null, note: '' });
+                    }}
+                    className="flex-1 py-3 rounded-xl font-black bg-red-100 text-black hover:bg-red-200 transition-all border border-red-200 shadow-sm"
+                  >
+                    確定取消
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

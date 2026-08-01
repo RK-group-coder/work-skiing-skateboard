@@ -37,6 +37,7 @@ const ProductShowcase: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchEndX, setTouchEndX] = useState<number | null>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
   const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
@@ -61,7 +62,7 @@ const ProductShowcase: React.FC = () => {
         const { data: catData } = await supabase
           .from('categories')
           .select('*')
-          .eq('mode', mode);
+          .in('mode', [mode, 'common']);
         
         if (catData) {
           setCategories(catData.map(c => ({ id: c.id, name: c.name })));
@@ -71,7 +72,7 @@ const ProductShowcase: React.FC = () => {
         const { data: productsData } = await supabase
           .from('products')
           .select('*')
-          .eq('mode', mode)
+          .in('mode', [mode, 'common'])
           .eq('is_active', true);
         
         if (productsData) {
@@ -247,7 +248,7 @@ const ProductShowcase: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              onClick={() => { setSelectedProduct(product); setPurchaseQty(1); }}
+              onClick={() => { setSelectedProduct(product); setPurchaseQty(1); setActiveImageIndex(0); }}
               className="group cursor-pointer"
             >
               <div className="relative aspect-[4/5] rounded-[32px] overflow-hidden bg-white mb-6 border border-gray-100 shadow-sm transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-1">
@@ -358,7 +359,15 @@ const ProductShowcase: React.FC = () => {
                 <div className="flex flex-col md:flex-row min-h-full">
                   {/* Images Section */}
                   <div className="md:w-1/2 p-6 md:p-10 h-fit">
-                    <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-4 md:flex-col md:overflow-visible">
+                    <div 
+                      className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-2 md:flex-col md:overflow-visible"
+                      onScroll={(e) => {
+                        const container = e.currentTarget;
+                        const scrollLeft = container.scrollLeft;
+                        const itemWidth = container.clientWidth + 16; // width + gap
+                        setActiveImageIndex(Math.round(scrollLeft / itemWidth));
+                      }}
+                    >
                       <div className="flex-shrink-0 w-full snap-center rounded-[32px] overflow-hidden bg-white border border-gray-100 aspect-[4/5] shadow-sm relative">
                         <img src={selectedProduct.image} className="w-full h-full object-contain p-4" alt={selectedProduct.name} />
                       </div>
@@ -369,6 +378,17 @@ const ProductShowcase: React.FC = () => {
                         </div>
                       ))}
                     </div>
+                    {/* Image Pagination Dots (Mobile only since desktop stacks them) */}
+                    {selectedProduct && ((selectedProduct.size_chart_url || "").split(',').filter(Boolean).length > 0) && (
+                      <div className="flex justify-center items-center gap-2 mt-4 md:hidden">
+                        {[selectedProduct.image, ...(selectedProduct.size_chart_url || "").split(',').filter(Boolean)].map((_, idx) => (
+                          <div 
+                            key={idx} 
+                            className={`h-2 rounded-full transition-all duration-300 ${idx === activeImageIndex ? 'w-6 bg-gray-800' : 'w-2 bg-gray-300'}`} 
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Info Section */}

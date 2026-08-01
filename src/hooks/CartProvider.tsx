@@ -57,6 +57,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [directPurchaseItem, setDirectPurchaseItem] = useState<CartItem | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isAutoSelectEnabled, setIsAutoSelectEnabled] = useState(true);
 
   useEffect(() => {
     const fetchUserVouchers = async (userId: string) => {
@@ -68,7 +69,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('is_used', false);
         
         if (data && !error) {
-          const userVouchers = data.map((d: any) => d.vouchers).filter(Boolean);
+          const now = new Date();
+          const userVouchers = data.map((d: any) => d.vouchers).filter((v: any) => {
+            if (!v) return false;
+            if (v.valid_until) {
+              const validUntil = new Date(v.valid_until);
+              validUntil.setHours(23, 59, 59, 999);
+              if (validUntil < now) {
+                const diffTime = Math.abs(now.getTime() - validUntil.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                if (diffDays > 7) {
+                  return false;
+                }
+              }
+            }
+            return true;
+          });
           setVouchers(userVouchers);
         }
       } catch (err) {
@@ -243,6 +259,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const selectVoucher = (voucherId: string | null) => {
+    setIsAutoSelectEnabled(false);
     if (!voucherId) {
       setSelectedVoucher(null);
       return;
@@ -264,6 +281,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const totalPrice = effectiveCart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   const getVoucherEligibility = (voucher: Voucher) => {
+    if (voucher.valid_until) {
+      const now = new Date();
+      const validUntil = new Date(voucher.valid_until);
+      validUntil.setHours(23, 59, 59, 999);
+      if (validUntil < now) {
+        return { isEligible: false, reason: '已過期' };
+      }
+    }
+
     if (effectiveCart.length === 0) {
       return { isEligible: false, reason: '購物車目前是空的' };
     }
@@ -380,14 +406,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Auto-select eligible voucher if none is selected
   useEffect(() => {
-    if (!selectedVoucher && effectiveCart.length > 0) {
+    if (isAutoSelectEnabled && !selectedVoucher && effectiveCart.length > 0) {
       // eslint-disable-next-line react-hooks/exhaustive-deps
       const eligibleVouchers = vouchers.filter(v => getVoucherEligibility(v).isEligible && v.target_type !== 'course_package');
       if (eligibleVouchers.length > 0) {
         setSelectedVoucher(eligibleVouchers[0]);
       }
     }
-  }, [cart, directPurchaseItem, vouchers, selectedVoucher]);
+  }, [cart, directPurchaseItem, vouchers, selectedVoucher, isAutoSelectEnabled]);
 
   // Custom handler for closing checkout to clear direct purchase item
   const handleSetIsCheckoutOpen = (open: boolean) => {

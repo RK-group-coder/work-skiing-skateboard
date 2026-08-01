@@ -73,6 +73,16 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
   // Convert DB courses to UI plans
   const plans = dbCourses.map(c => {
     let priceDisplay = `NT$${(c.first_lesson_price || c.price || 0).toLocaleString()}`;
+    let originalPriceDisplay: string | null = null;
+    let originalPriceLabel: string | null = null;
+    let priceLabel: string | null = null;
+    
+    if (c.mode === 'skateboard' && c.first_lesson_price && c.price && Number(c.first_lesson_price) < Number(c.price)) {
+      originalPriceDisplay = `NT$${Number(c.price).toLocaleString()}`;
+      originalPriceLabel = '一般價';
+      priceDisplay = `NT$${Number(c.first_lesson_price).toLocaleString()}`;
+      priceLabel = '會員價';
+    }
     
     if (c.mode === 'skiing') {
       const prices = [
@@ -100,6 +110,9 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
       mode: c.mode,
       price: Number(c.first_lesson_price || c.price || 0),
       priceDisplay,
+      priceLabel,
+      originalPriceDisplay,
+      originalPriceLabel,
       addPrice: Number(c.additional_lesson_price || 0),
       period: '每堂 120min', 
       description: c.description,
@@ -337,9 +350,17 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                 <div className="relative z-10 mb-8">
                   <h3 className="text-3xl font-black text-gray-900 tracking-tighter mb-4 leading-tight">{p.name}</h3>
                   <div className="space-y-4">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-black text-gray-900 tracking-tighter">{p.priceDisplay}</span>
-
+                    <div className="flex flex-col items-start gap-1">
+                      {p.originalPriceDisplay && (
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-sm font-bold text-gray-400 line-through tracking-wider">{p.originalPriceDisplay}</span>
+                          {p.originalPriceLabel && <span className="text-[10px] text-gray-400 font-medium tracking-widest">{p.originalPriceLabel}</span>}
+                        </div>
+                      )}
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-2xl font-black text-gray-900 tracking-tighter">{p.priceDisplay}</span>
+                        {p.priceLabel && <span className="text-xs text-primary font-bold tracking-widest">{p.priceLabel}</span>}
+                      </div>
                     </div>
                     {p.addPrice > 0 && p.addPrice < p.price && (
                       <div className={`p-4 rounded-2xl flex flex-col gap-1 shadow-lg ring-1 ring-white/20 animate-in slide-in-from-left duration-500 ${
@@ -367,20 +388,22 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                 </ul>
 
                 <div className="mt-auto pt-4">
-                  <button 
-                    onClick={() => {
-                      setSelectedCourse(p);
-                      setIsBookingOpen(true);
-                    }}
-                    className={`w-full py-5 rounded-2xl font-black italic uppercase tracking-tighter transition-all shadow-xl active:scale-95 text-white ${
-                      p.popular 
-                      ? 'shadow-primary/30 hover:brightness-110 scale-105 md:scale-100' 
-                      : 'shadow-black/5 hover:brightness-110'
-                    }`}
-                    style={{ background: 'var(--primary-gradient)' }}
-                  >
-                    立即報名
-                  </button>
+                  {(p.duration !== 'PACKAGE_ONLY' || !coursePackages.some((pkg: any) => pkg.tag === p.id)) && (
+                    <button 
+                      onClick={() => {
+                        setSelectedCourse(p);
+                        setIsBookingOpen(true);
+                      }}
+                      className={`w-full py-5 rounded-2xl font-black italic uppercase tracking-tighter transition-all shadow-xl active:scale-95 text-white ${
+                        p.popular 
+                        ? 'shadow-primary/30 hover:brightness-110 scale-105 md:scale-100' 
+                        : 'shadow-black/5 hover:brightness-110'
+                      }`}
+                      style={{ background: 'var(--primary-gradient)' }}
+                    >
+                      立即報名
+                    </button>
+                  )}
                   {(() => {
                     const pkg = coursePackages.find(pkg => pkg.tag === p.id);
                     if (pkg) {
