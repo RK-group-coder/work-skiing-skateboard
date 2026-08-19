@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { Send, User as UserIcon, MessageSquare, X, ArrowLeft } from 'lucide-react';
+import { compressImage } from '../utils/imageCompressor';
 
 interface Message {
   id: string;
@@ -85,9 +86,10 @@ const AdminSupport: React.FC = () => {
 
     try {
       if (pendingImage) {
-        const fileExt = pendingImage.name.split('.').pop();
+        const compressedFile = await compressImage(pendingImage);
+        const fileExt = compressedFile.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('media').upload(fileName, pendingImage);
+        const { error: uploadError } = await supabase.storage.from('media').upload(fileName, compressedFile);
         if (uploadError) throw uploadError;
         const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
         imageUrl = publicUrl;

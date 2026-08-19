@@ -307,9 +307,17 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                         selectedTargetLabel = `僅適用於: ${targetNames[selectedVoucher.target_id]}`;
                       }
 
+                      let bogoText = '';
                       if (selectedVoucher.target_type === 'special_bogo') {
                         try {
                           const config = JSON.parse(selectedVoucher.target_id || '{}');
+                          const buyDetails = config.buy_details || {};
+                          const getDetails = config.get_details || {};
+                          const buyNames = Object.entries(config.buy || {}).map(([id, qty]) => `${(buyDetails as any)[id]?.name || '指定項目'} x${qty}`).join('、');
+                          const getNames = Object.entries(config.get || {}).map(([id, qty]) => `${(getDetails as any)[id]?.name || '贈品'} x${qty}`).join('、');
+                          if (buyNames && getNames) {
+                            bogoText = `買【${buyNames}】送【${getNames}】`;
+                          }
                           selectedTargetLabel = config.mode ? `特殊優惠: ${config.mode}` : '特殊組合優惠';
                         } catch (e) {}
                       }
@@ -333,7 +341,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                              {selectedTargetLabel}
                            </div>
                            <p className="text-xs font-bold" style={{ color: 'var(--primary)' }}>
-                             {selectedVoucher.target_type === 'special_bogo' ? '達標即自動加入免費贈品' : (selectedVoucher.type === 'percent' ? `折扣 ${selectedVoucher.value}%` : `折抵 NT$${selectedVoucher.value}`)}
+                             {selectedVoucher.target_type === 'special_bogo' ? (bogoText || selectedVoucher.description || '達標即自動加入免費贈品') : (selectedVoucher.type === 'percent' ? `折扣 ${selectedVoucher.value}%` : `折抵 NT$${selectedVoucher.value}`)}
                              {(selectedVoucher.min_amount ?? 0) > 0 && ` · 滿 NT$${selectedVoucher.min_amount} 可用`}
                            </p>
                         </button>
@@ -363,9 +371,17 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                           targetLabel = `僅適用於: ${targetNames[v.target_id]}`;
                         }
                         
+                        let bogoText = '';
                         if (v.target_type === 'special_bogo') {
                           try {
                             const config = JSON.parse(v.target_id || '{}');
+                            const buyDetails = config.buy_details || {};
+                            const getDetails = config.get_details || {};
+                            const buyNames = Object.entries(config.buy || {}).map(([id, qty]) => `${(buyDetails as any)[id]?.name || '指定項目'} x${qty}`).join('、');
+                            const getNames = Object.entries(config.get || {}).map(([id, qty]) => `${(getDetails as any)[id]?.name || '贈品'} x${qty}`).join('、');
+                            if (buyNames && getNames) {
+                              bogoText = `買【${buyNames}】送【${getNames}】`;
+                            }
                             targetLabel = config.mode ? `特殊優惠: ${config.mode}` : '特殊組合優惠';
                           } catch (e) {}
                         }
@@ -405,7 +421,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                               {targetLabel}
                             </div>
                             <p className="text-xs opacity-60 font-medium">
-                              {v.target_type === 'special_bogo' ? '達標即自動加入免費贈品' : (v.type === 'percent' ? `折扣 ${v.value}%` : `折抵 NT$${v.value}`)}
+                              {v.target_type === 'special_bogo' ? (bogoText || v.description || '達標即自動加入免費贈品') : (v.type === 'percent' ? `折扣 ${v.value}%` : `折抵 NT$${v.value}`)}
                               {(v.min_amount ?? 0) > 0 && ` · 滿 NT$${v.min_amount} 可用`}
                             </p>
                           </button>
@@ -518,9 +534,17 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                       targetLabel = `僅適用於: ${targetNames[v.target_id]}`;
                     }
                     
+                    let bogoText = '';
                     if (v.target_type === 'special_bogo') {
                       try {
                         const config = JSON.parse(v.target_id || '{}');
+                        const buyDetails = config.buy_details || {};
+                        const getDetails = config.get_details || {};
+                        const buyNames = Object.entries(config.buy || {}).map(([id, qty]) => `${(buyDetails as any)[id]?.name || '指定項目'} x${qty}`).join('、');
+                        const getNames = Object.entries(config.get || {}).map(([id, qty]) => `${(getDetails as any)[id]?.name || '贈品'} x${qty}`).join('、');
+                        if (buyNames && getNames) {
+                          bogoText = `買【${buyNames}】送【${getNames}】`;
+                        }
                         targetLabel = config.mode ? `特殊優惠: ${config.mode}` : '特殊組合優惠';
                       } catch (e) {}
                     }
@@ -551,10 +575,15 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                             >
                               {isSelected ? '套用中' : isCoursePackage ? `適用於：${v.target_id && targetNames[v.target_id] ? targetNames[v.target_id] : '指定課程'}` : targetLabel}
                             </span>
+                            {v.target_type === 'special_bogo' && (
+                              <p className="text-xs font-bold text-blue-600 mt-2">
+                                {bogoText || v.description}
+                              </p>
+                            )}
                           </div>
                           <div className="text-right flex flex-col items-end">
                             <p className="text-xl font-black italic" style={isSelected ? { color: 'var(--primary)' } : { color: 'var(--primary)' }}>
-                              {isCoursePackage ? `剩餘 ${v.count} 堂` : (v.target_type === 'special_bogo' ? '自動帶入贈品' : (v.type === 'percent' ? `折扣 ${v.value}%` : `減免 NT$${v.value}`))}
+                              {isCoursePackage ? `剩餘 ${v.count} 堂` : (v.target_type === 'special_bogo' ? '買送滿減特惠' : (v.type === 'percent' ? `折扣 ${v.value}%` : `減免 NT$${v.value}`))}
                             </p>
                             {(v.min_amount ?? 0) > 0 && <p className="text-[10px] opacity-60 font-bold mt-1">滿 NT$${v.min_amount}</p>}
                             {!isCoursePackage && v.count > 1 && <p className="text-[10px] opacity-60 font-bold mt-1">剩餘 {v.count} 張</p>}

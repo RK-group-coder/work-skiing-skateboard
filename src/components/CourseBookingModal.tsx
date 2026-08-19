@@ -103,12 +103,19 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
   }, [isOpen, mode]);
 
   useEffect(() => {
-    if (mode === 'skiing' && skiingSessionIdx !== null && selectedDates.length > 0) {
-      const date = selectedDates[0];
-      const available = getAvailableTimes(date);
-      const slotTime = course.is_night_mode ? ((course.night_mode_slots || [])[skiingSessionIdx] || "") : (available[skiingSessionIdx] || "");
-      if (slotTime) {
-        setSelectedTimes({ [date]: { [slotTime]: skiingPersonCount } });
+    if (mode === 'skiing' && skiingSessionIdx !== null) {
+      if (selectedDates.length === 0) {
+        setSelectedTimes({});
+      } else {
+        const newTimes: Record<string, Record<string, number>> = {};
+        selectedDates.forEach(date => {
+          const available = getAvailableTimes(date);
+          const slotTime = course.is_night_mode ? ((course.night_mode_slots || [])[skiingSessionIdx] || "") : (available[skiingSessionIdx] || "");
+          if (slotTime) {
+            newTimes[date] = { [slotTime]: skiingPersonCount };
+          }
+        });
+        setSelectedTimes(newTimes);
       }
     }
   }, [mode, skiingSessionIdx, skiingPersonCount, selectedDates]);
@@ -447,12 +454,10 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
        return;
     }
 
-    if (mode === 'skiing' || course.isRedeemingPackage) {
-      // In skiing mode or redemption, only one date can be selected
+    if (course.isRedeemingPackage) {
+      // In redemption mode, only one date can be selected
       setSelectedDates([dateStr]);
-      if (course.isRedeemingPackage) {
-        setSelectedTimes({});
-      }
+      setSelectedTimes({});
     } else {
       setSelectedDates(prev => 
         prev.includes(dateStr) ? prev.filter(d => d !== dateStr) : [...prev, dateStr].sort()
@@ -466,24 +471,27 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
       let finalTimes = { ...selectedTimes };
       
       if (mode === 'skiing') {
-        const date = selectedDates[0];
-        if (!date) {
+        if (selectedDates.length === 0) {
           alert('請先選擇日期');
           setStep(3);
           setLoading(false);
           return;
         }
         
-        // Force sync session info to finalTimes if missing or empty
-        const available = getAvailableTimes(date);
-        const fallbackSlot = course.is_night_mode 
-          ? (course.night_mode_slots?.join(', ') || "夜滑時段")
-          : (skiingSessionIdx === 0 ? "半天(上午) 09:00-12:00" : skiingSessionIdx === 1 ? "半天(下午) 13:00-16:00" : "全天課程 09:00-15:00");
-        const slotTime = course.is_night_mode ? fallbackSlot : ((skiingSessionIdx !== null && available[skiingSessionIdx]) || fallbackSlot);
-        
-        if (Object.keys(finalTimes).length === 0 || !finalTimes[date] || !finalTimes[date][slotTime]) {
-          finalTimes = { [date]: { [slotTime]: skiingPersonCount } };
-        }
+        // Force sync session info to finalTimes for all selected dates if missing or empty
+        const syncedTimes: Record<string, Record<string, number>> = { ...finalTimes };
+        selectedDates.forEach(date => {
+          const available = getAvailableTimes(date);
+          const fallbackSlot = course.is_night_mode 
+            ? (course.night_mode_slots?.join(', ') || "夜滑時段")
+            : (skiingSessionIdx === 0 ? "半天(上午) 09:00-12:00" : skiingSessionIdx === 1 ? "半天(下午) 13:00-16:00" : "全天課程 09:00-15:00");
+          const slotTime = course.is_night_mode ? fallbackSlot : ((skiingSessionIdx !== null && available[skiingSessionIdx]) || fallbackSlot);
+          
+          if (!syncedTimes[date] || Object.keys(syncedTimes[date]).length === 0) {
+            syncedTimes[date] = { [slotTime]: skiingPersonCount };
+          }
+        });
+        finalTimes = syncedTimes;
       }
 
       const totalPersonSlots = Object.values(finalTimes).reduce((acc, dateSlots) => {
@@ -921,7 +929,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                   <motion.div key="ski-s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Calendar size={24} /></div>
-                      <h4 className="text-xl font-bold text-gray-900">選擇上課日期 <span className="text-gray-400 font-normal text-base">(滑雪課程限選一天)</span></h4>
+                      <h4 className="text-xl font-bold text-gray-900">選擇上課日期 <span className="text-gray-400 font-normal text-base">{course.isRedeemingPackage ? '(方案兌換限選一天)' : '(可複選多天)'}</span></h4>
                     </div>
 
                     <div className="bg-gray-50 p-6 rounded-[32px] border border-gray-100">
@@ -958,10 +966,6 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                                   return;
                                 }
                                 toggleDateSelection(dateStr);
-                                // Sync times
-                                const available = getAvailableTimes(dateStr);
-                                const slotTime = course.is_night_mode ? (course.night_mode_slots?.join(', ') || "夜滑時段") : (available[skiingSessionIdx!] || "");
-                                if (slotTime) setSelectedTimes({ [dateStr]: { [slotTime]: skiingPersonCount } });
                               }}
                               className={`aspect-square rounded-xl flex items-center justify-center transition-all ${isSelected ? 'text-white shadow-lg scale-105 z-10' : 'bg-white text-gray-700 shadow-sm'} ${isPast || isBlocked ? 'opacity-20' : ''} ${isFullyBooked ? 'bg-red-50 text-red-500 border border-red-200' : ''}`}
                               style={{ backgroundColor: isSelected ? activeColor : undefined }}>
@@ -1542,27 +1546,47 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                           isSelected ? 'bg-white border-[3px] border-blue-600 shadow-[0_0_20px_rgba(37,99,235,0.4)]' : isMinMet ? 'bg-white border-[3px] border-gray-900 shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:shadow-[0_0_25px_rgba(34,197,94,0.6)] hover:-translate-y-1' : 'bg-gray-50 border-2 border-transparent opacity-50 grayscale cursor-not-allowed'
                         }`}
                       >
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <div className={`text-xs font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-blue-600' : 'text-green-600'}`}>
-                              {v.target_type === 'special_bogo' ? '自動加入免費贈品' : (v.type === 'percent' ? `${v.value}% OFF` : `固定折扣 NT$${v.value}`)}
-                            </div>
-                            <div className="text-xl font-black italic tracking-tight text-gray-900">{v.code}</div>
-                          </div>
-                          {isSelected ? (
-                            <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-600 rounded-full text-white shadow-md">
-                              <CheckCircle2 size={14} />
-                              <span className="text-[10px] font-black tracking-widest">已選取</span>
-                            </div>
-                          ) : isMinMet ? (
-                            <div className="px-3 py-1 border-2 border-green-500 rounded-full text-green-500 bg-green-50 shadow-sm">
-                              <span className="text-[10px] font-black tracking-widest">待選取</span>
-                            </div>
-                          ) : null}
-                        </div>
-                        <p className="text-xs text-gray-500 font-medium">{v.description || '套用此優惠券以獲得折扣'}</p>
-                        {!isMinMet && <p className="text-[10px] text-red-500 font-bold mt-2">未達使用門檻：還差 NT${(v.min_amount - totalTWD).toLocaleString()}</p>}
-                        {isMinMet && <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gray-100/50 rounded-full group-hover:scale-150 transition-transform" />}
+                        {(() => {
+                          let bogoText = '';
+                          if (v.target_type === 'special_bogo') {
+                            try {
+                              const config = typeof v.target_id === 'string' ? JSON.parse(v.target_id || '{}') : (v.target_id || {});
+                              const buyDetails = config.buy_details || {};
+                              const getDetails = config.get_details || {};
+                              const buyNames = Object.entries(config.buy || {}).map(([id, qty]) => `${(buyDetails as any)[id]?.name || '指定項目'} x${qty}`).join('、');
+                              const getNames = Object.entries(config.get || {}).map(([id, qty]) => `${(getDetails as any)[id]?.name || '贈品'} x${qty}`).join('、');
+                              if (buyNames && getNames) {
+                                bogoText = `買【${buyNames}】送【${getNames}】`;
+                              }
+                            } catch (e) {}
+                          }
+
+                          return (
+                            <>
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <div className={`text-xs font-black uppercase tracking-widest mb-1 ${isSelected ? 'text-blue-600' : 'text-green-600'}`}>
+                                    {v.target_type === 'special_bogo' ? (bogoText || '買送免費贈品') : (v.type === 'percent' ? `${v.value}% OFF` : `固定折扣 NT$${v.value}`)}
+                                  </div>
+                                  <div className="text-xl font-black italic tracking-tight text-gray-900">{v.title || v.code}</div>
+                                </div>
+                                {isSelected ? (
+                                  <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-600 rounded-full text-white shadow-md">
+                                    <CheckCircle2 size={14} />
+                                    <span className="text-[10px] font-black tracking-widest">已選取</span>
+                                  </div>
+                                ) : isMinMet ? (
+                                  <div className="px-3 py-1 border-2 border-green-500 rounded-full text-green-500 bg-green-50 shadow-sm">
+                                    <span className="text-[10px] font-black tracking-widest">待選取</span>
+                                  </div>
+                                ) : null}
+                              </div>
+                              <p className="text-xs text-blue-600 font-bold">{bogoText || v.description || '套用此優惠券以獲得折扣'}</p>
+                              {!isMinMet && <p className="text-[10px] text-red-500 font-bold mt-2">未達使用門檻：還差 NT${(v.min_amount - totalTWD).toLocaleString()}</p>}
+                              {isMinMet && <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-gray-100/50 rounded-full group-hover:scale-150 transition-transform" />}
+                            </>
+                          );
+                        })()}
                       </button>
                     );
                   };

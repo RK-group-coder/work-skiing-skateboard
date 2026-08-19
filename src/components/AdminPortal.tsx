@@ -164,12 +164,15 @@ const EMPTY_VOUCHER: Voucher = { code: '', title: '', description: '', type: 'pe
 const inputCls = "w-full px-4 py-3 bg-neutral-50 rounded-xl border border-gray-100 focus:ring-2 focus:ring-primary outline-none transition-all font-semibold text-sm text-gray-900";
 const labelCls = "block text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 mb-1.5";
 
+import { compressImage } from '../utils/imageCompressor';
+
 const handleFileUpload = async (file: File, bucket: string = 'media') => {
   try {
-    const fileExt = file.name.split('.').pop();
+    const fileToUpload = await compressImage(file);
+    const fileExt = fileToUpload.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
     const filePath = `${fileName}`;
-    const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file);
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, fileToUpload);
     if (uploadError) throw uploadError;
     const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
     return publicUrl;
@@ -1026,6 +1029,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
   const [voucherForm, setVoucherForm] = useState<Voucher>(EMPTY_VOUCHER);
   const [isAddingSpecialVoucher, setIsAddingSpecialVoucher] = useState(false);
   const [specialVoucherMode, setSpecialVoucherMode] = useState<string>('');
+  const [specialVoucherTitle, setSpecialVoucherTitle] = useState<string>('');
   const [isSpecialDropdownOpen, setIsSpecialDropdownOpen] = useState(false);
   const [specialBuyItems, setSpecialBuyItems] = useState<Record<string, number>>({});
   const [specialGetItems, setSpecialGetItems] = useState<Record<string, number>>({});
@@ -1697,6 +1701,51 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       }
       fetchCourseData();
     } catch (err: any) { console.error('Toggle date failed:', err); }
+  };
+
+  const handleMarkAllAsRead = () => {
+    const allIds = orders.map(o => o.id);
+    const newSet = new Set([...Array.from(readOrderIds), ...allIds]);
+    setReadOrderIds(newSet);
+    localStorage.setItem('sk8_read_orders', JSON.stringify(Array.from(newSet)));
+  };
+
+  const handleClearAllOrders = async () => {
+    if (!confirm('⚠️ 警告：確定要清空所有之前的商品訂單與課程預約紀錄嗎？此動作將無法復原！')) return;
+    setLoading(true);
+    try {
+      const { data: allOrders } = await supabase.from('orders').select('id');
+      if (allOrders && allOrders.length > 0) {
+        const ids = allOrders.map(o => o.id);
+        
+        // Immediately mark all order IDs as READ to instantly clear red badges to 0
+        const allReadSet = new Set(ids);
+        setReadOrderIds(allReadSet);
+        localStorage.setItem('sk8_read_orders', JSON.stringify(Array.from(allReadSet)));
+
+        // Attempt deletion in chunks
+        for (let i = 0; i < ids.length; i += 20) {
+          const chunk = ids.slice(i, i + 20);
+          await supabase.from('orders').delete().in('id', chunk);
+        }
+
+        // Backup update for any remaining rows to ensure they are marked cancelled
+        for (let i = 0; i < ids.length; i += 20) {
+          const chunk = ids.slice(i, i + 20);
+          await supabase.from('orders').update({ status: 'cancelled', customer_name: 'SYSTEM_BLOCK' }).in('id', chunk);
+        }
+      } else {
+        setReadOrderIds(new Set());
+        localStorage.removeItem('sk8_read_orders');
+      }
+
+      alert('所有歷史訂單、未讀紅點標籤與課程預約紀錄已成功清空！');
+      await fetchOrders();
+    } catch (err: any) {
+      alert('清空失敗: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSaveTimeSlots = async (mode: 'skiing' | 'skateboard') => {
@@ -3053,6 +3102,7 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                   if (isAddingSpecialVoucher) {
                     setIsAddingSpecialVoucher(false);
                     setSpecialVoucherMode('');
+                    setSpecialVoucherTitle('');
                     setIsSpecialDropdownOpen(false);
                     setSpecialBuyItems({});
                     setSpecialGetItems({});
@@ -3214,31 +3264,60 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                         </div>
                       </div>
                     </div>
-                    <div className="mt-10 flex justify-center">
+                    <div className="mt-6 max-w-md mx-auto space-y-2">
+                      <label className={labelCls}>自訂優惠券名稱 (Title)</label>
+                      <input 
+                        type="text" 
+                        value={specialVoucherTitle} 
+                        onChange={e => setSpecialVoucherTitle(e.target.value)} 
+                        className={inputCls} 
+                        placeholder={`例如：[${specialVoucherMode}] 特惠買一送一活動`} 
+                      />
+                    </div>
+                    <div className="mt-8 flex justify-center">
                       <button 
                         onClick={() => {
                           if (Object.keys(specialBuyItems).length === 0 || Object.keys(specialGetItems).length === 0) {
                             alert('請至少選擇一項購買項目與一項贈送項目！');
                             return;
                           }
+                          const buyDetails = Object.keys(specialBuyItems).reduce((acc: any, id) => {
+                            const item: any = [...products, ...courses].find((i: any) => i.id === id);
+                            if (item) acc[id] = { name: item.name, price: item.price || item.first_lesson_price || 0 };
+                            return acc;
+                          }, {});
+                          const getDetails = Object.keys(specialGetItems).reduce((acc: any, id) => {
+                            const item: any = [...products, ...courses].find((i: any) => i.id === id);
+                            if (item) acc[id] = { name: item.name, price: item.price || item.first_lesson_price || 0, type: item.first_lesson_price !== undefined ? 'course_booking' : 'product', image: item.images?.[0] || item.image || '' };
+                            return acc;
+                          }, {});
                           const config = { 
                             buy: specialBuyItems, 
                             get: specialGetItems, 
-                            get_details: Object.keys(specialGetItems).reduce((acc: any, id) => {
-                              const item: any = [...products, ...courses].find((i: any) => i.id === id);
-                              if (item) acc[id] = { name: item.name, price: item.price || item.first_lesson_price || 0, type: item.first_lesson_price !== undefined ? 'course_booking' : 'product', image: item.images?.[0] || item.image || '' };
-                              return acc;
-                            }, {}),
+                            buy_details: buyDetails,
+                            get_details: getDetails,
                             mode: specialVoucherMode 
                           };
+                          const buyNames = Object.entries(specialBuyItems).map(([id, qty]) => {
+                            const item: any = [...products, ...courses].find((i: any) => i.id === id);
+                            return item ? `${item.name} x${qty}` : '';
+                          }).filter(Boolean).join('、');
+                          const getNames = Object.entries(specialGetItems).map(([id, qty]) => {
+                            const item: any = [...products, ...courses].find((i: any) => i.id === id);
+                            return item ? `${item.name} x${qty}` : '';
+                          }).filter(Boolean).join('、');
+
+                          const finalTitle = specialVoucherTitle.trim() || `[${specialVoucherMode}] 專屬特惠`;
+                          const autoDesc = buyNames && getNames ? `購買【${buyNames}】即贈送【${getNames}】` : `購買指定項目即贈送指定項目，全數滿足條件即可享有 100% 贈品折扣。`;
+
                           setVoucherForm({ 
                             ...EMPTY_VOUCHER, 
                             target_type: 'special_bogo', 
                             target_id: JSON.stringify(config),
-                            type: 'percent', // 100% discount on the free items
+                            type: 'percent', 
                             value: 100, 
-                            title: specialVoucherMode,
-                            description: `購買指定項目即贈送指定項目，全數滿足條件即可享有 100% 贈品折扣。`
+                            title: finalTitle,
+                            description: autoDesc
                           });
                           setIsAddingSpecialVoucher(false);
                           setIsAddingVoucher(true);
@@ -3655,15 +3734,30 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
                 </div>
               </div>
 
-              <div className="relative w-full xl:w-72 shrink-0">
-                <input 
-                  type="text" 
-                  value={searchPhone}
-                  onChange={e => setSearchPhone(e.target.value)}
-                  placeholder="輸入電話號碼或名字搜尋..." 
-                  className="w-full px-4 py-3 pl-11 bg-white rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none text-sm font-bold transition-all shadow-sm"
-                />
-                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto shrink-0">
+                <div className="relative flex-1 xl:w-64">
+                  <input 
+                    type="text" 
+                    value={searchPhone}
+                    onChange={e => setSearchPhone(e.target.value)}
+                    placeholder="輸入電話號碼或名字搜尋..." 
+                    className="w-full px-4 py-3 pl-11 bg-white rounded-xl border border-gray-200 focus:border-black focus:ring-1 focus:ring-black outline-none text-sm font-bold transition-all shadow-sm"
+                  />
+                  <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                </div>
+                <button
+                  onClick={handleMarkAllAsRead}
+                  className="px-4 py-3 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-xl text-xs font-black transition-all border border-gray-200 flex items-center justify-center gap-1 shadow-sm shrink-0 active:scale-95 cursor-pointer"
+                >
+                  <Check size={14} /> 標註全部已讀 (未讀歸零)
+                </button>
+                <button
+                  onClick={handleClearAllOrders}
+                  disabled={loading}
+                  className="px-5 py-3 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl text-xs font-black transition-all border border-red-100 flex items-center justify-center gap-2 shadow-sm shrink-0 active:scale-95 disabled:opacity-50 cursor-pointer"
+                >
+                  <Trash2 size={16} /> 清空所有歷史紀錄
+                </button>
               </div>
             </div>
 

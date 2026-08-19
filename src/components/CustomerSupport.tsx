@@ -4,6 +4,7 @@ import { useTheme } from '../hooks/useTheme';
 import { Send, ArrowLeft, Image as ImageIcon, X } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import OpenAI from 'openai';
+import { compressImage } from '../utils/imageCompressor';
 
 interface Message {
   id: string;
@@ -18,6 +19,26 @@ interface CustomerSupportProps {
   onBack: () => void;
   onLoginRequest: () => void;
 }
+
+// Module-level cache for AI Context to avoid querying Supabase on every AI message
+let aiContextCache: { data: { products: any[]; courses: any[] }; timestamp: number } | null = null;
+
+const getCachedAiContext = async () => {
+  const now = Date.now();
+  if (aiContextCache && now - aiContextCache.timestamp < 5 * 60 * 1000) {
+    return aiContextCache.data;
+  }
+  const [productsRes, coursesRes] = await Promise.all([
+    supabase.from('products').select('name, price, mode, is_active').eq('is_active', true),
+    supabase.from('courses').select('name, price, mode')
+  ]);
+  const data = {
+    products: productsRes.data || [],
+    courses: coursesRes.data || []
+  };
+  aiContextCache = { data, timestamp: now };
+  return data;
+};
 
 const CustomerSupport: React.FC<CustomerSupportProps> = ({ user, onBack, onLoginRequest }) => {
   const { mode } = useTheme();
@@ -93,9 +114,10 @@ const CustomerSupport: React.FC<CustomerSupportProps> = ({ user, onBack, onLogin
 
     try {
       if (pendingImage) {
-        const fileExt = pendingImage.name.split('.').pop();
+        const compressedFile = await compressImage(pendingImage);
+        const fileExt = compressedFile.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('media').upload(fileName, pendingImage);
+        const { error: uploadError } = await supabase.storage.from('media').upload(fileName, compressedFile);
         if (uploadError) throw uploadError;
         const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(fileName);
         imageUrl = publicUrl;
@@ -135,11 +157,7 @@ const CustomerSupport: React.FC<CustomerSupportProps> = ({ user, onBack, onLogin
         
         if (apiKey) {
           try {
-            // 取得網站資訊作為 AI 的上下文
-            const [productsRes, coursesRes] = await Promise.all([
-              supabase.from('products').select('name, price, mode, is_active').eq('is_active', true),
-              supabase.from('courses').select('name, price, mode')
-            ]);
+            const { products, courses } = await getCachedAiContext();
 
             const openai = new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
             
@@ -177,10 +195,10 @@ const CustomerSupport: React.FC<CustomerSupportProps> = ({ user, onBack, onLogin
 回覆請保持簡短、有禮貌、活潑，並使用繁體中文，可以使用 emoji。
 
 【可購買的商品清單】
-${JSON.stringify(productsRes.data || [])}
+${JSON.stringify(products)}
 
 【可預約的課程清單】
-${JSON.stringify(coursesRes.data || [])}
+${JSON.stringify(courses)}
 `;
 
             const response = await openai.chat.completions.create({
