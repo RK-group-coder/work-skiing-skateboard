@@ -823,7 +823,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
               ) : (
                 <span className="relative z-10 flex items-center gap-3 font-black">
                   {paymentMethod === 'bank' && lastFiveDigits.length !== 5 
-                    ? '請填寫末五碼對帳' 
+                    ? '請下滑填寫付款資訊' 
                     : (!customerName || !customerPhone || !customerEmail)
                     ? '請填寫聯絡資訊'
                     : (hasPhysicalProducts && deliveryMethod === 'convenience_store' && !convenienceStoreInfo)
