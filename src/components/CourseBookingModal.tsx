@@ -324,8 +324,12 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
     let total = 0;
 
     if (mode === 'skiing') {
-      if (Object.keys(selectedTimes).length === 0 && skiingSessionIdx !== null) {
-        // Preview calculation before date/times are synced
+      const datesToCalculate = Object.keys(selectedTimes).length > 0
+        ? Object.keys(selectedTimes)
+        : (selectedDates.length > 0 ? selectedDates : []);
+
+      if (datesToCalculate.length === 0 && skiingSessionIdx !== null) {
+        // Preview calculation before date/times are synced (assume 1 day)
         const baseFirst = course.first_lesson_price || course.price || 0;
         const baseAdd = course.additional_lesson_price || (course as any).addPrice || 0;
         
@@ -350,52 +354,88 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
         if (!unitAdd && baseAdd) unitAdd = baseAdd;
         
         if (isFirstLesson) {
-          total = unitFirst + (skiingPersonCount - 1) * unitAdd;
+          total = unitFirst + Math.max(0, skiingPersonCount - 1) * unitAdd;
         } else {
           total = skiingPersonCount * unitAdd;
         }
       } else {
-        let isFirstUnitGlobal = true;
-        const sortedDates = Object.keys(selectedTimes).sort();
+        const sortedDates = datesToCalculate.sort();
         
         sortedDates.forEach(dateStr => {
-          const dateSlots = selectedTimes[dateStr];
-          Object.entries(dateSlots).forEach(([slotName, qty]) => {
-            if (qty <= 0) return;
-            
+          const dateSlots = selectedTimes[dateStr] || {};
+          const slotEntries = Object.entries(dateSlots);
+
+          if (slotEntries.length > 0) {
+            slotEntries.forEach(([slotName, qty]) => {
+              if (qty <= 0) return;
+              
+              const baseFirst = course.first_lesson_price || course.price || 0;
+              const baseAdd = course.additional_lesson_price || (course as any).addPrice || 0;
+
+              let unitFirst = 0;
+              let unitAdd = 0;
+
+              const available = getAvailableTimes(dateStr);
+              let idx = available.indexOf(slotName);
+              if (idx === -1 && skiingSessionIdx !== null) {
+                idx = skiingSessionIdx;
+              }
+
+              if (course.is_night_mode) {
+                unitFirst = course.first_lesson_price ?? baseFirst;
+                unitAdd = course.additional_lesson_price ?? baseAdd;
+              } else if (idx === 0) { // Half Day AM
+                unitFirst = (course as any).half_day_am_first_price ?? baseFirst;
+                unitAdd = (course as any).half_day_am_add_price ?? baseAdd;
+              } else if (idx === 1) { // Half Day PM
+                unitFirst = (course as any).half_day_pm_first_price ?? baseFirst;
+                unitAdd = (course as any).half_day_pm_add_price ?? baseAdd;
+              } else { // Full Day or other
+                unitFirst = (course as any).full_day_first_price ?? baseFirst;
+                unitAdd = (course as any).full_day_add_price ?? baseAdd;
+              }
+
+              // If specialized prices are 0 but base prices exist, fallback to base
+              if (!unitFirst && baseFirst) unitFirst = baseFirst;
+              if (!unitAdd && baseAdd) unitAdd = baseAdd;
+
+              if (isFirstLesson) {
+                total += unitFirst + Math.max(0, qty - 1) * unitAdd;
+              } else {
+                total += qty * unitAdd;
+              }
+            });
+          } else if (skiingSessionIdx !== null) {
+            // Fallback for dateStr selected but selectedTimes[dateStr] not yet synced
             const baseFirst = course.first_lesson_price || course.price || 0;
             const baseAdd = course.additional_lesson_price || (course as any).addPrice || 0;
-
+            
             let unitFirst = 0;
             let unitAdd = 0;
 
-            const available = getAvailableTimes(dateStr);
-            const idx = available.indexOf(slotName);
-
-            if (idx === 0) { // Half Day AM
+            if (course.is_night_mode) {
+              unitFirst = course.first_lesson_price ?? baseFirst;
+              unitAdd = course.additional_lesson_price ?? baseAdd;
+            } else if (skiingSessionIdx === 0) {
               unitFirst = (course as any).half_day_am_first_price ?? baseFirst;
               unitAdd = (course as any).half_day_am_add_price ?? baseAdd;
-            } else if (idx === 1) { // Half Day PM
+            } else if (skiingSessionIdx === 1) {
               unitFirst = (course as any).half_day_pm_first_price ?? baseFirst;
               unitAdd = (course as any).half_day_pm_add_price ?? baseAdd;
-            } else { // Full Day or other
+            } else {
               unitFirst = (course as any).full_day_first_price ?? baseFirst;
               unitAdd = (course as any).full_day_add_price ?? baseAdd;
             }
 
-            // If specialized prices are 0 but base prices exist, fallback to base
             if (!unitFirst && baseFirst) unitFirst = baseFirst;
             if (!unitAdd && baseAdd) unitAdd = baseAdd;
 
-            for (let i = 0; i < qty; i++) {
-              if (isFirstUnitGlobal && isFirstLesson) {
-                total += unitFirst;
-                isFirstUnitGlobal = false;
-              } else {
-                total += unitAdd;
-              }
+            if (isFirstLesson) {
+              total += unitFirst + Math.max(0, skiingPersonCount - 1) * unitAdd;
+            } else {
+              total += skiingPersonCount * unitAdd;
             }
-          });
+          }
         });
       }
     } else {
@@ -1088,9 +1128,11 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                               <span className="text-gray-400">時段類型</span>
                               <span className="font-bold">{course.is_night_mode ? "夜滑" : (skiingSessionIdx === 0 ? "半天 (上午)" : skiingSessionIdx === 1 ? "半天 (下午)" : "全天課程")}</span>
                             </div>
-                            <div className="flex justify-between items-center text-sm">
-                              <span className="text-gray-400">日期</span>
-                              <span className="font-bold text-primary" style={{ color: activeColor }}>{selectedDates[0]}</span>
+                            <div className="flex justify-between items-start text-sm gap-4">
+                              <span className="text-gray-400 shrink-0">日期</span>
+                              <span className="font-bold text-primary text-right" style={{ color: activeColor }}>
+                                {selectedDates.length > 0 ? selectedDates.join(', ') : '未選擇'}
+                              </span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                               <span className="text-gray-400">人數</span>
