@@ -673,6 +673,7 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               }
 
               const statusRedHtml = '<span style="color: #ff0000; font-weight: bold; font-size: 1.2em;">方案兌換成功</span>';
+              const notesFooterHtml = `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #4a5568; font-size: 13px; font-weight: bold; line-height: 1.6;">備註：<span style="font-family: sans-serif; font-size: 14px; font-weight: 800; color: #1e293b;">無</span></div>`;
               const lastFiveHtml = `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #4a5568; font-size: 13px; font-weight: bold; line-height: 1.6;">預約方式：課程方案直接兌換</div>`;
               const currentTime = new Date().toLocaleString('zh-TW', { hour12: false });
               const coachData = coaches.find(c => c.id === selectedCoach) || { name: '未指定', email: '' };
@@ -686,10 +687,15 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
                 coach_name: coachData.name,
                 contact_phone: customerPhone || '未提供',
                 skill_level: skillLevel || '未填寫',
+                notes: '無',
+                user_notes: '無',
+                notes_text: '無',
+                remark: '無',
+                remarks: '無',
                 order_time: currentTime,
                 last_five_digits: '方案兌換',
                 payment_method: '課程方案兌換',
-                system_footer: `${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
+                system_footer: `${notesFooterHtml}${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
               };
 
               // (A) 寄給 教練

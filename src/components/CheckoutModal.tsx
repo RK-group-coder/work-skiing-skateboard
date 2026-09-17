@@ -196,6 +196,9 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
       const isEmailConfigured = emailJsSettings?.service_id && emailJsSettings?.public_key && emailJsSettings.service_id !== 'YOUR_SERVICE_ID';
       console.log('Is Email Configured:', isEmailConfigured);
 
+      const notesText = notes && notes.trim() ? notes.trim() : '無';
+      const notesFooterHtml = `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #4a5568; font-size: 13px; font-weight: bold; line-height: 1.6;">備註：<span style="font-family: sans-serif; font-size: 14px; font-weight: 800; color: #1e293b;">${notesText}</span></div>`;
+
       // 1. 處理 課程預約 通知
       const courseItems = cart.filter(item => item.type === 'course_booking');
       for (const item of courseItems) {
@@ -312,6 +315,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
 
               const statusRedHtml = '<span style="color: #ff0000; font-weight: bold; font-size: 1.2em;">成功預約</span>';
               const finalPrice = item.price || 0; // 直接使用計算好的總價
+
               const paymentMethodName = paymentMethod === 'bank' ? '銀行轉帳' : 'LINE Pay';
               const lastFiveHtml = paymentMethod === 'bank' 
                 ? `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #fff5f5; border-radius: 8px; border: 1px solid #feb2b2; color: #c53030; font-size: 13px; font-weight: bold; line-height: 1.6;">付款方式：銀行轉帳<br/>匯款末五碼對帳：<span style="font-family: monospace; font-size: 15px; font-weight: 900; letter-spacing: 1px; color: #e53e3e;">${lastFiveDigits || '未填寫'}</span></div>`
@@ -332,10 +336,15 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     coach_name: coachData.name,
                     contact_phone: customerPhone,
                     skill_level: (item as any).skillLevel || (item as any).details?.skillLevel || '未填寫',
+                    notes: notesText,
+                    user_notes: notesText,
+                    notes_text: notesText,
+                    remark: notesText,
+                    remarks: notesText,
                     order_time: currentTime,
                     last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
                     payment_method: paymentMethodName,
-                    system_footer: `${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
+                    system_footer: `${notesFooterHtml}${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
                   }
                 });
               } catch (e) {
@@ -357,10 +366,15 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     coach_name: coachData.name,
                     contact_phone: customerPhone,
                     skill_level: (item as any).skillLevel || (item as any).details?.skillLevel || '未填寫',
+                    notes: notesText,
+                    user_notes: notesText,
+                    notes_text: notesText,
+                    remark: notesText,
+                    remarks: notesText,
                     order_time: currentTime,
                     last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
                     payment_method: paymentMethodName,
-                    system_footer: `${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
+                    system_footer: `${notesFooterHtml}${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
                   }
                 });
               } catch (e) {
@@ -383,10 +397,15 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                       coach_name: coachData.name,
                       contact_phone: customerPhone,
                       skill_level: (item as any).skillLevel || (item as any).details?.skillLevel || '未填寫',
+                      notes: notesText,
+                      user_notes: notesText,
+                      notes_text: notesText,
+                      remark: notesText,
+                      remarks: notesText,
                       order_time: currentTime,
                       last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
                       payment_method: paymentMethodName,
-                      system_footer: `${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
+                      system_footer: `${notesFooterHtml}${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`
                     }
                   });
                 } catch (e) {
@@ -454,7 +473,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
           const lastFiveHtml = paymentMethod === 'bank' 
             ? `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #fff5f5; border-radius: 8px; border: 1px solid #feb2b2; color: #c53030; font-size: 13px; font-weight: bold; line-height: 1.6;">付款方式：銀行轉帳<br/>匯款末五碼對帳：<span style="font-family: monospace; font-size: 15px; font-weight: 900; letter-spacing: 1px; color: #e53e3e;">${lastFiveDigits || '未填寫'}</span></div>`
             : `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #4a5568; font-size: 13px; font-weight: bold; line-height: 1.6;">付款方式：LINE Pay (無需填寫末五碼)</div>`;
-          const fullFooter = `${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`;
+          const fullFooter = `${notesFooterHtml}${lastFiveHtml}<br/><br/>--- SK8滑雪&電動滑板nocap ---`;
 
           // 為了防止客戶「商品範本與課程範本共用同一個 EmailJS ID」導致商品信件欄位空白，
           // 我們在此特別做智慧相容：如果該範本有課程標籤，會自動對應填入。
@@ -488,6 +507,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 delivery_method: deliveryMethodLabel,
                 delivery_info: `${deliveryDetailLabel}：${deliveryDetailValue}`,
                 contact_phone: customerPhone,
+                notes: notesText,
+                user_notes: notesText,
+                notes_text: notesText,
+                remark: notesText,
+                remarks: notesText,
                 order_time: currentTime,
                 last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
                 payment_method: paymentMethodName,
@@ -513,6 +537,11 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                   delivery_method: deliveryMethodLabel,
                   delivery_info: `${deliveryDetailLabel}：${deliveryDetailValue}`,
                   contact_phone: customerPhone,
+                  notes: notesText,
+                  user_notes: notesText,
+                  notes_text: notesText,
+                  remark: notesText,
+                  remarks: notesText,
                   order_time: currentTime,
                   last_five_digits: paymentMethod === 'bank' ? lastFiveDigits : '無(LINE Pay)',
                   payment_method: paymentMethodName,
