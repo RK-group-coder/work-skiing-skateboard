@@ -1343,6 +1343,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
             const sharedParams = {
               status_html: '<span style="color: #10b981; font-weight: bold; font-size: 1.2em;">訂單已確認</span><!--',
               customer_name: order.customer_name || '會員',
+              customer_email: order.customer_email || '未提供',
+              gmail: order.customer_email || '未提供',
+              email: order.customer_email || '未提供',
+              user_email: order.customer_email || '未提供',
               course_name: '',
               course_table: `-->\n${courseTableContent}`,
               total_amount: `NT$ ${order.total_price.toLocaleString()}`,
@@ -1532,6 +1536,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
             const sharedParams = {
               status_html: '<span style="color: #ef4444; font-weight: bold; font-size: 1.2em;">訂單已取消</span><!--',
               customer_name: order.customer_name || '會員',
+              customer_email: order.customer_email || '未提供',
+              gmail: order.customer_email || '未提供',
+              email: order.customer_email || '未提供',
+              user_email: order.customer_email || '未提供',
               course_name: '',
               course_table: `-->\n${courseTableContent}`,
               total_amount: `NT$ ${order.total_price.toLocaleString()}`,
@@ -1960,6 +1968,10 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
               {
                 to_name: order.customer_name || '貴賓',
                 to_email: order.customer_email,
+                customer_email: order.customer_email,
+                gmail: order.customer_email,
+                email: order.customer_email,
+                user_email: order.customer_email,
                 course_name: packageTitle,
                 date: new Date().toLocaleDateString('zh-TW'),
                 time: '依您後續預約為準',

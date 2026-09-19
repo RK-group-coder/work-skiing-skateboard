@@ -681,6 +681,10 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
               const sharedParams = {
                 status_html: statusRedHtml,
                 customer_name: customerName || '會員',
+                customer_email: customerEmail || '未提供',
+                gmail: customerEmail || '未提供',
+                email: customerEmail || '未提供',
+                user_email: customerEmail || '未提供',
                 course_name: course.name,
                 course_table: bookingListHtml,
                 total_amount: `NT$ 0 (方案兌換)`,
