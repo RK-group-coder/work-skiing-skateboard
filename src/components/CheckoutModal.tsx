@@ -472,16 +472,20 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
             });
           };
 
-          // 處理取貨資訊
-          const deliveryMethodLabel = deliveryMethod === 'convenience_store' ? '超商領取' : '據點領取';
-          const deliveryDetailLabel = deliveryMethod === 'convenience_store' ? '門市資訊' : '領取據點';
+          // 處理取貨資訊 (若純為優惠團課/點數方案，配送資訊皆設為「無」)
+          const isOnlyCoursePackages = !hasPhysicalProducts;
+          const deliveryMethodLabel = isOnlyCoursePackages ? '無' : (deliveryMethod === 'convenience_store' ? '超商領取' : '據點領取');
+          const deliveryDetailLabel = isOnlyCoursePackages ? '門市資訊' : (deliveryMethod === 'convenience_store' ? '門市資訊' : '領取據點');
           let deliveryDetailValue = '';
-          if (deliveryMethod === 'convenience_store') {
-            deliveryDetailValue = convenienceStoreInfo;
+          if (isOnlyCoursePackages) {
+            deliveryDetailValue = '無';
+          } else if (deliveryMethod === 'convenience_store') {
+            deliveryDetailValue = convenienceStoreInfo || '無';
           } else {
             const loc = pickupLocations.find(l => l.id === pickupLocationId);
             deliveryDetailValue = loc ? `${loc.name}${loc.address ? ` (${loc.address})` : ''}` : '未指定據點';
           }
+          const coachNameParam = isOnlyCoursePackages ? '無' : `無 (商品出貨：${deliveryMethodLabel})`;
 
           const paymentMethodName = paymentMethod === 'bank' ? '銀行轉帳' : 'LINE Pay';
           const lastFiveHtml = paymentMethod === 'bank' 
@@ -498,7 +502,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
             email: customerEmail,
             user_email: customerEmail,
             course_name: productItems.map(p => `${p.name} (x${p.quantity})`).join(', '),
-            coach_name: `無 (商品出貨：${deliveryMethodLabel})`,
+            coach_name: coachNameParam,
             course_table: `
               <div style="padding: 12px; background-color: #f0fdf4; border-radius: 10px; border: 1px solid #bbf7d0; font-size: 13px; line-height: 1.5; color: #166534; margin-bottom: 12px;">
                 <strong style="font-size: 14px;">📦 商品明細：</strong><br/>
