@@ -210,6 +210,73 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
         }
       }
 
+      // 🎓 發放課程方案 / 堂數至會員帳戶 (Grant Course Packages)
+      if (user?.id) {
+        let grantedCount = 0;
+        for (const item of cart) {
+          const isPackage = item.dimensions === 'course_package' || 
+                            (item as any).category_id === 'course_package' ||
+                            item.name.includes('堂') || 
+                            item.name.includes('方案') ||
+                            item.name.includes('包套');
+
+          if (item.type === 'product' && isPackage) {
+            let lessonCount = 1;
+            if (item.weight) {
+              const parsedWeight = parseInt(String(item.weight));
+              if (!isNaN(parsedWeight) && parsedWeight > 0) {
+                lessonCount = parsedWeight;
+              }
+            } else {
+              const match = item.name.match(/(\d+)\s*堂/);
+              if (match && match[1]) {
+                lessonCount = parseInt(match[1]);
+              }
+            }
+
+            const totalLessons = lessonCount * (item.quantity || 1);
+            const courseId = item.tag || item.details?.courseId || '';
+
+            for (let i = 0; i < totalLessons; i++) {
+              try {
+                const { data: createdVoucher } = await supabase
+                  .from('vouchers')
+                  .insert({
+                    code: `PKG-${Date.now()}-${Math.floor(Math.random() * 10000)}-${i}`,
+                    type: 'percent',
+                    value: 100,
+                    min_amount: 0,
+                    scope: 'all',
+                    is_active: true,
+                    target_type: 'course_package',
+                    target_id: courseId,
+                    title: item.name,
+                    is_published: false,
+                    grant_quantity: 1
+                  })
+                  .select('id')
+                  .single();
+
+                if (createdVoucher?.id) {
+                  await supabase
+                    .from('user_vouchers')
+                    .insert({
+                      user_id: user.id,
+                      voucher_id: createdVoucher.id
+                    });
+                  grantedCount++;
+                }
+              } catch (pkgErr) {
+                console.error('Error granting course package voucher:', pkgErr);
+              }
+            }
+          }
+        }
+        if (grantedCount > 0) {
+          window.dispatchEvent(new Event('vouchersUpdated'));
+        }
+      }
+
 
 
       // 取得 EmailJS 系統設定

@@ -150,9 +150,44 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
         return;
       }
 
-      const inserts = Array.from({ length: grantCount }).map(() => ({
+      let voucherIdsToClaim: string[] = [v.id];
+
+      // If grantCount > 1, create sub-vouchers in DB so each inserted user_voucher has a unique voucher_id
+      if (grantCount > 1) {
+        for (let i = 1; i < grantCount; i++) {
+          try {
+            const { data: clonedVoucher } = await supabase
+              .from('vouchers')
+              .insert({
+                code: `${v.code || 'VOUCHER'}-${Date.now()}-${i}`,
+                type: v.type,
+                value: v.value,
+                min_amount: v.min_amount || 0,
+                valid_until: v.valid_until,
+                scope: 'all',
+                is_active: true,
+                target_type: v.target_type,
+                target_id: v.target_id,
+                title: v.title,
+                description: v.description,
+                is_published: false,
+                grant_quantity: 1
+              })
+              .select('id')
+              .single();
+
+            if (clonedVoucher?.id) {
+              voucherIdsToClaim.push(clonedVoucher.id);
+            }
+          } catch (e) {
+            console.error('Error creating cloned voucher:', e);
+          }
+        }
+      }
+
+      const inserts = voucherIdsToClaim.map(vid => ({
         user_id: session.user.id,
-        voucher_id: v.id
+        voucher_id: vid
       }));
 
       const { error } = await supabase
@@ -168,7 +203,7 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
         }
       }
 
-      alert(`【${v.title}】領取成功，共 ${grantCount} 張！您可以在購物車中直接點選使用。`);
+      alert(`【${v.title}】領取成功，共 ${grantCount} 張！已放入您的「我的優惠券」中。`);
       claimVoucher(v, grantCount);
       window.dispatchEvent(new Event('vouchersUpdated'));
     } catch (err) {

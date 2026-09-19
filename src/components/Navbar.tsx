@@ -54,6 +54,14 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
     };
   }, [isMenuOpen, isCartOpen, isMyVouchersOpen]);
 
+  useEffect(() => {
+    const handleOpenMyVouchers = () => {
+      setIsMyVouchersOpen(true);
+    };
+    window.addEventListener('openMyVouchers', handleOpenMyVouchers);
+    return () => window.removeEventListener('openMyVouchers', handleOpenMyVouchers);
+  }, []);
+
   React.useEffect(() => {
     const fetchTargetNames = async () => {
       const newNames: Record<string, string> = {};
@@ -186,6 +194,13 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
             </button>
             {user ? (
               <div className="flex items-center gap-2 ml-4">
+                <button 
+                  onClick={() => setIsMyVouchersOpen(true)}
+                  className="px-4 py-2 rounded-full bg-primary/10 text-primary font-bold text-sm hover:bg-primary/20 transition-colors flex items-center gap-1.5"
+                >
+                  <Tag size={16} />
+                  <span>我的優惠券 ({vouchers.length})</span>
+                </button>
                 {isAdmin && (
                   <button 
                     onClick={onAdminClick} 
