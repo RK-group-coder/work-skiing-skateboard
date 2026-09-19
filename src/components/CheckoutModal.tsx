@@ -29,7 +29,27 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
   const [notes, setNotes] = useState('');
   const [lastFiveDigits, setLastFiveDigits] = useState('');
   
-  const hasPhysicalProducts = cart.some(item => item.type === 'product' && item.dimensions !== 'course_package');
+  const isPhysicalItem = (item: any) => {
+    if (item.type !== 'product') return false;
+    if (item.dimensions === 'course_package' || item.category_id === 'course_package') return false;
+    const name = item.name || '';
+    if (
+      name.includes('堂') || 
+      name.includes('課程') || 
+      name.includes('方案') || 
+      name.includes('點數') || 
+      name.includes('包套') || 
+      name.includes('一對一') || 
+      name.includes('一對二') || 
+      name.includes('團課') ||
+      name.includes('兌換')
+    ) {
+      return false;
+    }
+    return true;
+  };
+
+  const hasPhysicalProducts = cart.some(isPhysicalItem);
   const [deliveryMethod, setDeliveryMethod] = useState<'convenience_store' | 'pickup_location'>('convenience_store');
   const [convenienceStoreInfo, setConvenienceStoreInfo] = useState('');
   const [pickupLocationId, setPickupLocationId] = useState('');
@@ -485,7 +505,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
             const loc = pickupLocations.find(l => l.id === pickupLocationId);
             deliveryDetailValue = loc ? `${loc.name}${loc.address ? ` (${loc.address})` : ''}` : '未指定據點';
           }
-          const coachNameParam = isOnlyCoursePackages ? '無' : `無 (商品出貨：${deliveryMethodLabel})`;
+          const coachNameParam = '無';
 
           const paymentMethodName = paymentMethod === 'bank' ? '銀行轉帳' : 'LINE Pay';
           const lastFiveHtml = paymentMethod === 'bank' 
@@ -527,7 +547,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 product_list: productList,
                 total_price: totalPrice.toLocaleString(),
                 delivery_method: deliveryMethodLabel,
-                delivery_info: `${deliveryDetailLabel}：${deliveryDetailValue}`,
+                delivery_info: isOnlyCoursePackages ? '門市資訊：無' : `${deliveryDetailLabel}：${deliveryDetailValue}`,
                 contact_phone: customerPhone,
                 notes: notesText,
                 user_notes: notesText,
@@ -557,7 +577,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                   product_list: productList,
                   total_price: totalPrice.toLocaleString(),
                   delivery_method: deliveryMethodLabel,
-                  delivery_info: `${deliveryDetailLabel}：${deliveryDetailValue}`,
+                  delivery_info: isOnlyCoursePackages ? '門市資訊：無' : `${deliveryDetailLabel}：${deliveryDetailValue}`,
                   contact_phone: customerPhone,
                   notes: notesText,
                   user_notes: notesText,
