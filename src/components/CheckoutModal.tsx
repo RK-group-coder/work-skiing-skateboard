@@ -322,16 +322,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                 : `<br/><br/><div style="margin-top: 10px; padding: 12px; background-color: #f7fafc; border-radius: 8px; border: 1px solid #e2e8f0; color: #4a5568; font-size: 13px; font-weight: bold; line-height: 1.6;">付款方式：LINE Pay (無需填寫末五碼)</div>`;
 
               const rawSkillLevel = (item as any).skillLevel || (item as any).details?.skillLevel || '未填寫';
-              const skillLevelFormatted = `${rawSkillLevel}<br/>gmail：${customerEmail} <!--`;
-              const videoCommentClose = {
-                video_url: '-->',
-                video: '-->',
-                reference_video: '-->',
-                video_link: '-->',
-                youtube_url: '-->',
-                url: '-->',
-                link: '-->'
-              };
 
               // (A) 寄給 教練
               try {
@@ -351,8 +341,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     total_amount: `NT$ ${finalPrice.toLocaleString()}`,
                     coach_name: coachData.name,
                     contact_phone: customerPhone,
-                    skill_level: skillLevelFormatted,
-                    ...videoCommentClose,
+                    skill_level: rawSkillLevel,
                     notes: notesText,
                     user_notes: notesText,
                     notes_text: notesText,
@@ -386,8 +375,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                     total_amount: `NT$ ${finalPrice.toLocaleString()}`,
                     coach_name: coachData.name,
                     contact_phone: customerPhone,
-                    skill_level: skillLevelFormatted,
-                    ...videoCommentClose,
+                    skill_level: rawSkillLevel,
                     notes: notesText,
                     user_notes: notesText,
                     notes_text: notesText,
@@ -422,8 +410,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, totalPri
                       total_amount: `NT$ ${finalPrice.toLocaleString()}`,
                       coach_name: coachData.name,
                       contact_phone: customerPhone,
-                      skill_level: skillLevelFormatted,
-                      ...videoCommentClose,
+                      skill_level: rawSkillLevel,
                       notes: notesText,
                       user_notes: notesText,
                       notes_text: notesText,
