@@ -105,59 +105,61 @@ const ProductShowcase: React.FC = () => {
   }, [mode]);
 
   const handleAddToCart = async (e: React.MouseEvent<HTMLButtonElement>, product: Product) => {
+    const btn = e.currentTarget;
+    const rect = btn?.getBoundingClientRect();
+
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
       window.dispatchEvent(new CustomEvent('requireAuth', { detail: { message: '請先登入/註冊 才可進行下一步' } }));
       return;
     }
 
-    const btn = e.currentTarget;
-    const rect = btn.getBoundingClientRect();
-    
-    // Create flying image
-    const img = document.createElement('img');
-    img.src = product.image;
-    img.className = 'fixed z-[9999] rounded-[20px] object-cover shadow-2xl pointer-events-none transition-all';
-    img.style.width = '120px';
-    img.style.height = '150px';
-    // Start from the button's position
-    img.style.left = `${rect.left + rect.width / 2 - 60}px`;
-    img.style.top = `${rect.top - 100}px`;
-    img.style.transform = 'scale(1)';
-    img.style.opacity = '1';
-    img.style.transition = 'all 0.8s cubic-bezier(0.2, 1, 0.3, 1)';
-    
-    document.body.appendChild(img);
-    
-    // Force reflow
-    void img.offsetWidth;
-    
-    // Find visible cart icon
-    const cartIcons = document.querySelectorAll('#header-cart-icon');
-    let targetX = window.innerWidth - 40;
-    let targetY = 20;
-    
-    for (let i = 0; i < cartIcons.length; i++) {
-      const el = cartIcons[i] as HTMLElement;
-      if (el.offsetWidth > 0 && el.offsetHeight > 0) {
-        const iconRect = el.getBoundingClientRect();
-        targetX = iconRect.left + iconRect.width / 2 - 30; // center of 60x60
-        targetY = iconRect.top + iconRect.height / 2 - 30;
-        break;
+    if (rect) {
+      // Create flying image
+      const img = document.createElement('img');
+      img.src = product.image;
+      img.className = 'fixed z-[9999] rounded-[20px] object-cover shadow-2xl pointer-events-none transition-all';
+      img.style.width = '120px';
+      img.style.height = '150px';
+      // Start from the button's position
+      img.style.left = `${rect.left + rect.width / 2 - 60}px`;
+      img.style.top = `${rect.top - 100}px`;
+      img.style.transform = 'scale(1)';
+      img.style.opacity = '1';
+      img.style.transition = 'all 0.8s cubic-bezier(0.2, 1, 0.3, 1)';
+      
+      document.body.appendChild(img);
+      
+      // Force reflow
+      void img.offsetWidth;
+      
+      // Find visible cart icon
+      const cartIcons = document.querySelectorAll('#header-cart-icon');
+      let targetX = window.innerWidth - 40;
+      let targetY = 20;
+      
+      for (let i = 0; i < cartIcons.length; i++) {
+        const el = cartIcons[i] as HTMLElement;
+        if (el.offsetWidth > 0 && el.offsetHeight > 0) {
+          const iconRect = el.getBoundingClientRect();
+          targetX = iconRect.left + iconRect.width / 2 - 30; // center of 60x60
+          targetY = iconRect.top + iconRect.height / 2 - 30;
+          break;
+        }
       }
+      
+      img.style.left = `${targetX}px`;
+      img.style.top = `${targetY}px`;
+      img.style.transform = 'scale(0.1)';
+      img.style.opacity = '0';
+      
+      // Clean up
+      setTimeout(() => {
+        if (document.body.contains(img)) {
+          document.body.removeChild(img);
+        }
+      }, 800);
     }
-    
-    img.style.left = `${targetX}px`;
-    img.style.top = `${targetY}px`;
-    img.style.transform = 'scale(0.1)';
-    img.style.opacity = '0';
-    
-    // Clean up
-    setTimeout(() => {
-      if (document.body.contains(img)) {
-        document.body.removeChild(img);
-      }
-    }, 800);
 
     addToCart({ 
       id: product.id, 

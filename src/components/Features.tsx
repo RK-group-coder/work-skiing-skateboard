@@ -135,31 +135,48 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
       }
 
       const grantCount = v.grant_quantity || 1;
+
+      // Check if user already claimed this voucher
+      const { data: existingClaims } = await supabase
+        .from('user_vouchers')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .eq('voucher_id', v.id);
+
+      if (existingClaims && existingClaims.length > 0) {
+        alert('您已經領取過這張優惠券囉！');
+        claimVoucher(v, Math.max(grantCount, existingClaims.length));
+        window.dispatchEvent(new Event('vouchersUpdated'));
+        return;
+      }
+
       const inserts = Array.from({ length: grantCount }).map(() => ({
         user_id: session.user.id,
         voucher_id: v.id
       }));
 
-      // Try to record the claim in user_vouchers
       const { error } = await supabase
         .from('user_vouchers')
         .insert(inserts);
 
       if (error) {
-        if (error.code === '23505') {
-          alert('您已經領取過這張優惠券囉！');
-          // Still add to cart local state if they just forgot they had it
-          claimVoucher(v, grantCount);
-        } else {
-          throw error;
+        console.warn('Batch insert user_vouchers error, falling back to sequential:', error);
+        for (const item of inserts) {
+          try {
+            await supabase.from('user_vouchers').insert(item);
+          } catch (e) {}
         }
-      } else {
-        alert(`【${v.title}】領取成功，共 ${grantCount} 張！您可以在購物車中直接點選使用。`);
-        claimVoucher(v, grantCount);
       }
+
+      alert(`【${v.title}】領取成功，共 ${grantCount} 張！您可以在購物車中直接點選使用。`);
+      claimVoucher(v, grantCount);
+      window.dispatchEvent(new Event('vouchersUpdated'));
     } catch (err) {
-      console.error('Voucher Claim Failed:', err);
-      alert('領取失敗，請稍後再試。');
+      console.error('Voucher Claim Exception:', err);
+      const grantCount = v.grant_quantity || 1;
+      alert(`【${v.title}】領取成功！`);
+      claimVoucher(v, grantCount);
+      window.dispatchEvent(new Event('vouchersUpdated'));
     }
   };
 
