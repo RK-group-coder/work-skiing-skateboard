@@ -1222,31 +1222,51 @@ const AdminPortal: React.FC<AdminPortalProps> = ({ onBack, initialUser }) => {
       const { error } = await supabase.from('orders').update({ status: 'confirmed' }).eq('id', order.id);
       if (error) throw error;
       
-      const packageItems = order.items.filter(item => item.dimensions === 'course_package' || item.category_id === 'course_package');
+      const packageItems = order.items.filter(item => 
+        item.dimensions === 'course_package' || 
+        (item as any).category_id === 'course_package' ||
+        item.name.includes('堂') || 
+        item.name.includes('方案') || 
+        item.name.includes('包套')
+      );
+
       if (packageItems.length > 0 && order.user_id) {
         for (const item of packageItems) {
-           const courseId = item.tag || '';
-           const count = (parseInt(String(item.weight || '1'), 10)) * (item.quantity || 1);
+           const courseId = item.tag || (item.details as any)?.courseId || '';
+           let count = 1;
+           if (item.weight) {
+             const parsedWeight = parseInt(String(item.weight), 10);
+             if (!isNaN(parsedWeight) && parsedWeight > 0) count = parsedWeight;
+           } else {
+             const match = item.name.match(/(\d+)\s*堂/);
+             if (match && match[1]) count = parseInt(match[1], 10);
+           }
+           const totalLessons = count * (item.quantity || 1);
            
-           const { data: vData } = await supabase.from('vouchers').insert({
-             code: `PKG-${Date.now()}-${Math.floor(Math.random()*1000)}`,
-             title: item.name,
-             type: 'percent',
-             value: 100,
-             target_type: 'course_package',
-             target_id: courseId,
-             is_published: false,
-             is_active: true,
-             grant_quantity: 1
-           }).select().single();
-           
-           if (vData) {
-             const uvData = Array.from({ length: count }).map(() => ({
-               user_id: order.user_id,
-               voucher_id: vData.id,
-               is_used: false
-             }));
-             await supabase.from('user_vouchers').insert(uvData);
+           for (let i = 0; i < totalLessons; i++) {
+             try {
+               const { data: vData } = await supabase.from('vouchers').insert({
+                 code: `PKG-${Date.now()}-${Math.floor(Math.random()*10000)}-${i}`,
+                 title: item.name,
+                 type: 'percent',
+                 value: 100,
+                 target_type: 'course_package',
+                 target_id: courseId,
+                 is_published: false,
+                 is_active: true,
+                 grant_quantity: 1
+               }).select('id').single();
+
+               if (vData?.id) {
+                 await supabase.from('user_vouchers').insert({
+                   user_id: order.user_id,
+                   voucher_id: vData.id,
+                   is_used: false
+                 });
+               }
+             } catch (pkgErr) {
+               console.error('Error granting course package voucher on confirm:', pkgErr);
+             }
            }
         }
       }
