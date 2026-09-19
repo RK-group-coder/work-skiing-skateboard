@@ -520,13 +520,18 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                 {(() => {
                   const safeVouchers = vouchers || [];
                   const groupedVouchers = safeVouchers.reduce((acc, v) => {
-                    if (!acc[v.id]) {
-                      acc[v.id] = { ...v, count: 1 };
+                    const groupKey = v.target_type === 'course_package'
+                      ? `course_pkg_${v.target_id || v.title}`
+                      : (v.code ? `code_${v.code}` : `id_${v.id}`);
+
+                    if (!acc[groupKey]) {
+                      acc[groupKey] = { ...v, count: 1, voucherIds: [v.id] };
                     } else {
-                      acc[v.id].count += 1;
+                      acc[groupKey].count += 1;
+                      acc[groupKey].voucherIds.push(v.id);
                     }
                     return acc;
-                  }, {} as Record<string, Voucher & { count: number }>);
+                  }, {} as Record<string, Voucher & { count: number; voucherIds: string[] }>);
 
                   const coursePackages = Object.values(groupedVouchers).filter(v => v.target_type === 'course_package');
                   const normalVouchers = Object.values(groupedVouchers).filter(v => v.target_type !== 'course_package').sort((a, b) => {
@@ -537,7 +542,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                     return 0;
                   });
 
-                  const renderVoucher = (v: Voucher & { count: number }, index: number) => {
+                  const renderVoucher = (v: Voucher & { count: number; voucherIds?: string[] }, index: number) => {
                     const isSelected = selectedVoucher?.id === v.id;
                     let targetLabel = v.target_type === 'global' ? '全站通用' : 
                                         v.target_type === 'skiing' ? '滑雪商品專用' : 
@@ -613,7 +618,15 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                               selectVoucher(v.id);
                               setIsMyVouchersOpen(false);
                               setTimeout(() => {
-                                window.dispatchEvent(new CustomEvent('openCourseModal', { detail: { courseId: v.target_id, isRedeemingPackage: true, voucherId: v.id } }));
+                                window.dispatchEvent(new CustomEvent('openCourseModal', { 
+                                  detail: { 
+                                    courseId: v.target_id, 
+                                    isRedeemingPackage: true, 
+                                    voucherId: v.id,
+                                    availableVoucherIds: v.voucherIds || [v.id],
+                                    maxRedeemCount: v.count
+                                  } 
+                                }));
                               }, 300);
                               return;
                             }

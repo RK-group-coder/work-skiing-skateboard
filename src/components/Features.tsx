@@ -277,7 +277,8 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
              addPrice: Number(course.additional_lesson_price || 0),
              features: course.description ? course.description.split('\n').filter((s: string) => s.trim()) : ['專業教練指導', '安全防護保證'],
              isRedeemingPackage: e.detail?.isRedeemingPackage || false,
-             redeemVoucherId: e.detail?.voucherId || null
+             redeemVoucherId: e.detail?.voucherId || null,
+             availableVoucherIds: e.detail?.availableVoucherIds || []
           });
 
           setIsBookingOpen(true);

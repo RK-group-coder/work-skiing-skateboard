@@ -22,6 +22,7 @@ interface BookingModalProps {
     mode?: string;
     isRedeemingPackage?: boolean;
     redeemVoucherId?: string | null;
+    availableVoucherIds?: string[];
     is_night_mode?: boolean;
     night_mode_slots?: string[];
   };
@@ -586,22 +587,45 @@ const CourseBookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, cour
 
         if (orderError) throw orderError;
 
-        if (course.redeemVoucherId) {
-          // Fetch the first unused voucher row for this user
-          const { data: uvData } = await supabase.from('user_vouchers')
+        // 🎟️ 根據預約人次/堂數扣除對應數量的 user_vouchers
+        const neededCount = Math.max(1, totalPersonSlots || 1);
+        const vIds = course.availableVoucherIds && course.availableVoucherIds.length > 0 
+          ? course.availableVoucherIds 
+          : (course.redeemVoucherId ? [course.redeemVoucherId] : []);
+
+        if (vIds.length > 0) {
+          const { data: uvRows } = await supabase.from('user_vouchers')
             .select('id')
-            .eq('voucher_id', course.redeemVoucherId)
+            .in('voucher_id', vIds)
             .eq('user_id', userData.user.id)
             .eq('is_used', false)
-            .limit(1)
-            .single();
+            .limit(neededCount);
 
-          if (uvData) {
+          if (uvRows && uvRows.length > 0) {
+            const idsToUpdate = uvRows.map(r => r.id);
             await supabase.from('user_vouchers')
-              .update({ is_used: true })
-              .eq('id', uvData.id);
+              .update({ is_used: true, used_at: new Date().toISOString() })
+              .in('id', idsToUpdate);
+          }
+        } else {
+          // Fallback: match by course.id and target_type = course_package
+          const { data: uvRows } = await supabase.from('user_vouchers')
+            .select('id, vouchers!inner(target_id, target_type)')
+            .eq('user_id', userData.user.id)
+            .eq('is_used', false)
+            .eq('vouchers.target_type', 'course_package')
+            .eq('vouchers.target_id', course.id)
+            .limit(neededCount);
+
+          if (uvRows && uvRows.length > 0) {
+            const idsToUpdate = uvRows.map(r => r.id);
+            await supabase.from('user_vouchers')
+              .update({ is_used: true, used_at: new Date().toISOString() })
+              .in('id', idsToUpdate);
           }
         }
+
+        window.dispatchEvent(new Event('vouchersUpdated'));
 
         // EmailJS call
         try {
