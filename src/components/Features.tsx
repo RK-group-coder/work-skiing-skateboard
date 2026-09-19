@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase';
 import CourseBookingModal from './CourseBookingModal';
 
 interface FeaturesProps {
-  onLoginClick?: () => void;
+  onLoginClick?: (msg?: string) => void;
 }
 
 const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
@@ -127,9 +127,9 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
         if (onLoginClick) {
-          onLoginClick();
+          onLoginClick('請先登入/註冊 才可進行下一步');
         } else {
-          alert('請先登入才能領取優惠券！');
+          window.dispatchEvent(new CustomEvent('requireAuth', { detail: { message: '請先登入/註冊 才可進行下一步' } }));
         }
         return;
       }
@@ -390,7 +390,16 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                 <div className="mt-auto pt-4">
                   {(p.duration !== 'PACKAGE_ONLY' || !coursePackages.some((pkg: any) => pkg.tag === p.id)) && (
                     <button 
-                      onClick={() => {
+                      onClick={async () => {
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (!session?.user) {
+                          if (onLoginClick) {
+                            onLoginClick('請先登入/註冊 才可進行下一步');
+                          } else {
+                            window.dispatchEvent(new CustomEvent('requireAuth', { detail: { message: '請先登入/註冊 才可進行下一步' } }));
+                          }
+                          return;
+                        }
                         setSelectedCourse(p);
                         setIsBookingOpen(true);
                       }}
@@ -409,7 +418,16 @@ const Features: React.FC<FeaturesProps> = ({ onLoginClick }) => {
                     if (pkg) {
                       return (
                         <button 
-                          onClick={() => {
+                          onClick={async () => {
+                            const { data: { session } } = await supabase.auth.getSession();
+                            if (!session?.user) {
+                              if (onLoginClick) {
+                                onLoginClick('請先登入/註冊 才可進行下一步');
+                              } else {
+                                window.dispatchEvent(new CustomEvent('requireAuth', { detail: { message: '請先登入/註冊 才可進行下一步' } }));
+                              }
+                              return;
+                            }
                             setDirectPurchaseItem({
                               id: pkg.id,
                               name: pkg.name,

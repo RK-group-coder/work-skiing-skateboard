@@ -8,7 +8,7 @@ import { supabase } from '../lib/supabase';
 
 interface NavbarProps {
   user: SupabaseUser | null;
-  onLoginClick: () => void;
+  onLoginClick: (msg?: string) => void;
   onAdminClick: () => void;
   onLogout: () => void;
   onSupportClick: () => void;
@@ -204,7 +204,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
               </div>
             ) : (
               <button 
-                onClick={onLoginClick}
+                onClick={() => onLoginClick()}
                 style={{ backgroundColor: '#111827', color: '#ffffff', padding: '8px 20px', borderRadius: 9999, fontSize: 14, fontWeight: 700, marginLeft: 16, border: 'none', cursor: 'pointer' }}
               >
                 登入 / 註冊
@@ -458,7 +458,7 @@ const Navbar: React.FC<NavbarProps> = ({ user, onLoginClick, onAdminClick, onLog
                   <button 
                     onClick={() => {
                       if (!user) {
-                        onLoginClick();
+                        onLoginClick('請先登入/註冊 才可進行下一步');
                         return;
                       }
                       setIsCartOpen(false);

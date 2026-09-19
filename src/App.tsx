@@ -197,9 +197,9 @@ const Footer: React.FC = () => {
   );
 };
 
-function AuthModalWrapper({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+function AuthModalWrapper({ isOpen, onClose, promptMessage }: { isOpen: boolean; onClose: () => void; promptMessage?: string }) {
   const { mode } = useTheme();
-  return <AuthModal isOpen={isOpen} onClose={onClose} mode={mode} />;
+  return <AuthModal isOpen={isOpen} onClose={onClose} mode={mode} promptMessage={promptMessage} />;
 }
 
 function App() {
@@ -207,6 +207,12 @@ function App() {
   const [showSupport, setShowSupport] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authPromptMessage, setAuthPromptMessage] = useState<string>('請先登入/註冊 才可進行下一步');
+
+  const triggerAuth = (msg = '請先登入/註冊 才可進行下一步') => {
+    setAuthPromptMessage(msg);
+    setIsAuthModalOpen(true);
+  };
 
   const ADMIN_EMAILS = ['pokai2952@gmail.com', 'managersk8@gmail.com'];
   
@@ -232,7 +238,16 @@ function App() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    const handleRequireAuth = (e: any) => {
+      const msg = e.detail?.message || '請先登入/註冊 才可進行下一步';
+      triggerAuth(msg);
+    };
+    window.addEventListener('requireAuth', handleRequireAuth as any);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('requireAuth', handleRequireAuth as any);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -253,11 +268,12 @@ function App() {
         <CustomerSupport 
           user={user} 
           onBack={() => setShowSupport(false)} 
-          onLoginRequest={() => setIsAuthModalOpen(true)}
+          onLoginRequest={() => triggerAuth('請先登入/註冊 才可進行下一步')}
         />
         <AuthModalWrapper
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
+          promptMessage={authPromptMessage}
         />
       </ThemeProvider>
     );
@@ -269,7 +285,7 @@ function App() {
         <div className="min-h-screen">
           <Navbar
             user={user}
-            onLoginClick={() => setIsAuthModalOpen(true)}
+            onLoginClick={(msg?: string) => triggerAuth(msg || '請先登入/註冊 才可進行下一步')}
             onAdminClick={() => toggleAdmin(true)}
             onLogout={handleLogout}
             onSupportClick={() => setShowSupport(true)}
@@ -277,7 +293,7 @@ function App() {
           <main>
             <Hero />
             <CourseTrust />
-            <Features onLoginClick={() => setIsAuthModalOpen(true)} />
+            <Features onLoginClick={(msg?: string) => triggerAuth(msg || '請先登入/註冊 才可進行下一步')} />
             <ProductShowcase />
             <Contact />
           </main>
@@ -287,6 +303,7 @@ function App() {
         <AuthModalWrapper
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
+          promptMessage={authPromptMessage}
         />
 
         <CartConsumer />

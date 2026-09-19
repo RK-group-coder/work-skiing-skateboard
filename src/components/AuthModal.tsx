@@ -8,9 +8,10 @@ interface AuthModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   mode?: 'skiing' | 'skateboard';
+  promptMessage?: string;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, mode = 'skiing' }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, mode = 'skiing', promptMessage }) => {
   const [isRegister, setIsRegister] = useState(false);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -79,7 +80,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, mode 
 
         <div className="relative p-8 md:p-10">
           {/* Header */}
-          <div className="flex justify-between items-start mb-8">
+          <div className="flex justify-between items-start mb-6">
             <div>
               <h2 className="text-3xl font-black italic tracking-tighter uppercase leading-none">
                 {isRegister ? '加入 ' : '歡迎 '}
@@ -98,6 +99,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess, mode 
               <X size={24} />
             </button>
           </div>
+
+          {/* Prompt Banner */}
+          {promptMessage && (
+            <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border-2 border-amber-500/40 flex items-center gap-3 text-amber-500 font-black text-xs shadow-sm">
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping shrink-0" />
+              <span>{promptMessage}</span>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">

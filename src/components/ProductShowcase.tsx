@@ -104,7 +104,13 @@ const ProductShowcase: React.FC = () => {
     fetchContent();
   }, [mode]);
 
-  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>, product: Product) => {
+  const handleAddToCart = async (e: React.MouseEvent<HTMLButtonElement>, product: Product) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      window.dispatchEvent(new CustomEvent('requireAuth', { detail: { message: '請先登入/註冊 才可進行下一步' } }));
+      return;
+    }
+
     const btn = e.currentTarget;
     const rect = btn.getBoundingClientRect();
     
